@@ -1,6 +1,12 @@
-# Raspimgmt
+# Escape Room Frontend
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 1.7.4.
+
+## Setup
+
+Run the following commands to get a development setup
+
+    npm install
 
 ## Development server
 
