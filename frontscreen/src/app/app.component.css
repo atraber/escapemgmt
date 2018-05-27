@@ -1,0 +1,70 @@
+#frontscreen #top-bar {
+  margin: 40px;
+  margin-top: 70px;
+}
+
+#frontscreen #top-bar h1 {
+  margin-top: 20px;
+  margin-left: 40px;
+  color: var(--orange);
+  font-weight: 900;
+  font-family: Abel;
+}
+
+#frontscreen #logo {
+  width: auto;
+  height: 100px;
+}
+
+#frontscreen .card .card-body h2 {
+  font-size: 1.9rem;
+}
+
+#frontscreen .card {
+  min-height: calc(62vh);
+}
+
+#frontscreen table small {
+  color:  var(--gray);
+}
+
+#logo-item img {
+  margin: auto;
+  margin-top: calc(10vh);
+  max-height: calc(80vh);
+  max-width: calc(80vw);
+}
+
+#room-item {
+  background-size: cover;
+  min-height: calc(100vh);
+  min-width: calc(100vw);
+}
+
+#room-item .band-container {
+  position: absolute;
+  bottom: 35px;
+  right: 0;
+}
+
+#room-item .head {
+  font-size: 33pt !important;
+  font-weight: 900 !important;
+}
+
+#room-item .band {
+  margin-bottom: 35px;
+  background-color: var(--orange);
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 15px;
+  padding-right: 20px;
+
+  font-size: 27pt;
+  font-weight: 600;
+  color: var(--light);
+
+  margin-left: auto;
+  margin-right: 0px;
+  width: fit-content;
+}

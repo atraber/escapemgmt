@@ -1,0 +1,29 @@
+#frontscreen #top-bar {
+  margin: 40px;
+  margin-top: 70px;
+}
+
+#frontscreen #top-bar h1 {
+  margin-top: 20px;
+  margin-left: 40px;
+  color: var(--orange);
+  font-weight: 900;
+  font-family: Abel;
+}
+
+#frontscreen #logo {
+  width: auto;
+  height: 100px;
+}
+
+#frontscreen .card .card-body h2 {
+  font-size: 1.9rem;
+}
+
+#frontscreen .card {
+  min-height: calc(62vh);
+}
+
+#frontscreen table small {
+  color:  var(--gray);
+}
