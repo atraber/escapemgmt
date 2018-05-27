@@ -1,0 +1,84 @@
+<div class="container">
+  <div class="row">
+    <h1>High Scores</h1>
+  </div>
+  <div class="row">
+    <div class="col-sm-4">
+      <div class="list-group">
+        <button class="list-group-item list-group-item-action flex-column align-items-start" *ngFor="let room of rooms" (click)="room_selected=room" [ngClass]="{'active': room_selected == room}">
+          <h5 class="mb-1">{{room.name}}</h5>
+        </button>
+      </div>
+    </div>
+    <div class="col-sm-8" *ngIf="room_selected == null">
+      <h4>Please select a room</h4>
+    </div>
+    <div class="col-sm-8" *ngIf="room_selected">
+      <h2>{{room_selected.name}}</h2>
+
+      <form>
+        <div class="form-group">
+          <label>Scores</label>
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">Name</th>
+                <th scope="col">Time</th>
+                <th scope="col">Created At</th>
+                <th scope="col"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let score of room_selected.scores; index as i">
+                <th scope="row">{{i + 1}}</th>
+                <td>{{score.name}}</td>
+                <td>{{score.time | amFromUnix | amUtc | amDateFormat: "HH:mm"}}</td>
+                <td>{{score.created_at | amFromUnix | amUtc | amDateFormat: "DD.MM.YYYY HH:mm"}}</td>
+                <td>
+                  <a href="#" (click)="deleteScoreFromRoom(room_selected, score)"><i class="fas fa-trash-alt"></i></a>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <button class="btn btn-primary" data-toggle="modal" data-target="#newScore"><i class="fas fa-plus-circle"></i> Add Score</button>
+      </form>
+
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="newScore" tabindex="-1" role="dialog" aria-labelledby="newScoreLabel" aria-hidden="true" *ngIf="room_selected">
+  <div class="modal-dialog" role="document">
+    <form>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="newRoomLabel">Add Score to {{room_selected.name}}</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="scoreName">Name</label>
+          <input type="text" class="form-control" id="scoreName" name="scoreName" [(ngModel)]="new_score_name">
+        </div>
+        <div class="form-group">
+          <label for="scoreTime">Time</label>
+          <div class="input-group bootstrap-timepicker timepicker">
+            <div class="input-group-prepend">
+              <span class="input-group-text" id="inputGroupPrepend2"><i class="far fa-clock"></i></span>
+            </div>
+            <input id="timepicker" name="timepicker" class="form-control" data-provide="timepicker" data-template="modal" data-default-time="false" data-show-meridian="false" data-minute-step="1" data-modal-backdrop="true" type="text" [(ngModel)]="new_score_time">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="submit" class="btn btn-primary" data-dismiss="modal" (click)="addScoreToRoom(room_selected, new_score_name, new_score_time)">Add</button>
+      </div>
+    </div>
+    </form>
+  </div>
+</div>

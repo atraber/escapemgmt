@@ -1,0 +1,93 @@
+<div class="container">
+  <div class="row">
+    <h1>Streams</h1>
+  </div>
+  <div class="row">
+    <div class="col-sm-4">
+      <div class="list-group">
+        <button class="list-group-item list-group-item-action flex-column align-items-start" *ngFor="let stream of streams" (click)="stream_selected=stream" [ngClass]="{'active': stream_selected == stream}">
+          <h5 class="mb-1">{{stream.name}}</h5>
+        </button>
+        <a href="#" class="list-group-item list-group-item-action" data-toggle="modal" data-target="#newStream"><i class="fas fa-plus-circle"></i> Add</a>
+      </div>
+    </div>
+    <div class="col-sm-8" *ngIf="stream_selected">
+      <h2>Settings</h2>
+
+      <form>
+        <div class="form-group">
+          <label for="streamName">Name</label>
+          <input type="text" class="form-control" id="streamName" name="streamName" [(ngModel)]="stream_selected.name">
+        </div>
+        <div class="form-group">
+          <label for="streamUrl">URL</label>
+          <input type="text" class="form-control" id="streamUrl" name="streamUrl" [(ngModel)]="stream_selected.url">
+        </div>
+        <div class="form-group">
+          <label for="streamWidth">Width</label>
+          <input type="text" class="form-control" id="streamWidth" name="streamWidth" [(ngModel)]="stream_selected.width">
+        </div>
+        <div class="form-group">
+          <label for="streamHeight">Height</label>
+          <input type="text" class="form-control" id="streamHeight" name="streamHeight" [(ngModel)]="stream_selected.height">
+        </div>
+        <div class="form-group">
+          <label for="streamOrientation">Orientation</label>
+          <input type="text" class="form-control" id="streamOrientation" name="streamOrientation" [(ngModel)]="stream_selected.orientation">
+        </div>
+        <button type="submit" class="btn btn-primary" (click)="updateStream(stream_selected)">Save</button>
+        <button class="btn btn-danger" (click)="deleteStream(stream_selected)"><i class="fas fa-trash-alt"></i> Delete</button>
+      </form>
+
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="addStream" tabindex="-1" role="dialog" aria-labelledby="addStreamLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addStreamLabel">Add Stream</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="list-group" *ngFor="let stream of streams" (click)="stream_selected=stream">
+          <button class="list-group-item list-group-item-action flex-column align-items-start" [ngClass]="{'active': stream_selected == stream}">
+            <h5 class="mb-1">{{stream.name}}</h5>
+            <small>{{stream.url}}</small>
+          </button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" data-dismiss="modal" (click)="stream_selected.streams.push(stream_selected)">Add</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="newStream" tabindex="-1" role="dialog" aria-labelledby="newStreamLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="newStreamLabel">Create Stream</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="streamName">Name</label>
+          <input type="text" class="form-control" id="streamName" name="streamName" [(ngModel)]="new_stream_name">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" data-dismiss="modal" (click)="addStream(new_stream_name)">Add</button>
+      </div>
+    </div>
+  </div>
+</div>
