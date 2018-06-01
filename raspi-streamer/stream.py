@@ -52,11 +52,15 @@ class ProcessWatcher:
         self.stop_watch = False
         self.monitor_is_off = True
 
-    def decode_cmds(self, urls):
+    def build_cmds(self, urls):
         cmds = []
+        # TODO: get screen size dynamically
         display_size_x = 1600
         display_size_y = 1200
 
+        if len(urls) == 0:
+            print("You did not give us a url")
+            return []
         if len(urls) == 1:
             scaling = urls[0].get_scaling_factor(display_size_x, display_size_y)
             urls[0].scale(scaling)
@@ -64,14 +68,15 @@ class ProcessWatcher:
 
             cmds.append(omx_cmd(urls[0]))
         elif len(urls) == 2:
-            assert urls[0].orientation == urls[1].orientation
-
-            if urls[0].orientation == 0:
+            if urls[0].orientation == 0 and urls[0].orientation == 0:
                 size_x = display_size_x
                 size_y = display_size_y/2
-            else:
+            elif urls[0].orientation == 90 and urls[1].orientation == 90:
                 size_x = display_size_x/2
                 size_y = display_size_y
+            else:
+                size_x = display_size_x/2
+                size_y = display_size_y/2
 
             for url in urls:
                 scaling = url.get_scaling_factor(size_x, size_y)
@@ -84,7 +89,19 @@ class ProcessWatcher:
             for url in urls:
                 cmds.append(omx_cmd(url))
         else:
-            print("We only support one or two streams for now")
+            size_x = display_size_x
+            size_y = display_size_y/len(urls)
+
+            for url in urls:
+                scaling = url.get_scaling_factor(size_x, size_y)
+                url.scale(scaling)
+                url.center(size_x, size_y)
+
+            for i in range(1, len(urls)):
+                urls[i].pos_y += i * size_y
+
+            for url in urls:
+                cmds.append(omx_cmd(url))
 
         return cmds
 
@@ -132,7 +149,7 @@ class ProcessWatcher:
             self.monitor_is_off = False
 
         urls = copy.deepcopy(urls)
-        self.cmds = self.decode_cmds(urls)
+        self.cmds = self.build_cmds(urls)
         self.thread = threading.Thread(target=functools.partial(ProcessWatcher._watch_thread_entry, self))
         self.thread.start()
 
