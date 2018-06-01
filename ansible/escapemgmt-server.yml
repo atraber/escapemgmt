@@ -55,8 +55,6 @@
 
             <Directory /home/houdini/escapemgmt/frontscreen/dist>
               Require all granted
-
-              FallbackResource /index.html
             </Directory>
 
             WSGIScriptAlias /raspi-api /home/houdini/escapemgmt/backend/app.wsgi
