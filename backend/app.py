@@ -15,7 +15,7 @@ def shutdown_dbsession(exception=None):
 
 @app.route('/streams', methods = ['GET'])
 def apiStreams():
-    streams = db_session.query(Stream).all()
+    streams = db_session.query(Stream).order_by(Stream.name).all()
     return jsonify([s.serialize() for s in streams])
 
 @app.route('/stream', methods = ['POST'])
@@ -52,7 +52,7 @@ def apiStreamUpdate(streamid):
 
 @app.route('/devices', methods = ['GET'])
 def apiDevices():
-    devices = db_session.query(Device).all()
+    devices = db_session.query(Device).order_by(Device.name).all()
     return jsonify([d.serialize() for d in devices])
 
 @app.route('/device', methods = ['POST'])
