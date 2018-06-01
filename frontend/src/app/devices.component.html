@@ -8,7 +8,7 @@
         <button class="list-group-item list-group-item-action flex-column align-items-start" *ngFor="let dev of devices" (click)="dev_selected=dev" [ngClass]="{'active': dev_selected == dev}">
           <div class="d-flex w-100 justify-content-between">
             <h5 class="mb-1">{{dev.name}}</h5>
-            <small class="text-muted">Last seen {{dev.last_seen | amFromUnix | amUtc | amDateFormat: "DD.MM.YYYY HH:mm"}}</small>
+            <small class="text-muted">Last seen {{deviceLastSeen(dev.last_seen)}}</small>
           </div>
           <small>{{dev.mac}}</small>
         </button>

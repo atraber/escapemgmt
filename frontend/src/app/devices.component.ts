@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { DevicesService } from './devices.service';
 import { Device } from './device';
 import { Stream } from './stream';
+import * as moment from 'moment';
 
 @Component({
   templateUrl: './devices.component.html',
@@ -11,6 +12,10 @@ export class DevicesComponent {
   devices: Device[];
   streams: Stream[];
   dev_selected: Device;
+
+  deviceLastSeen(last_seen) {
+    return moment.utc(last_seen * 1000).fromNow();
+  }
 
   constructor(private devicesService: DevicesService) {
     this.devices = this.devicesService.devices;
