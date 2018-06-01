@@ -1,0 +1,46 @@
+- hosts: tv
+  user: pi
+  tasks:
+    - name: Install git
+      become: true
+      become_user: root
+      become_method: sudo
+      apt: name=git state=present
+
+    - name: Checkout github repository
+      git: repo='https://github.com/atraber/escapemgmt.git' dest=/home/pi/escapemgmt version=master
+
+    - name: Create autostart entry
+      copy:
+        dest: "/home/pi/autostart.sh"
+        content: |
+          xset s off
+          xset s noblank
+          xset -dpms
+          iceweasel http://192.168.0.150 &
+          sleep 2
+          xdotool search --sync --onlyvisible --class "Firefox" windowactivate key F11
+          sleep 10
+          xdotool search --sync --onlyvisible --class "Firefox" windowactivate key ctrl+F5
+          unclutter -idle 2.00 -root &
+
+
+    - name: Create firefox refresh
+      copy:
+        dest: "/home/pi/firefox_refresh.sh"
+        content: |
+          export DISPLAY=:0
+          xdotool search --sync --onlyvisible --class "Firefox" windowactivate key ctrl+F5
+
+    - name: Create firefox refresh
+      copy:
+        dest: "/home/pi/.config/autostart/autostart.desktop"
+        content: |
+         [Desktop Entry]
+          Encoding=UTF-8
+          Name=stream
+          GenericName=iceweasel
+          Exec=/home/pi/autostart.sh
+          Terminal=false
+          Type=Application
+          Categories=
