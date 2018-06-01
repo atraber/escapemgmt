@@ -9,8 +9,6 @@ engine = create_engine(
     connect_args = {
         'port': 3306
     },
-    echo='debug',
-#    echo_pool=True
 )
 
 db_session = scoped_session(
