@@ -3,8 +3,8 @@ import { EventEmitter, Injectable } from '@angular/core';
 import * as moment from 'moment';
 import { Observable } from 'rxjs';
 import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
-import { environment } from '../environments/environment';
-import { Room } from './room';
+import { environment } from '../../environments/environment';
+import { Room } from '../room';
 
 const jsonOptions = {
     headers: new HttpHeaders({

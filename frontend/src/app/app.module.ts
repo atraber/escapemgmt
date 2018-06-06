@@ -14,11 +14,15 @@ import { RoomsComponent } from './rooms.component';
 import { DevicesService } from './devices.service';
 import { ScoresService } from './scores.service';
 
+import { HighscoreComponent } from './frontscreen/highscore.component';
+import { RoomsService } from './frontscreen/rooms.service';
+
 const appRoutes: Routes = [
   { path: 'devices', component: DevicesComponent },
   { path: 'streams', component: StreamsComponent },
   { path: 'scores', component: ScoresComponent },
   { path: 'rooms', component: RoomsComponent },
+  { path: 'frontscreen', component: HighscoreComponent },
   { path: '',
     redirectTo: '/devices',
     pathMatch: 'full'
@@ -36,6 +40,7 @@ const appRoutes: Routes = [
     RoomsComponent,
     ScoresComponent,
     StreamsComponent,
+    HighscoreComponent,
   ],
   imports: [
     RouterModule.forRoot(
@@ -49,6 +54,7 @@ const appRoutes: Routes = [
   providers: [
     DevicesService,
     ScoresService,
+    RoomsService,
   ],
   bootstrap: [AppComponent]
 })
