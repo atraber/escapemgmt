@@ -3,4 +3,5 @@ __pycache__
 /include
 /lib
 /lib64
+/venv
 pip-selfcheck.json
