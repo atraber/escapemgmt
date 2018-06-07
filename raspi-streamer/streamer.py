@@ -1,5 +1,7 @@
+from rectpack import newPacker
 import copy
 import functools
+import math
 import psutil
 import subprocess
 import threading
@@ -7,6 +9,17 @@ import time
 
 class UrlBox:
     def __init__(self, url, size_x, size_y, orientation = 0):
+        if not orientation in [0, 90, 180, 270]:
+            print("Unknown orientation. Setting it to 0")
+            orientation = 0
+
+        if orientation == 90:
+            size_x, size_y = size_y, size_x
+
+        if url is None:
+            print("URL does not seem to be set")
+            url = ""
+
         self.url = url
         self.pos_x = 0
         self.pos_y = 0
@@ -14,27 +27,17 @@ class UrlBox:
         self.size_y = size_y
         self.orientation = orientation
 
-        if not self.orientation in [0, 90, 180, 270]:
-            print("Unknown orientation. Setting it to 0")
-            self.orientation = 0
+        self.size = [size_x, size_y]
+        self.scaling_factor = 1.0
 
-        if orientation == 90:
-            tmp = self.size_x
-            self.size_x = self.size_y
-            self.size_y = tmp
+    def getSize(self):
+        return list(map(lambda v: int(v * self.scaling_factor), self.size))
 
-    def getScalingFactor(self, display_x, display_y):
-        x = display_x / self.size_x
-        y = display_y / self.size_y
-        return min(x, y)
+    def setScalingFactor(self, scaling_factor):
+        self.scaling_factor = scaling_factor
 
-    def scale(self, scaling_factor):
-        self.size_x = int(self.size_x * scaling_factor)
-        self.size_y = int(self.size_y * scaling_factor)
-
-    def center(self, display_x, display_y):
-        self.pos_x = int((display_x - self.size_x)/2)
-        self.pos_y = int((display_y - self.size_y)/2)
+    def getScalingFactor(self):
+        return self.scaling_factor
 
     def isEqual(self, rhs):
         return self.url         == rhs.url \
@@ -42,11 +45,96 @@ class UrlBox:
            and self.size_y      == rhs.size_y \
            and self.orientation == rhs.orientation
 
+    def __repr__(self):
+        return "<UrlBox:{} {}:{} {}x{}".format(self.url, self.pos_x, self.pos_y, *self.getSize())
 
-def omx_cmd(url):
-    tmp = ["{}".format(i) for i in [url.pos_x, url.pos_y, int(url.pos_x + url.size_x), int(url.pos_y + url.size_y)]]
-    win = ','.join(tmp)
-    return ["omxplayer", url.url, "--win", win, "--orientation", str(url.orientation), "-o", "alsa"]
+
+class Packer:
+    def __init__(self, urls, screen_size):
+        self.urls = urls
+        self.screen_size = screen_size
+
+        if len(urls) == 0:
+            return
+
+        self.minScale()
+        self.autoScaleAll()
+        self.autoScaleSingle()
+
+    def minScale(self):
+        size_each = [self.screen_size[0] / len(self.urls), self.screen_size[1] / len(self.urls)]
+        for url in self.urls:
+            size = url.getSize()
+            factor = min(size_each[0] / size[0], size_each[1] / size[1])
+            url.setScalingFactor(factor)
+
+        # now normalize to the smallest area
+        smallest = math.inf
+        for url in self.urls:
+            size = url.getSize()
+            smallest = min(smallest, size[0] * size[1])
+
+        for url in self.urls:
+            url.setScalingFactor(1.0)
+            size = url.getSize()
+            url.setScalingFactor(smallest / (size[0] * size[1]))
+
+    def autoScaleAll(self):
+        for step_size in range(1, 12):
+            for i in range(8):
+                prev_factors = [url.getScalingFactor() for url in self.urls]
+                for j in range(len(self.urls)):
+                    self.urls[j].setScalingFactor(prev_factors[j] * (1 + 1./2**step_size))
+
+                if not self.pack():
+                    for j in range(len(self.urls)):
+                        self.urls[j].setScalingFactor(prev_factors[j])
+                    break
+
+    def autoScaleSingle(self):
+        for step_size in range(5, 12):
+            for _ in range(8):
+                progress = False
+                for url in self.urls:
+                    prev_factor = url.getScalingFactor()
+                    url.setScalingFactor(prev_factor * (1 + 1./2**step_size))
+                    if self.pack():
+                        progress = True
+                    else:
+                        url.setScalingFactor(prev_factor)
+
+                if not progress:
+                    break
+
+    def pack(self):
+        packer = newPacker(rotation=False)
+
+        for url in self.urls:
+            packer.add_rect(*url.getSize(), url)
+
+        packer.add_bin(self.screen_size[0], self.screen_size[1])
+
+        packer.pack()
+
+        all_rects = packer.rect_list()
+        if len(all_rects) != len(self.urls):
+            return False
+
+        for rect in all_rects:
+            bid, pos_x, pos_y, size_x, size_y, url = rect
+            url.pos_x = pos_x
+            url.pos_y = pos_y
+
+        return True
+
+    def display(self):
+        for url in self.urls:
+            print(url)
+
+
+def pack(urls, screen_size):
+    p = Packer(urls, screen_size)
+    return p.urls
 
 
 class Streamer:
@@ -60,55 +148,20 @@ class Streamer:
 
     def build_cmds(self, urls):
         cmds = []
-        display_size_x = self.screen_size[0]
-        display_size_y = self.screen_size[1]
 
-        if len(urls) == 0:
-            print("You did not give us a url")
-            return []
-        if len(urls) == 1:
-            scaling = urls[0].getScalingFactor(display_size_x, display_size_y)
-            urls[0].scale(scaling)
-            urls[0].center(display_size_x, display_size_y)
+        urls = pack(urls, self.screen_size)
 
-            cmds.append(omx_cmd(urls[0]))
-        elif len(urls) == 2:
-            if urls[0].orientation == 0 and urls[0].orientation == 0:
-                size_x = display_size_x
-                size_y = display_size_y/2
-            elif urls[0].orientation == 90 and urls[1].orientation == 90:
-                size_x = display_size_x/2
-                size_y = display_size_y
-            else:
-                size_x = display_size_x/2
-                size_y = display_size_y/2
-
-            for url in urls:
-                scaling = url.getScalingFactor(size_x, size_y)
-                url.scale(scaling)
-                url.center(size_x, size_y)
-
-            urls[1].pos_x += (display_size_x - size_x)
-            urls[1].pos_y += (display_size_y - size_y)
-
-            for url in urls:
-                cmds.append(omx_cmd(url))
-        else:
-            size_x = display_size_x
-            size_y = display_size_y/len(urls)
-
-            for url in urls:
-                scaling = url.getScalingFactor(size_x, size_y)
-                url.scale(scaling)
-                url.center(size_x, size_y)
-
-            for i in range(1, len(urls)):
-                urls[i].pos_y += i * size_y
-
-            for url in urls:
-                cmds.append(omx_cmd(url))
+        for url in urls:
+            cmds.append(Streamer.omx_cmd(url))
 
         return cmds
+
+    @staticmethod
+    def omx_cmd(url):
+        size = url.getSize()
+        tmp = ["{}".format(i) for i in [url.pos_x, url.pos_y, int(url.pos_x + size[0]), int(url.pos_y + size[1])]]
+        win = ','.join(tmp)
+        return ["omxplayer", url.url, "--win", win, "--orientation", str(url.orientation), "-o", "alsa"]
 
     def kill_children(self, pid):
         process = psutil.Process(pid)
@@ -120,7 +173,11 @@ class Streamer:
         processes = []
         for cmd in self.cmds:
             print(cmd)
-            p = subprocess.Popen(cmd, stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+            try:
+                p = subprocess.Popen(cmd, stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+            except FileNotFoundError:
+                print("Could not start streaming application")
+                continue
             processes.append(p)
 
         while True:
