@@ -1,3 +1,5 @@
+# Copyright 2018 Andreas Traber
+# Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
 from flask import Flask
 from flask_cors import CORS
 from flask_migrate import Migrate

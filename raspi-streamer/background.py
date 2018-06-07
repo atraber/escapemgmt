@@ -1,3 +1,5 @@
+# Copyright 2018 Andreas Traber
+# Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
 from OpenGL.GL import *
 from OpenGL.GLUT import *
 import functools

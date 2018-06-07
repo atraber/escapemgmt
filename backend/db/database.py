@@ -1,3 +1,5 @@
+# Copyright 2018 Andreas Traber
+# Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
 from datetime import datetime
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker

@@ -1,3 +1,7 @@
+/**
+ * Copyright 2018 Andreas Traber
+ * Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
+ */
 import { Injectable, EventEmitter } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { Observable } from 'rxjs/Observable';

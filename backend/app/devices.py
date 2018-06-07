@@ -1,3 +1,5 @@
+# Copyright 2018 Andreas Traber
+# Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
 from datetime import datetime
 from flask import Blueprint, request, Response, jsonify
 

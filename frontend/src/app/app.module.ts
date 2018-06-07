@@ -1,3 +1,7 @@
+/**
+ * Copyright 2018 Andreas Traber
+ * Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
+ */
 import { BrowserModule } from '@angular/platform-browser';
 import { HttpClientModule } from '@angular/common/http';
 import { NgModule } from '@angular/core';
