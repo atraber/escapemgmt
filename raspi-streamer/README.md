@@ -9,11 +9,11 @@ It uses `omxplayer` internally and thus it only runs on Raspberries.
 
 Setup a new virtual environment, so that the site packages are completely excluded from our local packages
 
-    virtualenv-3 --no-site-packages .
+    python3 -m venv ./venv
 
 and then activate it
 
-    source ./bin/activate
+    source ./venv/bin/activate
 
 Finally install all dependencies
 
