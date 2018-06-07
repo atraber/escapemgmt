@@ -4,9 +4,9 @@ import yaml
 import os
 import time
 from uuid import getnode
-from stream import UrlBox, ProcessWatcher
+from streamer import UrlBox
 
-class ParameterClient:
+class UrlFetcher:
     def __init__(self, apiEndpoint):
         self.apiEndpoint = apiEndpoint
         self.mac = getnode()

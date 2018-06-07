@@ -3,9 +3,9 @@ import argparse
 import requests
 import os
 import time
-from background import background
-from parameter_client import ParameterClient
-from stream import UrlBox, ProcessWatcher
+from background import Background
+from url_fetcher import UrlFetcher
+from streamer import UrlBox, Streamer
 
 def urlsEqual(lhs, rhs):
     if len(lhs) != len(rhs):
@@ -17,16 +17,17 @@ def urlsEqual(lhs, rhs):
 
     return True
 
-def watch(parameter_client, urls):
+def watch(parameter_client, bg, urls):
     while True:
         try:
             new_urls = parameter_client.request()
+            bg.setConnected(True)
 
             if not urlsEqual(new_urls, urls):
                 return new_urls
         except:
             print("Failed to get new URLs. Is web server down?")
-            pass
+            bg.setConnected(False)
 
         time.sleep(1)
 
@@ -40,27 +41,26 @@ if debug:
 else:
     apiEndpoint = 'http://192.168.0.150/raspi-api'
 
-pc = ParameterClient(apiEndpoint)
+print("Starting OpenGL Fullscreen Application")
+bg = Background(debug)
+
+pc = UrlFetcher(apiEndpoint)
 try:
     urls = pc.request()
     pc.save(urls)
+    bg.setConnected(True)
 except Exception as e:
     print(e)
     print("Failed to request new urls. Falling back to stored urls")
     urls = pc.restore()
+    bg.setConnected(False)
 
-if debug:
-    print(urls)
-else:
-    print("Starting OpenGL Fullscreen Application")
-    background()
+pw = Streamer(bg.getScreenSize())
 
-    pw = ProcessWatcher()
-
-    while True:
-        # update loop
-        pw.watch(urls)
-        urls = watch(pc, urls)
-        print("Got new set of URLs")
-        pc.save(urls)
-        pw.stop()
+while True:
+    # update loop
+    pw.watch(urls)
+    urls = watch(pc, bg, urls)
+    print("Got new set of URLs")
+    pc.save(urls)
+    pw.stop()

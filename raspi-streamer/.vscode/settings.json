@@ -1,0 +1,10 @@
+{
+    "files.watcherExclude": {
+        "**/.git/objects/**": true,
+        "**/.git/subtree-cache/**": true,
+        "**/__pycache__/**": true,
+        "**/lib/**": true,
+        "**/lib64/**": true
+    },
+    "python.pythonPath": "${workspaceFolder}/venv/bin/python"
+}

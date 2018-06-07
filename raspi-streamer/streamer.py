@@ -14,15 +14,16 @@ class UrlBox:
         self.size_y = size_y
         self.orientation = orientation
 
-        if orientation != 0 and orientation != 90:
-            raise Exception("Unknown orientation")
+        if not self.orientation in [0, 90, 180, 270]:
+            print("Unknown orientation. Setting it to 0")
+            self.orientation = 0
 
         if orientation == 90:
             tmp = self.size_x
             self.size_x = self.size_y
-            self.size_y = self.size_x
+            self.size_y = tmp
 
-    def get_scaling_factor(self, display_x, display_y):
+    def getScalingFactor(self, display_x, display_y):
         x = display_x / self.size_x
         y = display_y / self.size_y
         return min(x, y)
@@ -41,28 +42,32 @@ class UrlBox:
            and self.size_y      == rhs.size_y \
            and self.orientation == rhs.orientation
 
+
 def omx_cmd(url):
     tmp = ["{}".format(i) for i in [url.pos_x, url.pos_y, int(url.pos_x + url.size_x), int(url.pos_y + url.size_y)]]
     win = ','.join(tmp)
     return ["omxplayer", url.url, "--win", win, "--orientation", str(url.orientation), "-o", "alsa"]
 
 
-class ProcessWatcher:
-    def __init__(self):
+class Streamer:
+    def __init__(self, screen_size):
         self.stop_watch = False
-        self.monitor_is_off = True
+        self.monitor_is_on = False
+        self.screen_size = screen_size
+
+        print("Streamer class has been initialized width screen size {}x{}"
+            .format(self.screen_size[0], self.screen_size[1]))
 
     def build_cmds(self, urls):
         cmds = []
-        # TODO: get screen size dynamically
-        display_size_x = 1600
-        display_size_y = 1200
+        display_size_x = self.screen_size[0]
+        display_size_y = self.screen_size[1]
 
         if len(urls) == 0:
             print("You did not give us a url")
             return []
         if len(urls) == 1:
-            scaling = urls[0].get_scaling_factor(display_size_x, display_size_y)
+            scaling = urls[0].getScalingFactor(display_size_x, display_size_y)
             urls[0].scale(scaling)
             urls[0].center(display_size_x, display_size_y)
 
@@ -79,7 +84,7 @@ class ProcessWatcher:
                 size_y = display_size_y/2
 
             for url in urls:
-                scaling = url.get_scaling_factor(size_x, size_y)
+                scaling = url.getScalingFactor(size_x, size_y)
                 url.scale(scaling)
                 url.center(size_x, size_y)
 
@@ -93,7 +98,7 @@ class ProcessWatcher:
             size_y = display_size_y/len(urls)
 
             for url in urls:
-                scaling = url.get_scaling_factor(size_x, size_y)
+                scaling = url.getScalingFactor(size_x, size_y)
                 url.scale(scaling)
                 url.center(size_x, size_y)
 
@@ -137,24 +142,33 @@ class ProcessWatcher:
                     self.kill_children(p.pid)
                 return
 
+    def _monitor_enable(self, enable):
+        try:
+            if enable:
+                subprocess.call(["/opt/vc/bin/tvservice", "-p"])
+            else:
+                subprocess.call(["/opt/vc/bin/tvservice", "-o"])
+        except FileNotFoundError:
+            print("tvservice executable not found. Cannot control monitor")
+
+        self.monitor_is_on = enable
+
     def watch(self, urls):
         if len(urls) == 0:
-            subprocess.call(["/opt/vc/bin/tvservice", "-o"])
-            self.monitor_is_off = True
+            self._monitor_enable(False)
             return
 
-        if self.monitor_is_off:
+        if not self.monitor_is_on:
             # turn monitor back on
-            subprocess.call(["/opt/vc/bin/tvservice", "-p"])
-            self.monitor_is_off = False
+            self._monitor_enable(True)
 
         urls = copy.deepcopy(urls)
         self.cmds = self.build_cmds(urls)
-        self.thread = threading.Thread(target=functools.partial(ProcessWatcher._watch_thread_entry, self))
+        self.thread = threading.Thread(target=self._watch_thread_entry)
         self.thread.start()
 
     def stop(self):
-        if self.monitor_is_off:
+        if not self.monitor_is_on:
             return
 
         self.stop_watch = True

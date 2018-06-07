@@ -1,33 +1,73 @@
 from OpenGL.GL import *
 from OpenGL.GLUT import *
+import functools
 import subprocess
 import threading
 
-def display():
-    glClear(GL_COLOR_BUFFER_BIT)
-    glutSwapBuffers()
+class Background:
+    def __init__(self, debug=False):
+        self.debug = debug
+        self.connected = False
 
-def glMain():
-    # Initialize OpenGL
-    glutInit()
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB)
+        if not self.debug:
+            self.screensaver_disable()
 
-    # The application will enter fullscreen
-    glutEnterGameMode()
+        self.setup_event = threading.Event()
+        # sane default values
+        self.width = 640
+        self.height = 480
 
-    # Setup callbacks for keyboard and display
-    glutDisplayFunc(display)
+        t = threading.Thread(target=self.glMain)
+        t.start()
 
-    # Enters the GLUT event processing loop
-    glutMainLoop()
+        if not self.setup_event.wait(timeout=5):
+            print("Background drawing task has been blocked for more than 5 seconds")
 
-def screensaver_disable():
-    subprocess.call(["xset", "s", "off"])
-    subprocess.call(["xset", "s", "noblank"])
-    subprocess.call(["xset", "-dpms"])
-    subprocess.call(["amixer", "cset", "numid=3", "100%"])
+    def display(self):
+        if self.connected:
+            glClearColor(0.0, 0.0, 0.0, 1.0)
+        else:
+            glClearColor(1.0, 0.0, 0.0, 1.0)
+        glClear(GL_COLOR_BUFFER_BIT)
+        glutSwapBuffers()
 
-def background():
-    screensaver_disable()
-    t = threading.Thread(target=glMain)
-    t.start()
+    def timer(self, arg):
+        glutPostRedisplay()
+        glutTimerFunc(100, self.timer, 0)
+
+    def glMain(self):
+        # Initialize OpenGL
+        glutInit()
+        glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB)
+
+        if self.debug:
+            glutInitWindowPosition(100, 100)
+            glutInitWindowSize(1024, 768)
+            glutCreateWindow("Background")
+        else:
+            # The application will enter fullscreen
+            glutEnterGameMode()
+
+        self.width = glutGet(GLUT_WINDOW_WIDTH)
+        self.height = glutGet(GLUT_WINDOW_HEIGHT)
+
+        # Setup callbacks for keyboard and display
+        glutDisplayFunc(self.display)
+        self.timer(0)
+
+        self.setup_event.set()
+
+        # Enters the GLUT event processing loop
+        glutMainLoop()
+
+    def screensaver_disable(self):
+        subprocess.call(["xset", "s", "off"])
+        subprocess.call(["xset", "s", "noblank"])
+        subprocess.call(["xset", "-dpms"])
+        subprocess.call(["amixer", "cset", "numid=3", "100%"])
+
+    def setConnected(self, connected):
+        self.connected = connected
+
+    def getScreenSize(self):
+        return [self.width, self.height]
