@@ -1,3 +1,4 @@
 #!/bin/bash
-source ./venv/bin/activate
-./main.py
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+source $DIR/venv/bin/activate
+$DIR/main.py

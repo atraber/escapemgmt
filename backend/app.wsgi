@@ -5,9 +5,9 @@ import logging
 import os
 import sys
 
-from app import create_app
-
 logging.basicConfig(stream=sys.stderr)
-sys.path.insert(0, "/home/houdini/raspimgmt-backend/")
+sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
+
+from app import create_app
 
 application = create_app("production")

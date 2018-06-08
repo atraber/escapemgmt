@@ -3,16 +3,22 @@
   become_user: root
   become_method: sudo
   tasks:
-    - name: Install git
+    - name: Install OS dependencies
       become: true
-      apt: name=git state=present
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+        name: git,python3-venv
+        state: present
 
     - name: Checkout github repository
       git: repo='https://github.com/atraber/escapemgmt.git' dest=/home/pi/escapemgmt version=master
 
-    - pip:
-      requirements: /home/pi/escapemgmt/raspi-streamer/requirements.txt
-      virtualenv: /home/pi/escapemgmt/raspi-streamer/venv
+    - name: Create virtualenv
+      pip:
+        requirements: /home/pi/escapemgmt/raspi-streamer/requirements.txt
+        virtualenv: /home/pi/escapemgmt/raspi-streamer/venv
+        virtualenv_command: /usr/bin/python3 -m venv
 
     - name: Create autostart entry
       copy:
