@@ -140,10 +140,12 @@ def pack(urls, screen_size):
 
 
 class Streamer:
-    def __init__(self, screen_size):
-        self.stop_watch = False
+    def __init__(self, screen_size, urls):
+        self.stop_event = threading.Event()
         self.monitor_is_on = False
         self.screen_size = screen_size
+
+        self.watch(urls)
 
         print("Streamer class has been initialized width screen size {}x{}"
             .format(self.screen_size[0], self.screen_size[1]))
@@ -196,7 +198,7 @@ class Streamer:
 
             time.sleep(1)
 
-            if self.stop_watch:
+            if self.stop_event.wait(1.0):
                 for p in processes:
                     self.kill_children(p.pid)
                 return
@@ -230,6 +232,12 @@ class Streamer:
         if not self.monitor_is_on:
             return
 
-        self.stop_watch = True
-        self.thread.join()
-        self.stop_watch = False
+        self.stop_event.set()
+        self.thread.join(10)
+        if self.thread.isAlive():
+            print("Thread is still alive after 10s! We will continue as we can't do anything else")
+        self.stop_event.clear()
+
+    def setUrls(self, urls):
+        self.stop()
+        self.watch(urls)
