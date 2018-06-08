@@ -26,7 +26,7 @@ class UrlBox:
         self.url = url
         self.pos_x = 0
         self.pos_y = 0
-        self.crop = [crop_x1, crop_y1, crop_x1, crop_y2]
+        self.crop = [crop_x1, crop_y1, crop_x2, crop_y2]
         self.orientation = orientation
 
         self.scaling_factor = 1.0
@@ -136,7 +136,7 @@ class Packer:
             print(url)
 
 
-def pack(urls, screen_size):jj
+def pack(urls, screen_size):
     p = Packer(urls, screen_size)
     return p.urls
 
@@ -167,10 +167,7 @@ class Streamer:
         size = url.getSize()
         tmp = ["{}".format(i) for i in [url.pos_x, url.pos_y, int(url.pos_x + size[0]), int(url.pos_y + size[1])]]
         win = ','.join(tmp)
-
-        tmp = ["{}".format(i) for i in url.crop]
-        crop = ','.join(tmp)
-        return ["omxplayer", url.url, "--win", win, "--crop", crop, "--orientation", str(url.orientation), "-o", "alsa"]
+        return ["omxplayer", url.url, "--win", win, "--orientation", str(url.orientation), "-o", "alsa"]
 
     def kill_children(self, pid):
         process = psutil.Process(pid)
