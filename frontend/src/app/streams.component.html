@@ -24,12 +24,20 @@
           <input type="text" class="form-control" id="streamUrl" name="streamUrl" [(ngModel)]="stream_selected.url">
         </div>
         <div class="form-group">
-          <label for="streamWidth">Width</label>
-          <input type="text" class="form-control" id="streamWidth" name="streamWidth" [(ngModel)]="stream_selected.width">
+          <label for="streamX1">Crop X1</label>
+          <input type="text" class="form-control" id="streamX1" name="streamX1" [(ngModel)]="stream_selected.crop_x1">
         </div>
         <div class="form-group">
-          <label for="streamHeight">Height</label>
-          <input type="text" class="form-control" id="streamHeight" name="streamHeight" [(ngModel)]="stream_selected.height">
+          <label for="streamY1">Crop Y1</label>
+          <input type="text" class="form-control" id="streamY1" name="streamY1" [(ngModel)]="stream_selected.crop_y1">
+        </div>
+        <div class="form-group">
+          <label for="streamX2">Crop X2 (Width)</label>
+          <input type="text" class="form-control" id="streamX2" name="streamX2" [(ngModel)]="stream_selected.crop_x2">
+        </div>
+        <div class="form-group">
+          <label for="streamY2">Crop Y2 (Height)</label>
+          <input type="text" class="form-control" id="streamY2" name="streamY2" [(ngModel)]="stream_selected.crop_y2">
         </div>
         <div class="form-group">
           <label for="streamOrientation">Orientation</label>
