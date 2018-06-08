@@ -31,8 +31,10 @@ def apiStreamUpdate(streamid):
             db_stream = db.session.query(Stream).filter_by(id=streamid).first()
             db_stream.name = request.json['name']
             db_stream.url = request.json['url']
-            db_stream.width = request.json['width']
-            db_stream.height = request.json['height']
+            db_stream.crop_x1 = request.json['crop_x1']
+            db_stream.crop_x2 = request.json['crop_x2']
+            db_stream.crop_y1 = request.json['crop_y1']
+            db_stream.crop_y2 = request.json['crop_y2']
             db_stream.orientation = request.json['orientation']
             db.session.commit()
             return jsonify(db_stream.serialize())

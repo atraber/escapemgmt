@@ -41,16 +41,20 @@ class Stream(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(20))
     url = db.Column(db.String(255))
-    width = db.Column(db.Integer)
-    height = db.Column(db.Integer)
+    crop_x1 = db.Column(db.Integer, nullable=False)
+    crop_x2 = db.Column(db.Integer, nullable=False)
+    crop_y1 = db.Column(db.Integer, nullable=False)
+    crop_y2 = db.Column(db.Integer, nullable=False)
     orientation = db.Column(db.Integer)
 
-    def __init__(self, id=None, name=None, url=None, orientation=0, width=1080, height=720):
+    def __init__(self, id=None, name=None, url=None, orientation=0, crop_x1=0, crop_y1=0, crop_x2=1080, crop_y2=720):
         self.id = id
         self.name = name
         self.url = url
-        self.width = width
-        self.height = height
+        self.crop_x1 = crop_x1
+        self.crop_x2 = crop_x2
+        self.crop_y1 = crop_y1
+        self.crop_y2 = crop_y2
         self.orientation = orientation
 
     def serialize(self):
@@ -58,8 +62,8 @@ class Stream(db.Model):
             'id': self.id,
             'name': self.name,
             'url': self.url,
-            'width': self.width,
-            'height': self.height,
+            'crop_x2': self.crop_x2,
+            'crop_y2': self.crop_y2,
             'orientation': self.orientation,
         }
 
