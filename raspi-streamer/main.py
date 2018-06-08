@@ -57,12 +57,11 @@ except Exception as e:
     urls = pc.restore()
     bg.setConnected(False)
 
-pw = Streamer(bg.getScreenSize())
+streamer = Streamer(bg.getScreenSize(), urls)
 
 while True:
     # update loop
-    pw.watch(urls)
     urls = watch(pc, bg, urls)
     print("Got new set of URLs")
     pc.save(urls)
-    pw.stop()
+    streamer.setUrls(urls)
