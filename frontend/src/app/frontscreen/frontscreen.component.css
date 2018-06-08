@@ -1,44 +1,16 @@
 div#carouselSlides {
   background-color: #000;
   min-height: calc(100vh);
-  min-width: calc(100hh);
+  min-width: calc(100vw);
   /* okay, well, this is a hack to overlay our layout over the navbar */
   position: absolute;
   top: 0px;
 }
 
-#frontscreen #top-bar {
-  margin: 40px;
-  margin-top: 70px;
- }
-
-#frontscreen #top-bar h1 {
-  margin-top: 20px;
-  margin-left: 40px;
-  color: var(--orange);
-  font-weight: 900;
-  font-family: Abel;
-}
-
-#frontscreen #logo {
-  width: auto;
-  height: 100px;
-}
-
-#frontscreen .card .card-body h2 {
-  font-size: 1.9rem;
-}
-
-#frontscreen .card {
-  min-height: calc(62vh);
-}
-
-#frontscreen table small {
-  color:  var(--gray);
-}
-
 #logo-item img {
+  background-color: #000;
   margin: auto;
+  margin-left: calc(30vh);
   margin-top: calc(10vh);
   max-height: calc(80vh);
   max-width: calc(80vw);
