@@ -62,6 +62,8 @@ class Stream(db.Model):
             'id': self.id,
             'name': self.name,
             'url': self.url,
+            'crop_x1': self.crop_x1,
+            'crop_y1': self.crop_y1,
             'crop_x2': self.crop_x2,
             'crop_y2': self.crop_y2,
             'orientation': self.orientation,
