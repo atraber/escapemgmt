@@ -43,16 +43,16 @@ class Stream(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(20))
     url = Column(String(255))
-    width = Column(Integer)
-    height = Column(Integer)
     orientation = Column(Integer)
+    crop_x1 = Column(Integer)
+    crop_x2 = Column(Integer)
+    crop_y1 = Column(Integer)
+    crop_y2 = Column(Integer)
 
-    def __init__(self, id=None, name=None, url=None, orientation=0, width=1080, height=720, crop_x1=0, crop_x2=width, crop_y1=0, crop_y2=height):
+    def __init__(self, id=None, name=None, url=None, orientation=0, crop_x1=0, crop_x2=1080, crop_y1=0, crop_y2=720):
         self.id = id
         self.name = name
         self.url = url
-        self.width = width
-        self.height = height
         self.crop_x1 = crop_x1
         self.crop_x2 = crop_x2
         self.crop_y1 = crop_y1
@@ -64,8 +64,10 @@ class Stream(Base):
             'id': self.id,
             'name': self.name,
             'url': self.url,
-            'width': self.width,
-            'height': self.height,
+            'crop_x1': self.crop_x1,
+            'crop_x2': self.crop_x2,
+            'crop_y1': self.crop_y1,
+            'crop_y2': self.crop_y2,
             'orientation': self.orientation,
         }
 
