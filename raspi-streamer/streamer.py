@@ -10,13 +10,14 @@ import threading
 import time
 
 class UrlBox:
-    def __init__(self, url, size_x, size_y, orientation = 0):
+    def __init__(self, url, crop_x2, crop_y2, crop_x1 = 0, crop_y1 = 0, orientation = 0):
         if not orientation in [0, 90, 180, 270]:
             print("Unknown orientation. Setting it to 0")
             orientation = 0
 
         if orientation == 90:
-            size_x, size_y = size_y, size_x
+            crop_x1, crop_y1 = crop_y1, crop_x1
+            crop_x2, crop_y2 = crop_y2, crop_x2
 
         if url is None:
             print("URL does not seem to be set")
@@ -25,15 +26,14 @@ class UrlBox:
         self.url = url
         self.pos_x = 0
         self.pos_y = 0
-        self.size_x = size_x
-        self.size_y = size_y
+        self.crop = [crop_x1, crop_y1, crop_x1, crop_y2]
         self.orientation = orientation
 
-        self.size = [size_x, size_y]
         self.scaling_factor = 1.0
 
     def getSize(self):
-        return list(map(lambda v: int(v * self.scaling_factor), self.size))
+        size = [self.crop[2] - self.crop[0], self.crop[3] - self.crop[1]]
+        return list(map(lambda v: int(v * self.scaling_factor), size))
 
     def setScalingFactor(self, scaling_factor):
         self.scaling_factor = scaling_factor
@@ -42,9 +42,11 @@ class UrlBox:
         return self.scaling_factor
 
     def isEqual(self, rhs):
+        for i in range(len(self.crop)):
+            if self.crop[i] != rhs.crop[i]:
+                return False
+
         return self.url         == rhs.url \
-           and self.size_x      == rhs.size_x \
-           and self.size_y      == rhs.size_y \
            and self.orientation == rhs.orientation
 
     def __repr__(self):

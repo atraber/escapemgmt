@@ -26,7 +26,12 @@ class UrlFetcher:
         urls = []
         if device['streams'] and len(device['streams']) > 0:
             for stream in device['streams']:
-                urls.append(UrlBox(stream['url'], size_x=stream['width'], size_y=stream['height'], orientation=stream['orientation']))
+                urls.append(UrlBox(stream['url'],
+                    crop_x1=stream['crop_x1'],
+                    crop_y1=stream['crop_y1'],
+                    crop_x2=stream['crop_x2'],
+                    crop_y2=stream['crop_y2'],
+                    orientation=stream['orientation']))
 
         return urls
 
