@@ -6,16 +6,6 @@
     - name: Checkout github repository
       git: repo='https://github.com/atraber/escapemgmt.git' dest=/home/houdini/escapemgmt version=master
 
-    - name: Prepare front screen; Install npm dependencies
-      command: npm install
-      args:
-        chdir: /home/houdini/escapemgmt/frontscreen
-
-    - name: Prepare front screen; Build
-      command: ./node_modules/@angular/cli/bin/ng build --environment=prod
-      args:
-        chdir: /home/houdini/escapemgmt/frontscreen
-
     - name: Prepare frontend; Install npm dependencies
       command: npm install
       args:
@@ -42,7 +32,7 @@
             #ServerName www.example.com
 
             ServerAdmin webmaster@localhost
-            DocumentRoot /home/houdini/escapemgmt/frontscreen/dist
+            DocumentRoot /home/houdini/escapemgmt/frontend/dist
 
             # Available loglevels: trace8, ..., trace1, debug, info, notice, warn,
             # error, crit, alert, emerg.
@@ -52,10 +42,6 @@
 
             ErrorLog ${APACHE_LOG_DIR}/error.log
             CustomLog ${APACHE_LOG_DIR}/access.log combined
-
-            <Directory /home/houdini/escapemgmt/frontscreen/dist>
-              Require all granted
-            </Directory>
 
             WSGIScriptAlias /raspi-api /home/houdini/escapemgmt/backend/app.wsgi
             <Directory /home/houdini/escapemgmt/backend>

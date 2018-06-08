@@ -17,7 +17,7 @@
           xset s off
           xset s noblank
           xset -dpms
-          iceweasel http://192.168.0.150 &
+          iceweasel http://192.168.0.150/frontscreen &
           sleep 2
           xdotool search --sync --onlyvisible --class "Firefox" windowactivate key F11
           sleep 10
@@ -44,3 +44,10 @@
           Terminal=false
           Type=Application
           Categories=
+
+    - name: Restart server
+      become: true
+      command: reboot
+      async: 0
+      poll: 0
+      ignore_errors: true

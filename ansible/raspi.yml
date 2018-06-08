@@ -10,6 +10,10 @@
     - name: Checkout github repository
       git: repo='https://github.com/atraber/escapemgmt.git' dest=/home/pi/escapemgmt version=master
 
+    - pip:
+      requirements: /home/pi/escapemgmt/raspi-streamer/requirements.txt
+      virtualenv: /home/pi/escapemgmt/raspi-streamer/venv
+
     - name: Create autostart entry
       copy:
         dest: "/home/pi/.config/autostart/stream.desktop"
@@ -18,7 +22,7 @@
           Encoding=UTF-8
           Name=stream
           GenericName=stream
-          Exec=/home/pi/escapemgmt/raspi-streamer/main.py
+          Exec=/home/pi/escapemgmt/raspi-streamer/start.sh
           Terminal=false
           Type=Application
           Categories=
