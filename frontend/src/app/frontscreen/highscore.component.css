@@ -1,12 +1,3 @@
-div#frontscreen {
-  background-color: #000;
-  min-height: calc(100vh);
-  min-width: calc(100hh);
-  /* okay, well, this is a hack to overlay our layout over the navbar */
-  position: absolute;
-  top: 0px;
-}
-
 #frontscreen #top-bar {
   margin: 40px;
   margin-top: 70px;

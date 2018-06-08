@@ -18,6 +18,7 @@ import { RoomsComponent } from './rooms.component';
 import { DevicesService } from './devices.service';
 import { ScoresService } from './scores.service';
 
+import { FrontscreenComponent } from './frontscreen/frontscreen.component';
 import { HighscoreComponent } from './frontscreen/highscore.component';
 import { RoomsService } from './frontscreen/rooms.service';
 
@@ -26,7 +27,7 @@ const appRoutes: Routes = [
   { path: 'streams', component: StreamsComponent },
   { path: 'scores', component: ScoresComponent },
   { path: 'rooms', component: RoomsComponent },
-  { path: 'frontscreen', component: HighscoreComponent },
+  { path: 'frontscreen', component: FrontscreenComponent },
   { path: '',
     redirectTo: '/devices',
     pathMatch: 'full'
@@ -44,6 +45,7 @@ const appRoutes: Routes = [
     RoomsComponent,
     ScoresComponent,
     StreamsComponent,
+    FrontscreenComponent,
     HighscoreComponent,
   ],
   imports: [
