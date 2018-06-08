@@ -136,7 +136,7 @@ class Packer:
             print(url)
 
 
-def pack(urls, screen_size):
+def pack(urls, screen_size):jj
     p = Packer(urls, screen_size)
     return p.urls
 
@@ -167,7 +167,10 @@ class Streamer:
         size = url.getSize()
         tmp = ["{}".format(i) for i in [url.pos_x, url.pos_y, int(url.pos_x + size[0]), int(url.pos_y + size[1])]]
         win = ','.join(tmp)
-        return ["omxplayer", url.url, "--win", win, "--orientation", str(url.orientation), "-o", "alsa"]
+
+        tmp = ["{}".format(i) for i in url.crop]
+        crop = ','.join(tmp)
+        return ["omxplayer", url.url, "--win", win, "--crop", crop, "--orientation", str(url.orientation), "-o", "alsa"]
 
     def kill_children(self, pid):
         process = psutil.Process(pid)
