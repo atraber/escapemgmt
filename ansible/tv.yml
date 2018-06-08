@@ -1,10 +1,11 @@
 - hosts: tv
   user: pi
+  become_user: root
+  become_method: sudo
+
   tasks:
     - name: Install git
       become: true
-      become_user: root
-      become_method: sudo
       apt: name=git state=present
 
     - name: Checkout github repository
@@ -44,6 +45,33 @@
           Terminal=false
           Type=Application
           Categories=
+
+    - name: Wallpaper
+      copy:
+        src: ./raspi/desktop.jpg
+        dest: ~/desktop.jpg
+
+    - name: XFCE Config
+      copy:
+        src: ./raspi/xfce-session.cfg
+        dest: ~/.cache/sessions/xfce4-session-raspberrypi:0
+
+    - name: XFCE Desktop Config
+      copy:
+        src: ./raspi/xfce4-desktop.xml
+        dest: ~/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml
+
+    - name: XFCE Panel Config
+      copy:
+        src: ./raspi/xfce4-panel.xml
+        dest: ~/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml
+
+    - name: Splash Screen Cmdline Settings
+      become: true
+      copy:
+        dest: "/boot/cmdline.txt"
+        content: |
+         dwc_otg.lpm_enable=0 console=serial0,115200 console=tty1 root=PARTUUID=5ade1fc3-02 rootfstype=ext4 elevator=deadline fsck.repair=yes rootwait quiet splash logo.nologo
 
     - name: Restart server
       become: true
