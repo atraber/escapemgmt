@@ -79,7 +79,7 @@ class Packer:
         for url in self.urls:
             url.setScalingFactor(1.0)
             size = url.getSize()
-            url.setScalingFactor(smallest / (size[0] * size[1]))
+            url.setScalingFactor(math.sqrt(smallest / (size[0] * size[1])))
 
     def autoScaleAll(self):
         for step_size in range(1, 12):
