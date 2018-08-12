@@ -29,21 +29,21 @@ export class StreamsComponent {
       return this.streams[0];
     else
       return null;
-  };
+  }
 
   deleteStream(stream) {
     this.devicesService.deleteStream(stream).subscribe();
     this.stream_selected = this.streamSelect();
-  };
+  }
 
   addStream(name) {
     var stream = new Stream();
     stream.name = name;
     this.devicesService.addStream(stream).subscribe(stream => this.streams.push(stream));
-  };
+  }
 
   updateStream(stream) {
     this.devicesService.updateStream(stream).subscribe();
-  };
+  }
 }
 
