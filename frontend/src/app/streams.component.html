@@ -8,7 +8,7 @@
         <button class="list-group-item list-group-item-action flex-column align-items-start" *ngFor="let stream of streams" (click)="stream_selected=stream" [ngClass]="{'active': stream_selected == stream}">
           <h5 class="mb-1">{{stream.name}}</h5>
         </button>
-        <a href="#" class="list-group-item list-group-item-action" data-toggle="modal" data-target="#newStream"><i class="fas fa-plus-circle"></i> Add</a>
+        <a href="#" class="list-group-item list-group-item-action" data-toggle="modal" data-target="#addStream"><i class="fas fa-plus-circle"></i> Add</a>
       </div>
     </div>
     <div class="col-sm-8" *ngIf="stream_selected">
