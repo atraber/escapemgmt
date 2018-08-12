@@ -165,9 +165,8 @@ class Streamer:
     @staticmethod
     def omx_cmd(url):
         size = url.getSize()
-        tmp = ["{}".format(i) for i in [url.pos_x, url.pos_y, int(url.pos_x + size[0]), int(url.pos_y + size[1])]]
-        win = ','.join(tmp)
-        return ["omxplayer", url.url, "--win", win, "--orientation", str(url.orientation), "-o", "alsa"]
+        win = ','.join(["{}".format(i) for i in [url.pos_x, url.pos_y, int(url.pos_x + size[0]), int(url.pos_y + size[1])]])
+        return ["omxplayer", url.url, "--live", "--win", win, "--orientation", str(url.orientation), "-o", "alsa"]
 
     def kill_children(self, pid):
         process = psutil.Process(pid)
