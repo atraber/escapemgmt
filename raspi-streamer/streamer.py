@@ -166,7 +166,14 @@ class Streamer:
     def omx_cmd(url):
         size = url.getSize()
         win = ','.join(["{}".format(i) for i in [url.pos_x, url.pos_y, int(url.pos_x + size[0]), int(url.pos_y + size[1])]])
-        return ["omxplayer", url.url, "--live", "--win", win, "--orientation", str(url.orientation), "-o", "alsa"]
+        crop =  ','.join(["{}".format(i) for i in url.crop])
+        return ["omxplayer",
+                url.url,
+                "--live",
+                "--win", win,
+                "--crop", crop,
+                "--orientation", str(url.orientation),
+                "-o", "alsa"]
 
     def kill_children(self, pid):
         process = psutil.Process(pid)
