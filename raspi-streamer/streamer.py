@@ -170,6 +170,7 @@ class Streamer:
         return ["omxplayer",
                 url.url,
                 "--live",
+                "--avdict", "rtsp_transport:tcp",
                 "--win", win,
                 "--crop", crop,
                 "--orientation", str(url.orientation),
