@@ -3,7 +3,7 @@
 from flask import Blueprint, request, Response, jsonify
 
 from app import db
-from .models import Stream
+from app.models import Stream
 
 streams = Blueprint('streams', __name__)
 

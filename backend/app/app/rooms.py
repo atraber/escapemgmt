@@ -4,7 +4,7 @@ from datetime import datetime
 from flask import Blueprint, request, Response, jsonify
 
 from app import db
-from .models import Room, Score
+from app.models import Room, Score
 
 rooms = Blueprint('rooms', __name__)
 

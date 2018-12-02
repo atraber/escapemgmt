@@ -6,8 +6,11 @@ import os
 import sys
 
 logging.basicConfig(stream=sys.stderr)
-sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
 
-from app import create_app
+from app import Create
 
-application = create_app("production")
+config_name = os.getenv('FLASK_CONFIG', 'production')
+application = Create(config_name)
+
+if __name__ == '__main__':
+    application.run()

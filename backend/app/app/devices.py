@@ -4,7 +4,7 @@ from datetime import datetime
 from flask import Blueprint, request, Response, jsonify
 
 from app import db
-from .models import Device, Stream
+from app.models import Device, Stream
 
 devices = Blueprint('devices', __name__)
 

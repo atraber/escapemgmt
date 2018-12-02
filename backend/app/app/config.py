@@ -1,4 +1,7 @@
-class Config(object):
+import os
+
+
+class ConfigCommon(object):
     """
     Common configurations
     """
@@ -9,7 +12,8 @@ class Config(object):
     SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://raspimgmt:raspberrypi@localhost/raspimgmt?charset=utf8'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-class DevelopmentConfig(Config):
+
+class DevelopmentConfig(ConfigCommon):
     """
     Development configurations
     """
@@ -17,14 +21,26 @@ class DevelopmentConfig(Config):
     DEBUG = True
     SQLALCHEMY_ECHO = True
 
-class ProductionConfig(Config):
+
+class ProductionConfig(ConfigCommon):
     """
     Production configurations
     """
 
     DEBUG = False
 
+
 app_config = {
     'development': DevelopmentConfig,
     'production': ProductionConfig
 }
+
+
+def app_envs():
+    d = {}
+    env_names = ['DEBUG', 'SQLALCHEMY_DATABASE_URI']
+    for env_name in env_names:
+        env = os.getenv(env_name)
+        if env is not None:
+            d[env_name] = env
+    return d

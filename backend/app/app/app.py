@@ -2,36 +2,44 @@
 # Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
 from flask import Flask
 from flask_cors import CORS
-from flask_migrate import Migrate
+from flask_migrate import Migrate as FlaskMigrate
 from flask_sqlalchemy import SQLAlchemy
 
-from config import app_config
+from app.config import app_config, app_envs
 
 db = SQLAlchemy()
 
-def create_app(config_name):
+def _CommonAppConfig(config_name):
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object(app_config[config_name])
-    # use instance/config.py to specify more configuration values, e.g. a
-    # secret mysql key
-    #app.config.from_pyfile('config.py')
+    app.config.update(app_envs())
     db.init_app(app)
 
-    from .streams import streams as streams_blueprint
+    from app.streams import streams as streams_blueprint
     app.register_blueprint(streams_blueprint)
 
-    from .devices import devices as devices_blueprint
+    from app.devices import devices as devices_blueprint
     app.register_blueprint(devices_blueprint)
 
-    from .rooms import rooms as rooms_blueprint
+    from app.rooms import rooms as rooms_blueprint
     app.register_blueprint(rooms_blueprint)
+
+    return app
+
+
+def Create(config_name):
+    app = _CommonAppConfig(config_name)
 
     # enable cross-origin access
     CORS(app)
 
-    # perform DB migrations
-    migrate = Migrate(app, db)
-
     from app import models
 
     return app
+
+
+def Migrate(config_name):
+    app = _CommonAppConfig(config_name)
+
+    # perform DB migrations
+    FlaskMigrate(app, db)
