@@ -15,14 +15,17 @@ def _CommonAppConfig(config_name):
     app.config.update(app_envs())
     db.init_app(app)
 
-    from app.streams import streams as streams_blueprint
-    app.register_blueprint(streams_blueprint)
-
     from app.devices import devices as devices_blueprint
     app.register_blueprint(devices_blueprint)
 
+    from app.presets import presets as presets_blueprint
+    app.register_blueprint(presets_blueprint)
+
     from app.rooms import rooms as rooms_blueprint
     app.register_blueprint(rooms_blueprint)
+
+    from app.streams import streams as streams_blueprint
+    app.register_blueprint(streams_blueprint)
 
     return app
 
@@ -43,3 +46,5 @@ def Migrate(config_name):
 
     # perform DB migrations
     FlaskMigrate(app, db)
+
+    return app

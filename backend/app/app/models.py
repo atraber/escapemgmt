@@ -14,7 +14,7 @@ class Device(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(20))
     mac = db.Column(db.String(17), unique=True)
-    screen_enable = db.Column(db.Boolean)
+    screen_enable = db.Column(db.Boolean, default=True, nullable=False)
     last_seen = db.Column(db.Integer)
     streams = db.relationship("Stream",
                     secondary=device_streams_association_table)
@@ -41,16 +41,20 @@ class Stream(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(20))
     url = db.Column(db.String(255))
+    active = db.Column(db.Boolean, default=True, nullable=False)
     crop_x1 = db.Column(db.Integer, nullable=False)
     crop_x2 = db.Column(db.Integer, nullable=False)
     crop_y1 = db.Column(db.Integer, nullable=False)
     crop_y2 = db.Column(db.Integer, nullable=False)
     orientation = db.Column(db.Integer)
+    preset_id = db.Column(db.Integer, db.ForeignKey('presets.id'))
+    preset = db.relationship('Preset', back_populates='streams')
 
-    def __init__(self, id=None, name=None, url=None, orientation=0, crop_x1=0, crop_y1=0, crop_x2=1080, crop_y2=720):
+    def __init__(self, id=None, name=None, url=None, orientation=0, crop_x1=0, crop_y1=0, crop_x2=1080, crop_y2=720, active=True):
         self.id = id
         self.name = name
         self.url = url
+        self.active = active
         self.crop_x1 = crop_x1
         self.crop_x2 = crop_x2
         self.crop_y1 = crop_y1
@@ -62,11 +66,29 @@ class Stream(db.Model):
             'id': self.id,
             'name': self.name,
             'url': self.url,
+            'active': self.active,
             'crop_x1': self.crop_x1,
             'crop_y1': self.crop_y1,
             'crop_x2': self.crop_x2,
             'crop_y2': self.crop_y2,
             'orientation': self.orientation,
+        }
+
+class Preset(db.Model):
+    __tablename__ = 'presets'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100))
+    streams = db.relationship('Stream', back_populates='preset')
+
+    def __init__(self, id=None, name=None):
+        self.id = id
+        self.name = name
+
+    def serialize(self):
+        return {
+            'id': self.id,
+            'name': self.name,
         }
 
 class Room(db.Model):
