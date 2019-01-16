@@ -1,0 +1,55 @@
+<div class="container">
+  <div class="row">
+    <h1>Presets</h1>
+  </div>
+  <div class="row">
+    <div class="col-sm-4">
+      <div class="list-group">
+        <button class="list-group-item list-group-item-action flex-column align-items-start" *ngFor="let preset of presets" (click)="preset_selected=preset" [ngClass]="{'active': preset_selected == preset}">
+          <div class="d-flex w-100 justify-content-between">
+            <h5 class="mb-1">{{preset.name}}</h5>
+          </div>
+        </button>
+        <a href="#" class="list-group-item list-group-item-action" data-toggle="modal" data-target="#newPreset"><i class="fas fa-plus-circle"></i> Save Current Settings</a>
+      </div>
+    </div>
+    <div class="col-sm-8" *ngIf="preset_selected">
+      <h2>Preset Settings</h2>
+
+      <form>
+        <div class="form-group">
+          <label for="presetName">Name</label>
+          <input type="text" class="form-control" id="presetName" name="presetName" [(ngModel)]="preset_selected.name">
+        </div>
+        <button type="submit" class="btn btn-success" (click)="activatePreset(preset_selected)">Activate</button>
+        <button type="submit" class="btn btn-primary" (click)="updatePreset(preset_selected)">Save</button>
+        <button class="btn btn-danger" (click)="deletePreset(preset_selected)"><i class="fas fa-trash-alt"></i> Delete</button>
+      </form>
+
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="newPreset" tabindex="-1" role="dialog" aria-labelledby="newPresetLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="newPresetLabel">Save Current Settings as Preset</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="presetName">Name</label>
+          <input type="text" class="form-control" id="presetName" name="presetName" [(ngModel)]="new_preset_name">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" data-dismiss="modal" (click)="preset_add(new_preset_name)">Save</button>
+      </div>
+    </div>
+  </div>
+</div>

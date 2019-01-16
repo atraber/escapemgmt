@@ -14,7 +14,7 @@ import * as moment from 'moment';
 export class RoomsComponent {
   rooms: Room[];
   room_selected: Room;
-  new_room_name: String;
+  new_room_name: string;
 
   constructor(private scoresService: ScoresService) {
     this.rooms = this.scoresService.rooms;

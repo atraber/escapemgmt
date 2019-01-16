@@ -16,18 +16,21 @@ import { ScoresComponent } from './scores.component';
 import { RoomsComponent } from './rooms.component';
 
 import { DevicesService } from './devices.service';
+import { PresetsService } from './presets.service';
 import { ScoresService } from './scores.service';
 
 import { FrontscreenComponent } from './frontscreen/frontscreen.component';
 import { HighscoreComponent } from './frontscreen/highscore.component';
 import { RoomsService } from './frontscreen/rooms.service';
+import { PresetsComponent } from './presets.component';
 
 const appRoutes: Routes = [
   { path: 'devices', component: DevicesComponent },
-  { path: 'streams', component: StreamsComponent },
-  { path: 'scores', component: ScoresComponent },
-  { path: 'rooms', component: RoomsComponent },
   { path: 'frontscreen', component: FrontscreenComponent },
+  { path: 'presets', component: PresetsComponent },
+  { path: 'rooms', component: RoomsComponent },
+  { path: 'scores', component: ScoresComponent },
+  { path: 'streams', component: StreamsComponent },
   { path: '',
     redirectTo: '/devices',
     pathMatch: 'full'
@@ -42,25 +45,27 @@ const appRoutes: Routes = [
   declarations: [
     AppComponent,
     DevicesComponent,
+    FrontscreenComponent,
+    HighscoreComponent,
+    PresetsComponent,
     RoomsComponent,
     ScoresComponent,
     StreamsComponent,
-    FrontscreenComponent,
-    HighscoreComponent,
   ],
   imports: [
     RouterModule.forRoot(
       appRoutes
     ),
-    FormsModule,
     BrowserModule,
+    FormsModule,
     HttpClientModule,
     MomentModule,
   ],
   providers: [
     DevicesService,
-    ScoresService,
+    PresetsService,
     RoomsService,
+    ScoresService,
   ],
   bootstrap: [AppComponent]
 })
