@@ -16,6 +16,8 @@ export class DevicesComponent {
   devices: Device[];
   streams: Stream[];
   dev_selected: Device;
+  stream_selected: Stream;
+  new_dev_name: String;
 
   deviceLastSeen(last_seen) {
     return moment.utc(last_seen * 1000).fromNow();

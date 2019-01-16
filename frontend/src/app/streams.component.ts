@@ -13,6 +13,7 @@ import { Stream } from './stream';
 export class StreamsComponent {
   streams: Stream[];
   stream_selected: Stream;
+  new_stream_name: String;
 
   constructor(private devicesService: DevicesService) {
     this.streams = this.devicesService.streams;
