@@ -9,7 +9,7 @@ streams = Blueprint('streams', __name__)
 
 @streams.route('/streams', methods = ['GET'])
 def apiStreams():
-    streams = db.session.query(Stream).order_by(Stream.name).filter_by(active=True).all()
+    streams = db.session.query(Stream).order_by(Stream.name).all()
     return jsonify([s.serialize() for s in streams])
 
 @streams.route('/stream', methods = ['POST'])

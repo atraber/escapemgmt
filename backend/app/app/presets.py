@@ -40,3 +40,14 @@ def apiPresetUpdate(presetid):
             return jsonify('ok')
         abort(400)
 
+@presets.route('/preset/activate/<int:presetid>', methods = ['POST'])
+def apiPresetActivate(presetid):
+    if request.headers['Content-Type'] == 'application/json':
+        preset_new = db.session.query(Preset).filter_by(id=presetid).first()
+        preset_new.active = True
+
+        preset_old = db.session.query(Preset).filter_by(active=True).first()
+        preset_old.active = False
+        db.session.commit()
+        return jsonify('ok')
+    abort(400)

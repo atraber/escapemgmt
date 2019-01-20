@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 41d0301115ad
+Revision ID: 001d754d2a99
 Revises: c1cfeb3e688e
-Create Date: 2019-01-16 22:24:21.477488
+Create Date: 2019-01-19 22:22:28.673120
 
 """
 from alembic import op
@@ -10,10 +10,12 @@ import sqlalchemy as sa
 from sqlalchemy import orm
 from sqlalchemy.dialects import mysql
 
+from app.models import Preset
 from app.models import Stream
 
+
 # revision identifiers, used by Alembic.
-revision = '41d0301115ad'
+revision = '001d754d2a99'
 down_revision = 'c1cfeb3e688e'
 branch_labels = None
 depends_on = None
@@ -24,32 +26,33 @@ def upgrade():
     op.create_table('presets',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=100), nullable=True),
+    sa.Column('active', sa.Boolean(), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
+    op.add_column('device_streams', sa.Column('preset_id', sa.Integer(), nullable=True))
+    op.create_foreign_key(None, 'device_streams', 'presets', ['preset_id'], ['id'])
     op.alter_column('devices', 'screen_enable',
                existing_type=mysql.TINYINT(display_width=1),
                nullable=False)
-    op.add_column('streams', sa.Column('active', sa.Boolean(), nullable=False))
-    op.add_column('streams', sa.Column('preset_id', sa.Integer(), nullable=True))
-    op.create_foreign_key(None, 'streams', 'presets', ['preset_id'], ['id'])
 
+    # Data Migration
     bind = op.get_bind()
     session = orm.Session(bind=bind)
 
-    # Data Migration
-    session.query(Stream)
+    default_preset = Preset(name='Default')
+    session.add(default_preset)
+
     streams = session.query(Stream).all()
     for stream in streams:
-        stream.active = True
+        stream.preset = default_preset
     session.add_all(streams)
     session.commit()
 
 
 def downgrade():
-    op.drop_constraint('streams_ibfk_1', 'streams', type_='foreignkey')
-    op.drop_column('streams', 'preset_id')
-    op.drop_column('streams', 'active')
     op.alter_column('devices', 'screen_enable',
                existing_type=mysql.TINYINT(display_width=1),
                nullable=True)
+    op.drop_constraint(None, 'device_streams', type_='foreignkey')
+    op.drop_column('device_streams', 'preset_id')
     op.drop_table('presets')

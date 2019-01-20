@@ -3,10 +3,12 @@
 from app import db
 from datetime import datetime
 
-device_streams_association_table = db.Table('device_streams',
+device_streams = db.Table('device_streams',
     db.Column('device_id', db.Integer, db.ForeignKey('devices.id')),
-    db.Column('stream_id', db.Integer, db.ForeignKey('streams.id'))
+    db.Column('stream_id', db.Integer, db.ForeignKey('streams.id')),
+    db.Column('preset_id', db.Integer, db.ForeignKey('presets.id')),
 )
+
 
 class Device(db.Model):
     __tablename__ = 'devices'
@@ -16,8 +18,11 @@ class Device(db.Model):
     mac = db.Column(db.String(17), unique=True)
     screen_enable = db.Column(db.Boolean, default=True, nullable=False)
     last_seen = db.Column(db.Integer)
-    streams = db.relationship("Stream",
-                    secondary=device_streams_association_table)
+    streams = db.relationship('Stream',
+            primaryjoin='and_(Device.id == device_streams.c.device_id, Preset.active == 1)',
+            secondary='join(device_streams, Stream, foreign(device_streams.c.stream_id) == Stream.id)'
+                      '.join(Preset, foreign(device_streams.c.preset_id) == remote(Preset.id))',
+            backref='devices')
 
     def __init__(self, id=None, name=None, mac=None, screen_enable=True):
         self.id = id
@@ -41,20 +46,16 @@ class Stream(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(20))
     url = db.Column(db.String(255))
-    active = db.Column(db.Boolean, default=True, nullable=False)
     crop_x1 = db.Column(db.Integer, nullable=False)
     crop_x2 = db.Column(db.Integer, nullable=False)
     crop_y1 = db.Column(db.Integer, nullable=False)
     crop_y2 = db.Column(db.Integer, nullable=False)
     orientation = db.Column(db.Integer)
-    preset_id = db.Column(db.Integer, db.ForeignKey('presets.id'))
-    preset = db.relationship('Preset', back_populates='streams')
 
-    def __init__(self, id=None, name=None, url=None, orientation=0, crop_x1=0, crop_y1=0, crop_x2=1080, crop_y2=720, active=True):
+    def __init__(self, id=None, name=None, url=None, orientation=0, crop_x1=0, crop_y1=0, crop_x2=1080, crop_y2=720):
         self.id = id
         self.name = name
         self.url = url
-        self.active = active
         self.crop_x1 = crop_x1
         self.crop_x2 = crop_x2
         self.crop_y1 = crop_y1
@@ -66,7 +67,6 @@ class Stream(db.Model):
             'id': self.id,
             'name': self.name,
             'url': self.url,
-            'active': self.active,
             'crop_x1': self.crop_x1,
             'crop_y1': self.crop_y1,
             'crop_x2': self.crop_x2,
@@ -79,17 +79,24 @@ class Preset(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100))
-    streams = db.relationship('Stream', back_populates='preset')
+    active = db.Column(db.Boolean, default=False, nullable=False)
 
-    def __init__(self, id=None, name=None):
+    streams = db.relationship('Stream',
+            secondary=device_streams,
+            backref='preset')
+
+    def __init__(self, id=None, name=None, active=False):
         self.id = id
         self.name = name
+        self.active = active
 
     def serialize(self):
         return {
             'id': self.id,
             'name': self.name,
+            'active': self.active,
         }
+
 
 class Room(db.Model):
     __tablename__ = 'rooms'
