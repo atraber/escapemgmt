@@ -5,4 +5,5 @@
 export class Preset {
   id: number;
   name: string;
+  active: boolean;
 }

@@ -10,7 +10,7 @@
             <h5 class="mb-1">{{preset.name}}</h5>
           </div>
         </button>
-        <a href="#" class="list-group-item list-group-item-action" data-toggle="modal" data-target="#newPreset"><i class="fas fa-plus-circle"></i> Save Current Settings</a>
+        <a href="#" class="list-group-item list-group-item-action" data-toggle="modal" data-target="#newPreset"><i class="fas fa-plus-circle"></i> Add</a>
       </div>
     </div>
     <div class="col-sm-8" *ngIf="preset_selected">
@@ -35,7 +35,7 @@
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="newPresetLabel">Save Current Settings as Preset</h5>
+        <h5 class="modal-title" id="newPresetLabel">Create Preset</h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
@@ -48,7 +48,7 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary" data-dismiss="modal" (click)="preset_add(new_preset_name)">Save</button>
+        <button type="button" class="btn btn-primary" data-dismiss="modal" (click)="addPreset(new_preset_name)">Save</button>
       </div>
     </div>
   </div>

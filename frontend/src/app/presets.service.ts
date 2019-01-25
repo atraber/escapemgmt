@@ -30,10 +30,6 @@ export class PresetsService {
         this.presets = presets;
         this.presetsUpdated.emit(presets)
       });
-    this.presets = [];
-    var preset = new Preset();
-    preset.name = 'sdfsf';
-    this.presets.push(preset);
   }
 
   private handleError(error: HttpErrorResponse) {
@@ -50,6 +46,11 @@ export class PresetsService {
     // return an ErrorObservable with a user-facing error message
     return new ErrorObservable(
       'Something bad happened; please try again later.');
+  }
+
+  activatePreset(preset: Preset): Observable<{}> {
+    return this.http.post<Preset>(environment.apiEndpoint + '/preset/activate/' + preset.id, preset, jsonOptions)
+      .pipe(catchError(this.handleError));
   }
 
   addPreset(preset: Preset): Observable<Preset> {

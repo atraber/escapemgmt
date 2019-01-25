@@ -3,11 +3,13 @@
 from app import db
 from datetime import datetime
 
-device_streams = db.Table('device_streams',
-    db.Column('device_id', db.Integer, db.ForeignKey('devices.id')),
-    db.Column('stream_id', db.Integer, db.ForeignKey('streams.id')),
-    db.Column('preset_id', db.Integer, db.ForeignKey('presets.id')),
-)
+class DeviceStreams(db.Model):
+    __tablename__ = 'device_streams'
+
+    device_id = db.Column(db.Integer, db.ForeignKey('devices.id'), primary_key=True, nullable=False)
+    stream_id = db.Column(db.Integer, db.ForeignKey('streams.id'), primary_key=True, nullable=False)
+    preset_id = db.Column(db.Integer, db.ForeignKey('presets.id'), primary_key=True, nullable=False)
+    preset = db.relationship('Preset')
 
 
 class Device(db.Model):
@@ -20,8 +22,8 @@ class Device(db.Model):
     last_seen = db.Column(db.Integer)
     streams = db.relationship('Stream',
             primaryjoin='and_(Device.id == device_streams.c.device_id, Preset.active == 1)',
-            secondary='join(device_streams, Stream, foreign(device_streams.c.stream_id) == Stream.id)'
-                      '.join(Preset, foreign(device_streams.c.preset_id) == remote(Preset.id))',
+            secondary='join(device_streams, Stream, device_streams.c.stream_id == Stream.id)'
+                      '.join(Preset, device_streams.c.preset_id == Preset.id)',
             backref='devices')
 
     def __init__(self, id=None, name=None, mac=None, screen_enable=True):
@@ -80,10 +82,6 @@ class Preset(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100))
     active = db.Column(db.Boolean, default=False, nullable=False)
-
-    streams = db.relationship('Stream',
-            secondary=device_streams,
-            backref='preset')
 
     def __init__(self, id=None, name=None, active=False):
         self.id = id

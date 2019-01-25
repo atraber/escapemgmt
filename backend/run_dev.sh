@@ -6,3 +6,7 @@ export SQLALCHEMY_DATABASE_URI='mysql+pymysql://raspimgmt:raspberrypi@localhost/
 # Since we want to automatically reload on code changes, we use gunicorn
 # instead of the default flask run "python3 -m flask run".
 cd app && gunicorn -b :5000 -k flask_sockets.worker app.main:application --reload
+
+# ALTERNATIVE
+#export FLASK_APP=app.main:application
+#cd app && python3 -m flask run

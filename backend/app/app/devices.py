@@ -4,13 +4,13 @@ from datetime import datetime
 from flask import Blueprint, request, Response, jsonify
 
 from app import db
-from app.models import Device, Stream
+from app.models import Device, Preset, Stream
 
 devices = Blueprint('devices', __name__)
 
 @devices.route('/devices', methods = ['GET'])
 def apiDevices():
-    devices = db.session.query(Device).order_by(Device.name).all()
+    devices = db.session.query(Device).order_by(Device.name).filter(Device.streams.preset.any(active=True)).all()
     return jsonify([d.serialize() for d in devices])
 
 @devices.route('/device', methods = ['POST'])
@@ -29,6 +29,12 @@ def apiDeviceAdd():
 def apiDeviceUpdate(deviceid):
     if request.method == 'POST':
         if request.headers['Content-Type'] == 'application/json':
+            db_preset = db.session.query(Preset).filter_by(active=True).first()
+
+            if not db_preset:
+                # TODO: Logging
+                pass
+
             db_device = db.session.query(Device).filter_by(id=deviceid).first()
             db_device.name = request.json['name']
             db_device.mac = request.json['mac']

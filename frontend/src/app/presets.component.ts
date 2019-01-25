@@ -31,15 +31,19 @@ export class PresetsComponent {
       return null;
   }
 
-  deletePreset(preset: Preset) {
-    this.presetsService.deletePreset(preset).subscribe();
-    this.preset_selected = this.presetSelect();
+  activatePreset(preset: Preset) {
+    this.presetsService.activatePreset(preset).subscribe();
   }
 
   addPreset(name: string) {
     var preset = new Preset();
     preset.name = name;
     this.presetsService.addPreset(preset).subscribe(preset => this.presets.push(preset));
+  }
+
+  deletePreset(preset: Preset) {
+    this.presetsService.deletePreset(preset).subscribe();
+    this.preset_selected = this.presetSelect();
   }
 
   updatePreset(preset: Preset) {
