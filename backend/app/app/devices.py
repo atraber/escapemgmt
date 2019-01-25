@@ -4,13 +4,14 @@ from datetime import datetime
 from flask import Blueprint, request, Response, jsonify
 
 from app import db
-from app.models import Device, Preset, Stream
+from app.models import Device, DeviceStream, Preset, Stream
 
 devices = Blueprint('devices', __name__)
 
 @devices.route('/devices', methods = ['GET'])
 def apiDevices():
-    devices = db.session.query(Device).order_by(Device.name).filter(Device.streams.preset.any(active=True)).all()
+    #devices = db.session.query(Device).order_by(Device.name).filter(Device.streams.preset.any(active=True)).all()
+    devices = db.session.query(Device).order_by(Device.name).all()
     return jsonify([d.serialize() for d in devices])
 
 @devices.route('/device', methods = ['POST'])
@@ -24,6 +25,38 @@ def apiDeviceAdd():
     else:
         abort(400)
     return jsonify(device.serialize())
+
+
+def _StreamsCompare(new, old):
+    """Finds streams added and removed.
+
+    Both parameters must be list of ids.
+
+    Returns a tuple of two lists: added, removed.
+    """
+    added = []
+    removed = []
+
+    new_set = set()
+    for n in new:
+        new_set.add(n)
+
+    old_set = set()
+    for o in old:
+        old_set.add(o)
+
+    for n in new:
+        if n in old_set:
+            continue
+        added.append(n)
+
+    for o in old:
+        if o in new_set:
+            continue
+        removed.append(o)
+
+    return (added, removed)
+
 
 @devices.route('/devices/<int:deviceid>', methods = ['POST', 'DELETE'])
 def apiDeviceUpdate(deviceid):
@@ -40,10 +73,20 @@ def apiDeviceUpdate(deviceid):
             db_device.mac = request.json['mac']
             db_device.screen_enable = request.json['screen_enable']
 
-            db_device.streams = []
-            for stream in request.json['streams']:
-                db_stream = db.session.query(Stream).filter_by(id=stream['id']).first()
-                db_device.streams.append(db_stream)
+            (streams_added, streams_removed) = _StreamsCompare(
+                    [stream['id'] for stream in request.json['streams']],
+                    [stream.id for stream in db_device.streams])
+
+            for stream_id in streams_removed:
+                db.session.query(DeviceStream).filter_by(
+                        stream_id=stream_id,
+                        device_id=db_device.id,
+                        preset_id=db_preset.id).first().delete()
+
+            for stream_id in streams_added:
+                device_stream = DeviceStream(device=db_device, preset=db_preset,
+                                             stream_id=stream_id)
+                db.session.add(device_stream)
 
             db.session.commit()
             return jsonify('ok')

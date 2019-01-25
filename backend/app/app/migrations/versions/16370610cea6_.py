@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 001d754d2a99
+Revision ID: 16370610cea6
 Revises: c1cfeb3e688e
-Create Date: 2019-01-19 22:22:28.673120
+Create Date: 2019-01-25 16:51:40.963815
 
 """
 from alembic import op
@@ -13,16 +13,15 @@ from sqlalchemy.dialects import mysql
 from app.models import Preset
 from app.models import Stream
 
-
 # revision identifiers, used by Alembic.
-revision = '001d754d2a99'
+revision = '16370610cea6'
 down_revision = 'c1cfeb3e688e'
 branch_labels = None
 depends_on = None
 
 
 def upgrade():
-    # Schema Migration
+    # Scehma Migration
     op.create_table('presets',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=100), nullable=True),
@@ -53,6 +52,6 @@ def downgrade():
     op.alter_column('devices', 'screen_enable',
                existing_type=mysql.TINYINT(display_width=1),
                nullable=True)
-    op.drop_constraint(None, 'device_streams', type_='foreignkey')
+    op.drop_constraint('device_streams_ibfk_3', 'device_streams', type_='foreignkey')
     op.drop_column('device_streams', 'preset_id')
     op.drop_table('presets')

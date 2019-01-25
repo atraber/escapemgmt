@@ -3,13 +3,36 @@
 from app import db
 from datetime import datetime
 
-class DeviceStreams(db.Model):
+class DeviceStream(db.Model):
     __tablename__ = 'device_streams'
 
-    device_id = db.Column(db.Integer, db.ForeignKey('devices.id'), primary_key=True, nullable=False)
-    stream_id = db.Column(db.Integer, db.ForeignKey('streams.id'), primary_key=True, nullable=False)
-    preset_id = db.Column(db.Integer, db.ForeignKey('presets.id'), primary_key=True, nullable=False)
+    device_id = db.Column(db.Integer, db.ForeignKey('devices.id'), primary_key=True, nullable=True)
+    stream_id = db.Column(db.Integer, db.ForeignKey('streams.id'), primary_key=True, nullable=True)
+    preset_id = db.Column(db.Integer, db.ForeignKey('presets.id'), primary_key=True, nullable=True)
     preset = db.relationship('Preset')
+
+    def __init__(self, device=None, device_id=None, stream=None,
+            stream_id=None, preset=None, preset_id=None):
+        if device is not None:
+            self.device_id = device.id
+        elif device_id is not None:
+            self.device_id = device_id
+        else:
+            raise Exception('Need to specify either device or device_id')
+
+        if stream is not None:
+            self.stream_id = stream.id
+        elif stream_id is not None:
+            self.stream_id = stream_id
+        else:
+            raise Exception('Need to specify either stream or stream_id')
+
+        if preset is not None:
+            self.preset_id = preset.id
+        elif preset_id is not None:
+            self.preset_id = preset_id
+        else:
+            raise Exception('Need to specify either preset or preset_id')
 
 
 class Device(db.Model):
@@ -24,7 +47,8 @@ class Device(db.Model):
             primaryjoin='and_(Device.id == device_streams.c.device_id, Preset.active == 1)',
             secondary='join(device_streams, Stream, device_streams.c.stream_id == Stream.id)'
                       '.join(Preset, device_streams.c.preset_id == Preset.id)',
-            backref='devices')
+            backref='devices',
+            viewonly=True)
 
     def __init__(self, id=None, name=None, mac=None, screen_enable=True):
         self.id = id
