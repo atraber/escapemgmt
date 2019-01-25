@@ -7,6 +7,8 @@ import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http
 import { Observable } from 'rxjs/Observable';
 import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
 import { catchError, retry } from 'rxjs/operators';
+
+import { DevicesService } from './devices.service';
 import { environment } from '../environments/environment';
 import { Preset } from './preset';
 
@@ -22,7 +24,7 @@ export class PresetsService {
 
   presetsUpdated: EventEmitter<Preset[]> = new EventEmitter();
 
-  constructor(private http: HttpClient) {
+  constructor(private devicesService: DevicesService, private http: HttpClient) {
     this.presets = [];
 
     this.http.get<Preset[]>(environment.apiEndpoint + '/presets')
@@ -49,8 +51,15 @@ export class PresetsService {
   }
 
   activatePreset(preset: Preset): Observable<{}> {
+    // TODO: This is wrong! Need to refresh after the http request finished
+    for (let preset of this.presets) {
+      preset.active = false;
+    }
+    preset.active = true;
+    this.presetsUpdated.emit(this.presets)
+    this.devicesService.refresh();
     return this.http.post<Preset>(environment.apiEndpoint + '/preset/activate/' + preset.id, preset, jsonOptions)
-      .pipe(catchError(this.handleError));
+      .pipe(catchError(this.handleError))
   }
 
   addPreset(preset: Preset): Observable<Preset> {
@@ -59,6 +68,7 @@ export class PresetsService {
   }
 
   updatePreset(preset: Preset): Observable<Preset> {
+    // TODO: This is wrong! Need to refresh after the http request finished
     this.presetsUpdated.emit(this.presets)
     return this.http.post<Preset>(environment.apiEndpoint + '/presets/' + preset.id, preset, jsonOptions)
       .pipe(catchError(this.handleError));

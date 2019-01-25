@@ -29,11 +29,7 @@ export class DevicesService {
     this.devices = [];
     this.streams = [];
 
-    this.http.get<Stream[]>(environment.apiEndpoint + '/streams')
-      .subscribe(streams => {this.streams = streams; this.streamsUpdated.emit(streams)});
-
-    this.http.get<Device[]>(environment.apiEndpoint + '/devices')
-      .subscribe(devices => {this.devices = devices; this.devicesUpdated.emit(devices)});
+    this.refresh();
   }
 
   private handleError(error: HttpErrorResponse) {
@@ -51,6 +47,14 @@ export class DevicesService {
     return new ErrorObservable(
       'Something bad happened; please try again later.');
   };
+
+  refresh() {
+    this.http.get<Stream[]>(environment.apiEndpoint + '/streams')
+      .subscribe(streams => {this.streams = streams; this.streamsUpdated.emit(streams)});
+
+    this.http.get<Device[]>(environment.apiEndpoint + '/devices')
+      .subscribe(devices => {this.devices = devices; this.devicesUpdated.emit(devices)});
+  }
 
   addDevice(device: Device): Observable<Device> {
     return this.http.post<Device>(environment.apiEndpoint + '/device', device, jsonOptions)
