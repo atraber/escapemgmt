@@ -54,37 +54,51 @@ export class ScoresService {
   }
 
   updateRoom(room: Room): Observable<Room> {
-    this.roomsUpdated.emit(this.rooms)
-    return this.http.post<Room>(environment.apiEndpoint + '/rooms/' + room.id, room, jsonOptions)
-      .pipe(
-        catchError(this.handleError)
-      );
+    return Observable.create(observer => {
+      this.http.post<Room>(environment.apiEndpoint + '/rooms/' + room.id, room, jsonOptions)
+        .pipe(catchError(this.handleError))
+        .subscribe(
+          room => {
+            observer.next(room);
+            this.roomsUpdated.emit(this.rooms)
+            observer.complete();
+          }
+        );
+    });
   };
 
   deleteRoom(room: Room): Observable<{}> {
-    var index = this.rooms.indexOf(room);
-    this.rooms.splice(index, 1);
-    this.roomsUpdated.emit(this.rooms)
-    return this.http.delete(environment.apiEndpoint + '/rooms/' + room.id, jsonOptions)
-      .pipe(
-        catchError(this.handleError)
-      );
+    return Observable.create(observer => {
+      this.http.delete(environment.apiEndpoint + '/rooms/' + room.id, jsonOptions)
+        .pipe(catchError(this.handleError))
+        .subscribe(
+          data => {
+            var index = this.rooms.indexOf(room);
+            this.rooms.splice(index, 1);
+            this.roomsUpdated.emit(this.rooms)
+            observer.complete();
+          }
+        );
+    });
   };
 
   addScoreToRoom(room: Room, score: Score): Observable<{Score}> {
     return this.http.post<Score>(environment.apiEndpoint + '/rooms/' + room.id + '/score', score, jsonOptions)
-      .pipe(
-        catchError(this.handleError)
-      );
+      .pipe(catchError(this.handleError));
   };
 
   deleteScoreFromRoom(room: Room, score: Score): Observable<{}> {
-    var index = room.scores.indexOf(score);
-    room.scores.splice(index, 1);
-    this.roomsUpdated.emit(this.rooms)
-    return this.http.delete(environment.apiEndpoint + '/rooms/' + room.id + '/scores/' + score.id, jsonOptions)
-      .pipe(
-        catchError(this.handleError)
-      );
+    return Observable.create(observer => {
+      this.http.delete(environment.apiEndpoint + '/rooms/' + room.id + '/scores/' + score.id, jsonOptions)
+        .pipe(catchError(this.handleError))
+        .subscribe(
+          data => {
+            var index = room.scores.indexOf(score);
+            room.scores.splice(index, 1);
+            this.roomsUpdated.emit(this.rooms)
+            observer.complete();
+          }
+        );
+    });
   };
 }

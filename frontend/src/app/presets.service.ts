@@ -51,15 +51,21 @@ export class PresetsService {
   }
 
   activatePreset(preset: Preset): Observable<{}> {
-    // TODO: This is wrong! Need to refresh after the http request finished
-    for (let preset of this.presets) {
-      preset.active = false;
-    }
-    preset.active = true;
-    this.presetsUpdated.emit(this.presets)
-    this.devicesService.refresh();
-    return this.http.post<Preset>(environment.apiEndpoint + '/preset/activate/' + preset.id, preset, jsonOptions)
-      .pipe(catchError(this.handleError))
+    return Observable.create(observer => {
+      this.http.post(environment.apiEndpoint + '/preset/activate/' + preset.id, preset, jsonOptions)
+        .pipe(catchError(this.handleError))
+        .subscribe(
+            data => {
+              for (let preset of this.presets) {
+                preset.active = false;
+              }
+              preset.active = true;
+              this.presetsUpdated.emit(this.presets)
+              this.devicesService.refresh();
+              observer.complete();
+            },
+        );
+    });
   }
 
   addPreset(preset: Preset): Observable<Preset> {
@@ -68,10 +74,17 @@ export class PresetsService {
   }
 
   updatePreset(preset: Preset): Observable<Preset> {
-    // TODO: This is wrong! Need to refresh after the http request finished
-    this.presetsUpdated.emit(this.presets)
-    return this.http.post<Preset>(environment.apiEndpoint + '/presets/' + preset.id, preset, jsonOptions)
-      .pipe(catchError(this.handleError));
+    return Observable.create(observer => {
+      this.http.post<Preset>(environment.apiEndpoint + '/presets/' + preset.id, preset, jsonOptions)
+        .pipe(catchError(this.handleError))
+        .subscribe(
+          preset => {
+            observer.next(preset);
+            this.presetsUpdated.emit(this.presets)
+            observer.complete();
+          }
+        );
+    });
   };
 
   deletePreset(preset: Preset): Observable<{}> {
