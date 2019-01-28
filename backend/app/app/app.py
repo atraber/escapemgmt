@@ -4,15 +4,21 @@ from flask import Flask
 from flask_cors import CORS
 from flask_migrate import Migrate as FlaskMigrate
 from flask_sqlalchemy import SQLAlchemy
+from prometheus_flask_exporter import PrometheusMetrics
 
 from app.config import app_config, app_envs
 
 db = SQLAlchemy()
+app = None
+metrics = None
 
 def _CommonAppConfig(config_name):
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object(app_config[config_name])
     app.config.update(app_envs())
+
+    metrics = PrometheusMetrics(app)
+
     db.init_app(app)
 
     from app.devices import devices as devices_blueprint
