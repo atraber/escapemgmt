@@ -3,6 +3,7 @@
 from flask import abort, Blueprint, request, Response, jsonify
 
 from app import db
+from app.logger import logger
 from app.models import Preset
 from app.pubsub import publish
 
@@ -48,8 +49,7 @@ def apiPresetActivate(presetid: int):
         if preset_old:
             preset_old.active = False
         else:
-            # TODO: Add logging
-            pass
+            logger.error('No active preset found')
 
         preset_new = db.session.query(Preset).filter_by(id=presetid).first()
         preset_new.active = True

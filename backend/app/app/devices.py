@@ -5,6 +5,7 @@ from flask import abort, Blueprint, request, Response, jsonify
 from typing import List
 
 from app import db
+from app.logger import logger
 from app.models import Device, DeviceStream, Preset, Stream
 
 devices = Blueprint('devices', __name__)
@@ -66,8 +67,7 @@ def apiDeviceUpdate(deviceid: int):
             db_preset = db.session.query(Preset).filter_by(active=True).first()
 
             if not db_preset:
-                # TODO: Logging
-                pass
+                logger.error('No active preset found')
 
             db_device = db.session.query(Device).filter_by(id=deviceid).first()
             db_device.name = request.json['name']
