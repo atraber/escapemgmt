@@ -58,6 +58,12 @@ well:
       apachepulsar/pulsar \
       bin/pulsar standalone
 
+## First time setup: Creating tables in DB
+
+    export FLASK_CONFIG=development
+    export FLASK_APP=app.initdb:initdb
+    python3 -m flask run
+
 ## Creating DB migrations
 
 The following commands will automatically create a new candidate revision.

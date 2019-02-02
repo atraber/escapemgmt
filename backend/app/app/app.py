@@ -54,6 +54,15 @@ def Create(config_name):
 
     return app
 
+def InitDB(config_name):
+    app = _CommonAppConfig(config_name)
+
+    # Create all tables.
+    with app.app_context():
+        db.create_all()
+
+    return app
+
 
 def Migrate(config_name):
     app = _CommonAppConfig(config_name)
