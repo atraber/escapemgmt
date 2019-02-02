@@ -13,4 +13,4 @@ config_name = os.getenv('FLASK_CONFIG', 'production')
 application = Create(config_name)
 
 if __name__ == '__main__':
-    application.run()
+    application.run(threaded=True)

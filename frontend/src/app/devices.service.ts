@@ -5,6 +5,7 @@
 import { Injectable, EventEmitter } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { Observable } from 'rxjs/Observable';
+import * as EventSource from 'eventsource';
 import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
 import { catchError, retry } from 'rxjs/operators';
 import { environment } from '../environments/environment';
@@ -30,6 +31,7 @@ export class DevicesService {
     this.streams = [];
 
     this.refresh();
+    this.listenForChanges();
   }
 
   private handleError(error: HttpErrorResponse) {
@@ -48,7 +50,16 @@ export class DevicesService {
       'Something bad happened; please try again later.');
   };
 
-  refresh() {
+  private listenForChanges() {
+    let source = new EventSource(environment.apiEndpoint + '/subscribe');
+    source.addEventListener('devicesChanged', message => {
+      console.log('devicesChanged event received from server');
+      this.refresh();
+    });
+  }
+
+  private refresh() {
+    console.log('refresh() called in DevicesService');
     this.http.get<Stream[]>(environment.apiEndpoint + '/streams')
       .subscribe(streams => {this.streams = streams; this.streamsUpdated.emit(streams)});
 

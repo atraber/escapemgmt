@@ -6,6 +6,7 @@ class ConfigCommon(object):
     Common configurations
     """
 
+    PULSAR_URL = 'pulsar://localhost:6650'
     # well, this is not very safe obviously as it is also inside version control
     # However, this is an isolated system that is not exposed online and the
     # mysql process allows only local connections

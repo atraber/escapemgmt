@@ -61,7 +61,6 @@ export class PresetsService {
               }
               preset.active = true;
               this.presetsUpdated.emit(this.presets)
-              this.devicesService.refresh();
               observer.complete();
             },
         );

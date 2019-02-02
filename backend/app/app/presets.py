@@ -4,6 +4,7 @@ from flask import Blueprint, request, Response, jsonify
 
 from app import db
 from app.models import Preset
+from app.pubsub import publish
 
 presets = Blueprint('presets', __name__)
 
@@ -53,5 +54,6 @@ def apiPresetActivate(presetid):
         preset_new = db.session.query(Preset).filter_by(id=presetid).first()
         preset_new.active = True
         db.session.commit()
+        publish('devicesChanged')
         return jsonify('ok')
     abort(400)
