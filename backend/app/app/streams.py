@@ -1,6 +1,6 @@
 # Copyright 2018 Andreas Traber
 # Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
-from flask import Blueprint, request, Response, jsonify
+from flask import abort, Blueprint, request, Response, jsonify
 
 from app import db
 from app.models import Stream
@@ -25,7 +25,7 @@ def apiStreamAdd():
     return jsonify(stream.serialize())
 
 @streams.route('/streams/<int:streamid>', methods = ['POST', 'DELETE'])
-def apiStreamUpdate(streamid):
+def apiStreamUpdate(streamid: int):
     if request.method == 'POST':
         if request.headers['Content-Type'] == 'application/json':
             db_stream = db.session.query(Stream).filter_by(id=streamid).first()

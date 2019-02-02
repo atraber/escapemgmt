@@ -5,3 +5,4 @@ __pycache__
 /lib64
 /venv
 pip-selfcheck.json
+.mypy_cache

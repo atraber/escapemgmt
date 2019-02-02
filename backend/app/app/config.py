@@ -1,7 +1,7 @@
 import os
 
 
-class ConfigCommon(object):
+class ConfigCommon:
     """
     Common configurations
     """
@@ -37,7 +37,7 @@ app_config = {
 }
 
 
-def app_envs():
+def app_envs() -> dict:
     d = {}
     env_names = ['DEBUG', 'SQLALCHEMY_DATABASE_URI']
     for env_name in env_names:

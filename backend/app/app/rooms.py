@@ -1,7 +1,7 @@
 # Copyright 2018 Andreas Traber
 # Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
 from datetime import datetime
-from flask import Blueprint, request, Response, jsonify
+from flask import abort, Blueprint, request, Response, jsonify
 
 from app import db
 from app.models import Room, Score
@@ -26,7 +26,7 @@ def apiRoomAdd():
     return jsonify(room.serialize())
 
 @rooms.route('/rooms/<int:roomid>', methods = ['POST', 'DELETE'])
-def apiRoomUpdate(roomid):
+def apiRoomUpdate(roomid: int):
     if request.method == 'POST':
         if request.headers['Content-Type'] == 'application/json':
             db_room = db.session.query(Room).filter_by(id=roomid).first()
@@ -45,7 +45,7 @@ def apiRoomUpdate(roomid):
         abort(400)
 
 @rooms.route('/rooms/<int:roomid>/score', methods = ['POST'])
-def apiRoomAddScore(roomid):
+def apiRoomAddScore(roomid: int):
     if request.headers['Content-Type'] == 'application/json':
         db_room = db.session.query(Room).filter_by(id=roomid).first()
         score = Score(
@@ -60,7 +60,7 @@ def apiRoomAddScore(roomid):
     return jsonify(score.serialize())
 
 @rooms.route('/rooms/<int:roomid>/scores/<int:scoreid>', methods = ['DELETE'])
-def apiRoomDeleteScore(roomid, scoreid):
+def apiRoomDeleteScore(roomid: int, scoreid: int):
     if request.method == 'DELETE':
         if request.headers['Content-Type'] == 'application/json':
             db_room = db.session.query(Room).filter_by(id=roomid).first()

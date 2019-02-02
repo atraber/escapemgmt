@@ -3,7 +3,7 @@
 from app import db
 from datetime import datetime
 
-class DeviceStream(db.Model):
+class DeviceStream(db.Model):  # type: ignore
     __tablename__ = 'device_streams'
 
     device_id = db.Column(db.Integer, db.ForeignKey('devices.id'), primary_key=True, nullable=True)
@@ -35,7 +35,7 @@ class DeviceStream(db.Model):
             raise Exception('Need to specify either preset or preset_id')
 
 
-class Device(db.Model):
+class Device(db.Model):  # type: ignore
     __tablename__ = 'devices'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -66,7 +66,7 @@ class Device(db.Model):
             'streams': [s.serialize() for s in self.streams],
         }
 
-class Stream(db.Model):
+class Stream(db.Model):  # type: ignore
     __tablename__ = 'streams'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -100,7 +100,7 @@ class Stream(db.Model):
             'orientation': self.orientation,
         }
 
-class Preset(db.Model):
+class Preset(db.Model):  # type: ignore
     __tablename__ = 'presets'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -120,7 +120,7 @@ class Preset(db.Model):
         }
 
 
-class Room(db.Model):
+class Room(db.Model):  # type: ignore
     __tablename__ = 'rooms'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -144,7 +144,7 @@ class Room(db.Model):
             'scores': [s.serialize() for s in self.scores],
         }
 
-class Score(db.Model):
+class Score(db.Model):  # type: ignore
     __tablename__ = 'scores'
 
     id = db.Column(db.Integer, primary_key=True)

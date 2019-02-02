@@ -1,6 +1,6 @@
 # Copyright 2018 Andreas Traber
 # Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
-from flask import Blueprint, request, Response, jsonify
+from flask import abort, Blueprint, request, Response, jsonify
 
 from app import db
 from app.models import Preset
@@ -26,7 +26,7 @@ def apiPresetAdd():
     return jsonify(preset.serialize())
 
 @presets.route('/presets/<int:presetid>', methods = ['POST', 'DELETE'])
-def apiPresetUpdate(presetid):
+def apiPresetUpdate(presetid: int):
     if request.method == 'POST':
         if request.headers['Content-Type'] == 'application/json':
             db_preset = db.session.query(Preset).filter_by(id=presetid).first()
@@ -42,7 +42,7 @@ def apiPresetUpdate(presetid):
         abort(400)
 
 @presets.route('/preset/activate/<int:presetid>', methods = ['POST'])
-def apiPresetActivate(presetid):
+def apiPresetActivate(presetid: int):
     if request.headers['Content-Type'] == 'application/json':
         preset_old = db.session.query(Preset).filter_by(active=True).first()
         if preset_old:

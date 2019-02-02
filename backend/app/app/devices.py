@@ -1,7 +1,8 @@
 # Copyright 2018 Andreas Traber
 # Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
 from datetime import datetime
-from flask import Blueprint, request, Response, jsonify
+from flask import abort, Blueprint, request, Response, jsonify
+from typing import List
 
 from app import db
 from app.models import Device, DeviceStream, Preset, Stream
@@ -27,7 +28,7 @@ def apiDeviceAdd():
     return jsonify(device.serialize())
 
 
-def _StreamsCompare(new, old):
+def _StreamsCompare(new: List[int], old: List[int]):
     """Finds streams added and removed.
 
     Both parameters must be list of ids.
@@ -59,7 +60,7 @@ def _StreamsCompare(new, old):
 
 
 @devices.route('/devices/<int:deviceid>', methods = ['POST', 'DELETE'])
-def apiDeviceUpdate(deviceid):
+def apiDeviceUpdate(deviceid: int):
     if request.method == 'POST':
         if request.headers['Content-Type'] == 'application/json':
             db_preset = db.session.query(Preset).filter_by(active=True).first()
@@ -118,7 +119,7 @@ def apiDevicesScreenOff():
     db.session.commit()
     return jsonify("ok")
 
-def number_to_mac(n):
+def number_to_mac(n: int) -> str:
     arr = []
     for i in range(5, -1, -1):
         k = (n >> (8 * i)) & 0xFF
@@ -126,12 +127,12 @@ def number_to_mac(n):
     return '-'.join(arr)
 
 @devices.route('/raspi/<int:mac>', methods = ['GET'])
-def apiRaspi(mac):
-    mac = number_to_mac(mac)
-    device = db.session.query(Device).filter_by(mac=mac).first()
+def apiRaspi(mac: int):
+    mac_str = number_to_mac(mac)
+    device = db.session.query(Device).filter_by(mac=mac_str).first()
 
     if device is None:
-        device = Device(name="Unknown", mac=mac)
+        device = Device(name="Unknown", mac=mac_str)
         db.session.add(device)
 
     device.last_seen = int(datetime.now().timestamp())

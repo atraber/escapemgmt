@@ -10,11 +10,11 @@ import pulsar
 from app.config import app_config, app_envs
 
 app = None
-pulsar_client = None
+pulsar_client = None # type: pulsar.Client
 db = SQLAlchemy()
 metrics = None
 
-def _CommonAppConfig(config_name):
+def _CommonAppConfig(config_name: str):
     global pulsar_client
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object(app_config[config_name])
@@ -44,7 +44,7 @@ def _CommonAppConfig(config_name):
     return app
 
 
-def Create(config_name):
+def Create(config_name: str):
     app = _CommonAppConfig(config_name)
 
     # enable cross-origin access
@@ -54,7 +54,7 @@ def Create(config_name):
 
     return app
 
-def InitDB(config_name):
+def InitDB(config_name: str):
     app = _CommonAppConfig(config_name)
 
     # Create all tables.
@@ -64,7 +64,7 @@ def InitDB(config_name):
     return app
 
 
-def Migrate(config_name):
+def Migrate(config_name: str):
     app = _CommonAppConfig(config_name)
 
     # perform DB migrations
