@@ -10,10 +10,12 @@ import pulsar
 from app.config import app_config, app_envs
 from app.logger import logger
 
+
 app = None
 pulsar_client = None # type: pulsar.Client
 db = SQLAlchemy()
 metrics = None
+
 
 def _CommonAppConfig(config_name: str):
     global pulsar_client
@@ -59,6 +61,7 @@ def Create(config_name: str):
     from app import models
 
     return app
+
 
 def InitDB(config_name: str):
     app = _CommonAppConfig(config_name)

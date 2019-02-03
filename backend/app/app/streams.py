@@ -5,12 +5,15 @@ from flask import abort, Blueprint, request, Response, jsonify
 from app import db
 from app.models import Stream
 
+
 streams = Blueprint('streams', __name__)
+
 
 @streams.route('/streams', methods = ['GET'])
 def apiStreams():
     streams = db.session.query(Stream).order_by(Stream.name).all()
     return jsonify([s.serialize() for s in streams])
+
 
 @streams.route('/stream', methods = ['POST'])
 def apiStreamAdd():
@@ -23,6 +26,7 @@ def apiStreamAdd():
     else:
         abort(400)
     return jsonify(stream.serialize())
+
 
 @streams.route('/streams/<int:streamid>', methods = ['POST', 'DELETE'])
 def apiStreamUpdate(streamid: int):

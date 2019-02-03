@@ -7,12 +7,15 @@ from app.logger import logger
 from app.models import Preset
 from app.pubsub import publish
 
+
 presets = Blueprint('presets', __name__)
+
 
 @presets.route('/presets', methods = ['GET'])
 def apiPresets():
     presets = db.session.query(Preset).order_by(Preset.name).all()
     return jsonify([s.serialize() for s in presets])
+
 
 @presets.route('/preset', methods = ['POST'])
 def apiPresetAdd():
@@ -25,6 +28,7 @@ def apiPresetAdd():
     else:
         abort(400)
     return jsonify(preset.serialize())
+
 
 @presets.route('/presets/<int:presetid>', methods = ['POST', 'DELETE'])
 def apiPresetUpdate(presetid: int):
@@ -41,6 +45,7 @@ def apiPresetUpdate(presetid: int):
             db.session.commit()
             return jsonify('ok')
         abort(400)
+
 
 @presets.route('/preset/activate/<int:presetid>', methods = ['POST'])
 def apiPresetActivate(presetid: int):

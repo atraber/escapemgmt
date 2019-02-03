@@ -5,9 +5,10 @@ import logging
 import os
 import sys
 
-logging.basicConfig(stream=sys.stderr)
-
 from app import Migrate
+
+
+logging.basicConfig(stream=sys.stderr)
 
 config_name = os.getenv('FLASK_CONFIG', 'production')
 migrate = Migrate(config_name)

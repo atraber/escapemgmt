@@ -3,6 +3,7 @@
 from app import db
 from datetime import datetime
 
+
 class DeviceStream(db.Model):  # type: ignore
     __tablename__ = 'device_streams'
 
@@ -66,6 +67,7 @@ class Device(db.Model):  # type: ignore
             'streams': [s.serialize() for s in self.streams],
         }
 
+
 class Stream(db.Model):  # type: ignore
     __tablename__ = 'streams'
 
@@ -99,6 +101,7 @@ class Stream(db.Model):  # type: ignore
             'crop_y2': self.crop_y2,
             'orientation': self.orientation,
         }
+
 
 class Preset(db.Model):  # type: ignore
     __tablename__ = 'presets'
@@ -143,6 +146,7 @@ class Room(db.Model):  # type: ignore
             'bg_image': self.bg_image,
             'scores': [s.serialize() for s in self.scores],
         }
+
 
 class Score(db.Model):  # type: ignore
     __tablename__ = 'scores'

@@ -6,12 +6,15 @@ from flask import abort, Blueprint, request, Response, jsonify
 from app import db
 from app.models import Room, Score
 
+
 rooms = Blueprint('rooms', __name__)
+
 
 @rooms.route('/rooms', methods = ['GET'])
 def apiRooms():
     rooms = db.session.query(Room).all()
     return jsonify([s.serialize() for s in rooms])
+
 
 @rooms.route('/room', methods = ['POST'])
 def apiRoomAdd():
@@ -24,6 +27,7 @@ def apiRoomAdd():
     else:
         abort(400)
     return jsonify(room.serialize())
+
 
 @rooms.route('/rooms/<int:roomid>', methods = ['POST', 'DELETE'])
 def apiRoomUpdate(roomid: int):
@@ -44,6 +48,7 @@ def apiRoomUpdate(roomid: int):
             return jsonify('ok')
         abort(400)
 
+
 @rooms.route('/rooms/<int:roomid>/score', methods = ['POST'])
 def apiRoomAddScore(roomid: int):
     if request.headers['Content-Type'] == 'application/json':
@@ -58,6 +63,7 @@ def apiRoomAddScore(roomid: int):
     else:
         abort(400)
     return jsonify(score.serialize())
+
 
 @rooms.route('/rooms/<int:roomid>/scores/<int:scoreid>', methods = ['DELETE'])
 def apiRoomDeleteScore(roomid: int, scoreid: int):

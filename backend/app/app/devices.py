@@ -10,11 +10,13 @@ from app.models import Device, DeviceStream, Preset, Stream
 
 devices = Blueprint('devices', __name__)
 
+
 @devices.route('/devices', methods = ['GET'])
 def apiDevices():
     #devices = db.session.query(Device).order_by(Device.name).filter(Device.streams.preset.any(active=True)).all()
     devices = db.session.query(Device).order_by(Device.name).all()
     return jsonify([d.serialize() for d in devices])
+
 
 @devices.route('/device', methods = ['POST'])
 def apiDeviceAdd():
@@ -99,6 +101,7 @@ def apiDeviceUpdate(deviceid: int):
             return jsonify('ok')
         abort(400)
 
+
 @devices.route('/devices/screen_on', methods = ['GET'])
 def apiDevicesScreenOn():
     devices = db.session.query(Device).all()
@@ -108,6 +111,7 @@ def apiDevicesScreenOn():
 
     db.session.commit()
     return jsonify("ok")
+
 
 @devices.route('/devices/screen_off', methods = ['GET'])
 def apiDevicesScreenOff():
@@ -119,12 +123,14 @@ def apiDevicesScreenOff():
     db.session.commit()
     return jsonify("ok")
 
+
 def number_to_mac(n: int) -> str:
     arr = []
     for i in range(5, -1, -1):
         k = (n >> (8 * i)) & 0xFF
         arr.append("{:02X}".format(k))
     return '-'.join(arr)
+
 
 @devices.route('/raspi/<int:mac>', methods = ['GET'])
 def apiRaspi(mac: int):

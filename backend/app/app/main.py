@@ -5,9 +5,10 @@ import logging
 import os
 import sys
 
-logging.basicConfig(stream=sys.stderr)
-
 from app import Create
+
+
+logging.basicConfig(stream=sys.stderr)
 
 config_name = os.getenv('FLASK_CONFIG', 'production')
 application = Create(config_name)
