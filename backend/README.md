@@ -62,7 +62,7 @@ well:
 
     export FLASK_CONFIG=development
     export FLASK_APP=app.initdb:initdb
-    python3 -m flask run
+    cd app && python3 -m flask run
 
 ## Creating DB migrations
 

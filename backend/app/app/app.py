@@ -3,6 +3,7 @@
 from flask import Flask
 from flask_cors import CORS
 from flask_migrate import Migrate as FlaskMigrate
+from flask_migrate import stamp
 from flask_sqlalchemy import SQLAlchemy
 from prometheus_flask_exporter import PrometheusMetrics
 import pulsar
@@ -70,6 +71,10 @@ def InitDB(config_name: str):
     with app.app_context():
         logger.info('Creating tables')
         db.create_all()
+
+        logger.info('Stamp most recent alembic version')
+        FlaskMigrate(app, db)
+        stamp('./app/migrations')
 
     return app
 
