@@ -73,33 +73,52 @@ class Stream(db.Model):  # type: ignore
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(20))
-    url = db.Column(db.String(255))
-    crop_x1 = db.Column(db.Integer, nullable=False)
-    crop_x2 = db.Column(db.Integer, nullable=False)
-    crop_y1 = db.Column(db.Integer, nullable=False)
-    crop_y2 = db.Column(db.Integer, nullable=False)
     orientation = db.Column(db.Integer)
+    streamviews = db.relationship('StreamView')
 
-    def __init__(self, id=None, name=None, url=None, orientation=0, crop_x1=0, crop_y1=0, crop_x2=1080, crop_y2=720):
+    def __init__(self, id=None, name=None, orientation=0):
         self.id = id
         self.name = name
-        self.url = url
-        self.crop_x1 = crop_x1
-        self.crop_x2 = crop_x2
-        self.crop_y1 = crop_y1
-        self.crop_y2 = crop_y2
         self.orientation = orientation
 
     def serialize(self):
         return {
             'id': self.id,
             'name': self.name,
+            'orientation': self.orientation,
+            'streamviews': [s.serialize() for s in self.streamviews],
+        }
+
+
+class StreamView(db.Model):  # type: ignore
+    __tablename__ = 'streamviews'
+
+    id = db.Column(db.Integer, primary_key=True)
+    stream_id = db.Column(db.Integer, db.ForeignKey('streams.id'))
+    url = db.Column(db.String(255))
+    crop_x1 = db.Column(db.Integer, nullable=False)
+    crop_x2 = db.Column(db.Integer, nullable=False)
+    crop_y1 = db.Column(db.Integer, nullable=False)
+    crop_y2 = db.Column(db.Integer, nullable=False)
+
+    def __init__(self, stream, id=None, url=None, crop_x1=0, crop_y1=0, crop_x2=1080, crop_y2=720):
+        self.id = id
+        self.stream_id = stream.id
+        self.url = url
+        self.crop_x1 = crop_x1
+        self.crop_x2 = crop_x2
+        self.crop_y1 = crop_y1
+        self.crop_y2 = crop_y2
+
+    def serialize(self):
+        return {
+            'id': self.id,
+            'stream_id': self.room_id,
             'url': self.url,
             'crop_x1': self.crop_x1,
             'crop_y1': self.crop_y1,
             'crop_x2': self.crop_x2,
             'crop_y2': self.crop_y2,
-            'orientation': self.orientation,
         }
 
 
