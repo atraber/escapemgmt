@@ -1,0 +1,72 @@
+version: '3'
+services:
+  escape-frontend:
+    build: ./frontend
+    ports:
+      - "80:80"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - frontend
+      - backend
+    depends_on:
+      - escape-backend
+    restart: unless-stopped
+  escape-backend:
+    build: ./backend
+    environment:
+      SQLALCHEMY_DATABASE_URI: 'mysql+pymysql://raspimgmt:raspberrypi@escape-mariadb/raspimgmt?charset=utf8'
+      PULSAR_URL: 'pulsar://escape-pulsar:6650'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/devices"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    expose:
+      - "80"
+    networks:
+      - frontend
+      - backend
+    depends_on:
+      - escape-pulsar
+      - escape-mariadb
+    restart: unless-stopped
+  escape-mariadb:
+    environment:
+      MYSQL_ROOT_PASSWORD: escape
+      MYSQL_DATABASE: raspimgmt
+      MYSQL_USER: raspimgmt
+      MYSQL_PASSWORD: raspberrypi
+    image: mariadb
+    expose:
+      - "3360"
+    networks:
+      backend:
+        aliases:
+          - escape-mariadb
+    volumes:
+      - ./backend/data/mysql:/var/lib/mysql
+    restart: unless-stopped
+  escape-pulsar:
+    image: apachepulsar/pulsar
+    networks:
+      backend:
+        aliases:
+          - escape-pulsar
+    expose:
+      - "6650"
+      - "8080"
+    volumes:
+      - ./backend/data/pulsar:/pulsar/data
+    entrypoint:
+      - bin/pulsar
+      - standalone
+    restart: unless-stopped
+networks:
+  frontend:
+    internal: false
+  backend:
+    internal: true
