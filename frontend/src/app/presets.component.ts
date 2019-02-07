@@ -13,7 +13,7 @@ import { PresetsService } from './presets.service';
 export class PresetsComponent {
   presets: Preset[];
   preset_selected: Preset;
-  new_preset_name: String;
+  new_preset_name: string;
 
   constructor(private presetsService: PresetsService) {
     this.presets = this.presetsService.presets;
