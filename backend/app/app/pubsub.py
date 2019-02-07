@@ -17,6 +17,7 @@ def apiStreamUpdate():
     @stream_with_context
     def eventStream():
         consumer = pulsar_client.subscribe('pubsub', '{}'.format(uuid.uuid4()))
+        logger.info('Created new consumer for pulsar')
 
         while True:
             # Wait for source data to be available, then push it.
@@ -32,6 +33,8 @@ def apiStreamUpdate():
                 continue
             event = bytes(msg.data()).decode('utf-8')
 
+            logger.info('Received event from pubsub: {}'.format(event))
+
             yield 'event: {}\ndata: {}\n\n'.format(event, 'hallo')
             consumer.acknowledge(msg)
 
@@ -41,4 +44,5 @@ def apiStreamUpdate():
 def publish(event: str, msg=''):
     # TODO: msg is currently ignored. The message sent here needs to be encoded
     # somehow.
+    logger.info('Sent event to pubsub: {}'.format(event))
     producer.send(event.encode('utf-8'))

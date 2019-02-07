@@ -39,7 +39,7 @@ app_config = {
 
 def app_envs() -> dict:
     d = {}
-    env_names = ['DEBUG', 'SQLALCHEMY_DATABASE_URI']
+    env_names = ['DEBUG', 'SQLALCHEMY_DATABASE_URI', 'PULSAR_URL']
     for env_name in env_names:
         env = os.getenv(env_name)
         if env is not None:
