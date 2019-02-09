@@ -52,6 +52,11 @@ services:
     restart: unless-stopped
   escape-pulsar:
     image: apachepulsar/pulsar
+    healthcheck:
+      test: ["CMD", "sh", "-c", "/pulsar/bin/pulsar-client produce healthcheck -m ok && /pulsar/bin/pulsar-client consume healthcheck -s healthcheck"]
+      interval: 60s
+      timeout: 30s
+      retries: 3
     networks:
       backend:
         aliases:
