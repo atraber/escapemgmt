@@ -23,9 +23,9 @@ def apiStreamAdd():
         )
         db.session.add(stream)
         db.session.commit()
+        return jsonify(stream.serialize())
     else:
         abort(400)
-    return jsonify(stream.serialize())
 
 
 @streams.route('/streams/<int:streamid>', methods = ['POST', 'DELETE'])

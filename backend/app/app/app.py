@@ -50,6 +50,9 @@ def _CommonAppConfig(config_name: str):
     from app.streams import streams as streams_blueprint
     app.register_blueprint(streams_blueprint)
 
+    from app.streamviews import streamviews as streamviews_blueprint
+    app.register_blueprint(streamviews_blueprint)
+
     return app
 
 
