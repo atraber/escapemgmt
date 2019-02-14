@@ -24,7 +24,7 @@ def client(mocker):
 
     # Do not export promtheus metrics as this does not work when repeated tests
     # are performed.
-    mocker.patch('app.app.PrometheusMetrics')
+    #mocker.patch('app.app.PrometheusMetrics')
 
     # Temporary Sqlite Database
     db_fd, db_file = tempfile.mkstemp()

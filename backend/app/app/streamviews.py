@@ -1,6 +1,6 @@
 # Copyright 2019 Andreas Traber
 # Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
-from flask import abort, Blueprint, request, Response, jsonify
+from quart import abort, Blueprint, request, Response, jsonify
 
 from app import db
 from app.models import Stream, StreamView

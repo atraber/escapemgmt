@@ -1,11 +1,11 @@
 # Copyright 2018 Andreas Traber
 # Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
-from flask import Flask
-from flask_cors import CORS
-from flask_migrate import Migrate as FlaskMigrate
-from flask_migrate import stamp
-from flask_sqlalchemy import SQLAlchemy
-from prometheus_flask_exporter import PrometheusMetrics
+from quart import Quart
+from quart_cors import cors
+#from flask_migrate import Migrate as FlaskMigrate
+#from flask_migrate import stamp
+from quart_sqlalchemy import SQLAlchemy
+#from prometheus_flask_exporter import PrometheusMetrics
 import pulsar
 
 from app.config import app_config, app_envs
@@ -20,13 +20,13 @@ metrics = None
 
 def _CommonAppConfig(config_name: str):
     global pulsar_client
-    app = Flask(__name__, instance_relative_config=True)
+    app = Quart(__name__)
     logger.info('Applying config: {}'.format(config_name))
     app.config.from_object(app_config[config_name])
     app.config.update(app_envs())
 
-    logger.info('Adding PrometheusMetrics')
-    metrics = PrometheusMetrics(app)
+    #logger.info('Adding PrometheusMetrics')
+    #metrics = PrometheusMetrics(app)
 
     logger.info('Initializing database')
     db.init_app(app)
@@ -60,7 +60,7 @@ def Create(config_name: str):
     app = _CommonAppConfig(config_name)
 
     # enable cross-origin access
-    CORS(app)
+    app = cors(app)
 
     from app import models
 

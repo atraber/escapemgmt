@@ -1,7 +1,7 @@
 # Copyright 2019 Andreas Traber
 # Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
-from flask import current_app, Blueprint, jsonify, request, Response, stream_with_context
-from concurrent.futures import TimeoutError
+import asyncio
+from quart import Blueprint, make_response, Response
 import uuid
 
 from app.app import pulsar_client
@@ -13,32 +13,35 @@ producer = pulsar_client.create_producer('pubsub')
 
 
 @pubsub.route('/subscribe')
-def apiStreamUpdate():
-    @stream_with_context
-    def eventStream():
+async def apiStreamUpdate():
+    async def eventStream():
+        loop = asyncio.get_event_loop()
+
         consumer = pulsar_client.subscribe('pubsub', '{}'.format(uuid.uuid4()))
         logger.info('Created new consumer for pulsar')
 
         while True:
             # Wait for source data to be available, then push it.
-            try:
-                msg = consumer.receive(timeout_millis=5000)
-            # Yeah, I know this sucks! One should not catch all exceptions.
-            # However it seems that Pulsar only knows Exception exceptions,
-            # thus there is really no other way...
-            except:
-                # This is normal during operation and excepted. We need to give
-                # the schedular a chance to see that this thread is actually
-                # alive.
-                continue
+            msg = await loop.run_in_executor(
+                None, consumer.receive)
+
             event = bytes(msg.data()).decode('utf-8')
 
             logger.info('Received event from pubsub: {}'.format(event))
 
-            yield 'event: {}\ndata: {}\n\n'.format(event, 'hallo')
+            yield 'event: {}\ndata: {}\r\n\r\n'.format(event, 'hallo').encode('utf-8')
             consumer.acknowledge(msg)
 
-    return Response(eventStream(), mimetype='text/event-stream')
+    response = await make_response(
+        eventStream(),
+        {
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            'Transfer-Encoding': 'chunked',
+        },
+    )
+    response.timeout = None
+    return response
 
 
 def publish(event: str, msg=''):

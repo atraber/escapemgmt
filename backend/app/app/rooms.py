@@ -1,7 +1,7 @@
 # Copyright 2018 Andreas Traber
 # Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
 from datetime import datetime
-from flask import abort, Blueprint, request, Response, jsonify
+from quart import abort, Blueprint, request, jsonify
 
 from app import db
 from app.models import Room, Score
