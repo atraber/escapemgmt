@@ -1,7 +1,5 @@
 #!/bin/bash
 source ./venv/bin/activate
-#export FLASK_ENV=development
-#export FLASK_CONFIG=development
 export SQLALCHEMY_DATABASE_URI='mysql+pymysql://raspimgmt:raspberrypi@localhost/raspimgmt?charset=utf8'
 cd app && hypercorn \
     -b :5000  \

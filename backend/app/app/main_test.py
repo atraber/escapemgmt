@@ -1,12 +1,13 @@
 #!/usr/bin/python3
 # Copyright 2019 Andreas Traber
 # Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
-import pulsar
+import asyncio
 import os
 import pytest
+import pytest_asyncio.plugin
 import tempfile
 
-from app import Create, InitDB
+from app import App, Init, PerformInitDB
 
 
 class FakePulsarClient:
@@ -31,11 +32,12 @@ def client(mocker):
     os.environ['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///{}'.format(db_file)
 
     # Initialize DB and create Flask application.
-    InitDB('development')
-    application = Create('development')
-    application.config['TESTING'] = True
+    app = App('development')
+    app.config['TESTING'] = True
+    asyncio.run(PerformInitDB(app))
+    Init(app)
 
-    client = application.test_client()
+    client = app.test_client()
 
     yield client
 
@@ -43,7 +45,8 @@ def client(mocker):
     os.unlink(db_file)
 
 
-def testDevices(client):
-    devices = client.get('/devices')
+@pytest.mark.asyncio
+async def testDevices(client):
+    devices = await client.get('/devices')
     assert devices.status_code == 200
-    assert devices.get_json() == []
+    assert await devices.get_json() == []

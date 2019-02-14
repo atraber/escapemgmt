@@ -1,9 +1,10 @@
 # Copyright 2018 Andreas Traber
 # Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
+from alembic.config import Config as alembic_Config
+from alembic import command as alembic_command
+import asyncio
 from quart import Quart
 from quart_cors import cors
-#from flask_migrate import Migrate as FlaskMigrate
-#from flask_migrate import stamp
 from quart_sqlalchemy import SQLAlchemy
 #from prometheus_flask_exporter import PrometheusMetrics
 import pulsar
@@ -18,7 +19,7 @@ db = SQLAlchemy()
 metrics = None
 
 
-def _CommonAppConfig(config_name: str):
+def App(config_name: str) -> Quart:
     global pulsar_client
     app = Quart(__name__)
     logger.info('Applying config: {}'.format(config_name))
@@ -56,9 +57,7 @@ def _CommonAppConfig(config_name: str):
     return app
 
 
-def Create(config_name: str):
-    app = _CommonAppConfig(config_name)
-
+def Init(app: Quart):
     # enable cross-origin access
     app = cors(app)
 
@@ -67,23 +66,27 @@ def Create(config_name: str):
     return app
 
 
-def InitDB(config_name: str):
-    app = _CommonAppConfig(config_name)
-
-    # Create all tables.
-    with app.app_context():
+async def PerformInitDB(app: Quart):
+    """Create all tables."""
+    async with app.app_context():
         logger.info('Creating tables')
-        db.create_all()
+        db.create_all(app=app)
 
         logger.info('Stamp most recent alembic version')
-        FlaskMigrate(app, db)
-        stamp('./app/migrations')
+        alembic_cfg = alembic_Config('./app/migrations/alembic.ini')
+        alembic_command.stamp(alembic_cfg, "head")
+
+
+def InitDB(config_name: str):
+    app = App(config_name)
+
+    asyncio.run(PerformInitDB())
 
     return app
 
 
 def Migrate(config_name: str):
-    app = _CommonAppConfig(config_name)
+    app = App(config_name)
 
     # perform DB migrations
     logger.info('Performing schema migrations')

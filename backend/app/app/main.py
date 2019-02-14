@@ -5,13 +5,14 @@ import logging
 import os
 import sys
 
-from app import Create
+from app import App, Init
 
 
 logging.basicConfig(stream=sys.stderr)
 
 config_name = os.getenv('FLASK_CONFIG', 'production')
-application = Create(config_name)
+application = App(config_name)
+Init(application)
 
 if __name__ == '__main__':
     application.run(threaded=True)
