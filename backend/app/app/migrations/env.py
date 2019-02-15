@@ -13,12 +13,28 @@ config = context.config
 fileConfig(config.config_file_name)
 logger = logging.getLogger('alembic.env')
 
+### HACK ###
+target_metadata = None
+try:
+    from app import db
+except ModuleNotFoundError:
+    import os
+    import sys
+    # To ensure that the app will be found, add its path to the Python path.
+    app_path = os.path.abspath(
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), '../..'))
+    sys.path.insert(0, app_path)
+    from app import App, db
+    app = App()
+    db.app = app
+### HACK END ###
+
 # add your model's MetaData object here
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-from app import db
-target_metadata = db.metadata
+if target_metadata is None:
+    target_metadata = db.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
@@ -58,6 +74,6 @@ def run_migrations_online():
         connection.close()
 
 if context.is_offline_mode():
-    run_migrations_offline()
+    raise Exception('Offline mode is not supported')
 else:
     run_migrations_online()

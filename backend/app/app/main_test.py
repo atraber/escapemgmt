@@ -11,17 +11,17 @@ from app import App, Init, PerformInitDB
 
 
 class FakePulsarClient:
-    def create_producer(topic: str):
+    def create_producer(self, topic: str):
         return None
 
-    def subscribe(topic: str, subscriber_id: str):
+    def subscribe(self, topic: str, subscriber_id: str):
         return None
 
 
 @pytest.fixture
 def client(mocker):
     # Do not use Pulsar, we use our fake instead.
-    mocker.patch('pulsar.Client', return_value=FakePulsarClient)
+    mocker.patch('pulsar.Client', return_value=FakePulsarClient())
 
     # Do not export promtheus metrics as this does not work when repeated tests
     # are performed.
@@ -32,7 +32,7 @@ def client(mocker):
     os.environ['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///{}'.format(db_file)
 
     # Initialize DB and create Flask application.
-    app = App('development')
+    app = App()
     app.config['TESTING'] = True
     asyncio.run(PerformInitDB(app))
     Init(app)

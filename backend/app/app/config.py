@@ -14,15 +14,6 @@ class ConfigCommon:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 
-class DevelopmentConfig(ConfigCommon):
-    """
-    Development configurations
-    """
-
-    DEBUG = True
-    SQLALCHEMY_ECHO = True
-
-
 class ProductionConfig(ConfigCommon):
     """
     Production configurations
@@ -31,10 +22,7 @@ class ProductionConfig(ConfigCommon):
     DEBUG = False
 
 
-app_config = {
-    'development': DevelopmentConfig,
-    'production': ProductionConfig
-}
+app_config = ProductionConfig
 
 
 def app_envs() -> dict:

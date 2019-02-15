@@ -10,8 +10,7 @@ from app import App, Init
 
 logging.basicConfig(stream=sys.stderr)
 
-config_name = os.getenv('FLASK_CONFIG', 'production')
-application = App(config_name)
+application = App()
 Init(application)
 
 if __name__ == '__main__':

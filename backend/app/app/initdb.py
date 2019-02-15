@@ -10,8 +10,7 @@ from app import InitDB
 
 logging.basicConfig(stream=sys.stderr)
 
-config_name = os.getenv('FLASK_CONFIG', 'production')
-initdb = InitDB(config_name)
+initdb = InitDB()
 
 if __name__ == '__main__':
     initdb.run()

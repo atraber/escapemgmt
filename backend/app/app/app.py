@@ -19,11 +19,11 @@ db = SQLAlchemy()
 metrics = None
 
 
-def App(config_name: str) -> Quart:
+def App() -> Quart:
     global pulsar_client
     app = Quart(__name__)
-    logger.info('Applying config: {}'.format(config_name))
-    app.config.from_object(app_config[config_name])
+    logger.info('Applying config')
+    app.config.from_object(app_config)
     app.config.update(app_envs())
 
     #logger.info('Adding PrometheusMetrics')
@@ -31,6 +31,7 @@ def App(config_name: str) -> Quart:
 
     logger.info('Initializing database')
     db.init_app(app)
+    db.app = app
 
     logger.info('Initializing pulsar_client')
     pulsar_client = pulsar.Client(app.config['PULSAR_URL'])
@@ -77,16 +78,16 @@ async def PerformInitDB(app: Quart):
         alembic_command.stamp(alembic_cfg, "head")
 
 
-def InitDB(config_name: str):
-    app = App(config_name)
+def InitDB():
+    app = App()
 
     asyncio.run(PerformInitDB())
 
     return app
 
 
-def Migrate(config_name: str):
-    app = App(config_name)
+def Migrate():
+    app = App()
 
     # perform DB migrations
     logger.info('Performing schema migrations')

@@ -2,15 +2,17 @@
 # Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
 from app import db
 from datetime import datetime
+import sqlalchemy as sa
+import sqlalchemy.orm as orm
 
 
 class DeviceStream(db.Model):  # type: ignore
     __tablename__ = 'device_streams'
 
-    device_id = db.Column(db.Integer, db.ForeignKey('devices.id'), primary_key=True, nullable=True)
-    stream_id = db.Column(db.Integer, db.ForeignKey('streams.id'), primary_key=True, nullable=True)
-    preset_id = db.Column(db.Integer, db.ForeignKey('presets.id'), primary_key=True, nullable=True)
-    preset = db.relationship('Preset')
+    device_id = sa.Column(sa.Integer, sa.ForeignKey('devices.id'), primary_key=True, nullable=True)
+    stream_id = sa.Column(sa.Integer, sa.ForeignKey('streams.id'), primary_key=True, nullable=True)
+    preset_id = sa.Column(sa.Integer, sa.ForeignKey('presets.id'), primary_key=True, nullable=True)
+    preset = orm.relationship('Preset')
 
     def __init__(self, device=None, device_id=None, stream=None,
             stream_id=None, preset=None, preset_id=None):
@@ -39,12 +41,12 @@ class DeviceStream(db.Model):  # type: ignore
 class Device(db.Model):  # type: ignore
     __tablename__ = 'devices'
 
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(20))
-    mac = db.Column(db.String(17), unique=True)
-    screen_enable = db.Column(db.Boolean, default=True, nullable=False)
-    last_seen = db.Column(db.Integer)
-    streams = db.relationship('Stream',
+    id = sa.Column(sa.Integer, primary_key=True)
+    name = sa.Column(sa.String(20))
+    mac = sa.Column(sa.String(17), unique=True)
+    screen_enable = sa.Column(sa.Boolean, default=True, nullable=False)
+    last_seen = sa.Column(sa.Integer)
+    streams = orm.relationship('Stream',
             primaryjoin='and_(Device.id == device_streams.c.device_id, Preset.active == 1)',
             secondary='join(device_streams, Stream, device_streams.c.stream_id == Stream.id)'
                       '.join(Preset, device_streams.c.preset_id == Preset.id)',
@@ -71,10 +73,10 @@ class Device(db.Model):  # type: ignore
 class Stream(db.Model):  # type: ignore
     __tablename__ = 'streams'
 
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(20))
-    orientation = db.Column(db.Integer)
-    streamviews = db.relationship('StreamView')
+    id = sa.Column(sa.Integer, primary_key=True)
+    name = sa.Column(sa.String(20))
+    orientation = sa.Column(sa.Integer)
+    streamviews = orm.relationship('StreamView')
 
     def __init__(self, id=None, name=None, orientation=0):
         self.id = id
@@ -93,13 +95,13 @@ class Stream(db.Model):  # type: ignore
 class StreamView(db.Model):  # type: ignore
     __tablename__ = 'streamviews'
 
-    id = db.Column(db.Integer, primary_key=True)
-    stream_id = db.Column(db.Integer, db.ForeignKey('streams.id'))
-    url = db.Column(db.String(255))
-    crop_x1 = db.Column(db.Integer, nullable=False)
-    crop_x2 = db.Column(db.Integer, nullable=False)
-    crop_y1 = db.Column(db.Integer, nullable=False)
-    crop_y2 = db.Column(db.Integer, nullable=False)
+    id = sa.Column(sa.Integer, primary_key=True)
+    stream_id = sa.Column(sa.Integer, sa.ForeignKey('streams.id'))
+    url = sa.Column(sa.String(255))
+    crop_x1 = sa.Column(sa.Integer, nullable=False)
+    crop_x2 = sa.Column(sa.Integer, nullable=False)
+    crop_y1 = sa.Column(sa.Integer, nullable=False)
+    crop_y2 = sa.Column(sa.Integer, nullable=False)
 
     def __init__(self, stream, id=None, url=None, crop_x1=0, crop_y1=0, crop_x2=1080, crop_y2=720):
         self.id = id
@@ -125,9 +127,9 @@ class StreamView(db.Model):  # type: ignore
 class Preset(db.Model):  # type: ignore
     __tablename__ = 'presets'
 
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100))
-    active = db.Column(db.Boolean, default=False, nullable=False)
+    id = sa.Column(sa.Integer, primary_key=True)
+    name = sa.Column(sa.String(100))
+    active = sa.Column(sa.Boolean, default=False, nullable=False)
 
     def __init__(self, id=None, name=None, active=False):
         self.id = id
@@ -145,12 +147,12 @@ class Preset(db.Model):  # type: ignore
 class Room(db.Model):  # type: ignore
     __tablename__ = 'rooms'
 
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100))
-    description = db.Column(db.Text)
-    profile_image = db.Column(db.String(255))
-    bg_image = db.Column(db.String(255))
-    scores = db.relationship("Score", order_by="Score.time")
+    id = sa.Column(sa.Integer, primary_key=True)
+    name = sa.Column(sa.String(100))
+    description = sa.Column(sa.Text)
+    profile_image = sa.Column(sa.String(255))
+    bg_image = sa.Column(sa.String(255))
+    scores = orm.relationship("Score", order_by="Score.time")
 
     def __init__(self, id=None, name=None):
         self.id = id
@@ -170,11 +172,11 @@ class Room(db.Model):  # type: ignore
 class Score(db.Model):  # type: ignore
     __tablename__ = 'scores'
 
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100))
-    room_id = db.Column(db.Integer, db.ForeignKey('rooms.id'))
-    time = db.Column(db.Integer)
-    created_at = db.Column(db.Integer)
+    id = sa.Column(sa.Integer, primary_key=True)
+    name = sa.Column(sa.String(100))
+    room_id = sa.Column(sa.Integer, sa.ForeignKey('rooms.id'))
+    time = sa.Column(sa.Integer)
+    created_at = sa.Column(sa.Integer)
 
     def __init__(self, id=None, name=None, time=None, room=None, created_at=None):
         self.id = id

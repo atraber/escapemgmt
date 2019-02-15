@@ -10,8 +10,7 @@ from app import Migrate
 
 logging.basicConfig(stream=sys.stderr)
 
-config_name = os.getenv('FLASK_CONFIG', 'production')
-migrate = Migrate(config_name)
+migrate = Migrate()
 
 if __name__ == '__main__':
     migrate.run()
