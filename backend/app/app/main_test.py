@@ -64,6 +64,23 @@ async def createDevice(client: QuartClient, name: str) -> None:
     assert (await device.get_json())['name'] == name
 
 
+async def createRoom(client: QuartClient, name: str) -> None:
+    data = {'name': name}
+
+    device = await postJson(client, '/room', data)
+    assert device.status_code == 200
+    assert (await device.get_json())['name'] == name
+
+
+async def createRoomScore(client: QuartClient, room_id: int, name: str, time: int) -> None:
+    data = {'name': name, 'time': time}
+
+    device = await postJson(client, '/rooms/{}/score'.format(room_id), data)
+    assert device.status_code == 200
+    assert (await device.get_json())['name'] == name
+    assert (await device.get_json())['time'] == time
+
+
 @pytest.mark.asyncio
 async def testStreamViewsList(client: QuartClient) -> None:
     await createDevice(client, 'testdevice')
