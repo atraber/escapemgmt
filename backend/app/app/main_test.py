@@ -59,26 +59,34 @@ def postJson(client: QuartClient, path, data_dict):
 async def createDevice(client: QuartClient, name: str) -> None:
     data = {'name': name}
 
-    device = await postJson(client, '/device', data)
-    assert device.status_code == 200
-    assert (await device.get_json())['name'] == name
+    response = await postJson(client, '/device', data)
+    assert response.status_code == 200
+    assert (await response.get_json())['name'] == name
+
+
+async def createStream(client: QuartClient, name: str) -> None:
+    data = {'name': name}
+
+    response = await postJson(client, '/stream', data)
+    assert response.status_code == 200
+    assert (await response.get_json())['name'] == name
 
 
 async def createRoom(client: QuartClient, name: str) -> None:
     data = {'name': name}
 
-    device = await postJson(client, '/room', data)
-    assert device.status_code == 200
-    assert (await device.get_json())['name'] == name
+    response = await postJson(client, '/room', data)
+    assert response.status_code == 200
+    assert (await response.get_json())['name'] == name
 
 
 async def createRoomScore(client: QuartClient, room_id: int, name: str, time: int) -> None:
     data = {'name': name, 'time': time}
 
-    device = await postJson(client, '/rooms/{}/score'.format(room_id), data)
-    assert device.status_code == 200
-    assert (await device.get_json())['name'] == name
-    assert (await device.get_json())['time'] == time
+    response = await postJson(client, '/rooms/{}/score'.format(room_id), data)
+    assert response.status_code == 200
+    assert (await response.get_json())['name'] == name
+    assert (await response.get_json())['time'] == time
 
 
 @pytest.mark.asyncio
