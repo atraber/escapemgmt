@@ -71,6 +71,31 @@ async def createStream(client: QuartClient, name: str) -> None:
     assert response.status_code == 200
     assert (await response.get_json())['name'] == name
 
+async def createStreamView(
+        client: QuartClient,
+        stream_id: int,
+        url: str,
+        crop_x1: int,
+        crop_x2: int,
+        crop_y1: int,
+        crop_y2: int) -> None:
+    data = {
+        'url': url,
+        'crop_x1': crop_x1,
+        'crop_x2': crop_x2,
+        'crop_y1': crop_y1,
+        'crop_y2': crop_y2,
+    }
+
+    response = await postJson(client, '/streamview/{}'.format(stream_id), data)
+    assert response.status_code == 200
+    data_json = await response.get_json()
+    assert data_json['url'] == url
+    assert data_json['crop_x1'] == crop_x1
+    assert data_json['crop_x2'] == crop_x2
+    assert data_json['crop_y1'] == crop_y1
+    assert data_json['crop_y2'] == crop_y2
+
 
 async def createRoom(client: QuartClient, name: str) -> None:
     data = {'name': name}
@@ -85,8 +110,9 @@ async def createRoomScore(client: QuartClient, room_id: int, name: str, time: in
 
     response = await postJson(client, '/rooms/{}/score'.format(room_id), data)
     assert response.status_code == 200
-    assert (await response.get_json())['name'] == name
-    assert (await response.get_json())['time'] == time
+    data_json = await response.get_json()
+    assert data_json['name'] == name
+    assert data_json['time'] == time
 
 
 @pytest.mark.asyncio

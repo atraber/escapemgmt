@@ -115,7 +115,7 @@ class StreamView(db.Model):  # type: ignore
     def serialize(self):
         return {
             'id': self.id,
-            'stream_id': self.room_id,
+            'stream_id': self.stream_id,
             'url': self.url,
             'crop_x1': self.crop_x1,
             'crop_y1': self.crop_y1,
