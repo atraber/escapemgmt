@@ -12,17 +12,17 @@ devices = Blueprint('devices', __name__)
 
 
 @devices.route('/devices', methods = ['GET'])
-def apiDevices():
+async def apiDevices():
     #devices = db.session.query(Device).order_by(Device.name).filter(Device.streams.preset.any(active=True)).all()
     devices = db.session.query(Device).order_by(Device.name).all()
     return jsonify([d.serialize() for d in devices])
 
 
 @devices.route('/device', methods = ['POST'])
-def apiDeviceAdd():
+async def apiDeviceAdd():
     if request.headers['Content-Type'] == 'application/json':
         device = Device(
-            name = request.json['name']
+            name = (await request.json)['name']
         )
         db.session.add(device)
         db.session.commit()
@@ -63,21 +63,22 @@ def _StreamsCompare(new: List[int], old: List[int]):
 
 
 @devices.route('/devices/<int:deviceid>', methods = ['POST', 'DELETE'])
-def apiDeviceUpdate(deviceid: int):
+async def apiDeviceUpdate(deviceid: int):
     if request.method == 'POST':
         if request.headers['Content-Type'] == 'application/json':
+            data_json = await request.json
             db_preset = db.session.query(Preset).filter_by(active=True).first()
 
             if not db_preset:
                 logger.error('No active preset found')
 
             db_device = db.session.query(Device).filter_by(id=deviceid).first()
-            db_device.name = request.json['name']
-            db_device.mac = request.json['mac']
-            db_device.screen_enable = request.json['screen_enable']
+            db_device.name = data_json['name']
+            db_device.mac = data_json['mac']
+            db_device.screen_enable = data_json['screen_enable']
 
             (streams_added, streams_removed) = _StreamsCompare(
-                    [stream['id'] for stream in request.json['streams']],
+                    [stream['id'] for stream in data_json['streams']],
                     [stream.id for stream in db_device.streams])
 
             for stream_id in streams_removed:
@@ -95,11 +96,9 @@ def apiDeviceUpdate(deviceid: int):
             return jsonify('ok')
         abort(400)
     elif request.method == 'DELETE':
-        if request.headers['Content-Type'] == 'application/json':
-            db.session.query(Device).filter_by(id=deviceid).delete()
-            db.session.commit()
-            return jsonify('ok')
-        abort(400)
+        db.session.query(Device).filter_by(id=deviceid).delete()
+        db.session.commit()
+        return jsonify('ok')
 
 
 @devices.route('/devices/screen_on', methods = ['GET'])

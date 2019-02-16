@@ -2,10 +2,11 @@
 # Copyright 2019 Andreas Traber
 # Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
 import asyncio
+import json
 import os
 import pytest
-import pytest_asyncio.plugin
 import tempfile
+from quart.testing import QuartClient
 
 from app import App, Init, PerformInitDB
 
@@ -19,7 +20,7 @@ class FakePulsarClient:
 
 
 @pytest.fixture
-def client(mocker):
+def client(mocker, event_loop) -> QuartClient:
     # Do not use Pulsar, we use our fake instead.
     mocker.patch('pulsar.Client', return_value=FakePulsarClient())
 
@@ -45,8 +46,24 @@ def client(mocker):
     os.unlink(db_file)
 
 
+def postJson(client: QuartClient, path, data_dict):
+    headers = {
+        'Content-Type': 'application/json',
+    }
+
+    data = json.dumps(data_dict)
+
+    return client.post(path, headers=headers, data=data)
+
+
+async def createDevice(client: QuartClient, name: str) -> None:
+    data = {'name': name}
+
+    device = await postJson(client, '/device', data)
+    assert device.status_code == 200
+    assert (await device.get_json())['name'] == name
+
+
 @pytest.mark.asyncio
-async def testDevices(client):
-    devices = await client.get('/devices')
-    assert devices.status_code == 200
-    assert await devices.get_json() == []
+async def testStreamViewsList(client: QuartClient) -> None:
+    await createDevice(client, 'testdevice')
