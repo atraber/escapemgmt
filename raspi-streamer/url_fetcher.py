@@ -6,7 +6,7 @@ import yaml
 import os
 import time
 from uuid import getnode
-from streamer import UrlBox
+from streamer import StreamView, UrlBox
 
 class UrlFetcher:
     def __init__(self, apiEndpoint):
@@ -26,12 +26,25 @@ class UrlFetcher:
         urls = []
         if device['streams'] and len(device['streams']) > 0:
             for stream in device['streams']:
-                urls.append(UrlBox(stream['url'],
-                    crop_x1=stream['crop_x1'],
-                    crop_y1=stream['crop_y1'],
-                    crop_x2=stream['crop_x2'],
-                    crop_y2=stream['crop_y2'],
-                    orientation=stream['orientation']))
+                streamviews = []
+                for view in stream['streamviews']:
+                    streamviews.append(
+                            StreamView(
+                                url=view['url'],
+                                crop_x1=view['crop_x1'],
+                                crop_y1=view['crop_y1'],
+                                crop_x2=view['crop_x2'],
+                                crop_y2=view['crop_y2']))
+
+                if len(streamviews) == 0:
+                    print('Not stream views available for device,'
+                          ' but stream found')
+                    return []
+
+                urlbox = UrlBox(
+                        streamviews=streamviews,
+                        orientation=stream['orientation'])
+                urls.append(urlbox)
 
         return urls
 

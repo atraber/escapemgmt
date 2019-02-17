@@ -2,12 +2,13 @@
 # Copyright 2018 Andreas Traber
 # Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
 import argparse
-import requests
 import os
+import requests
 import time
+import traceback
 from background import Background
-from url_fetcher import UrlFetcher
 from streamer import UrlBox, Streamer
+from url_fetcher import UrlFetcher
 
 def urlsEqual(lhs, rhs):
     if len(lhs) != len(rhs):
@@ -28,6 +29,7 @@ def watch(parameter_client, bg, urls):
             if not urlsEqual(new_urls, urls):
                 return new_urls
         except:
+            traceback.print_exc()
             print("Failed to get new URLs. Is web server down?")
             bg.setConnected(False)
 

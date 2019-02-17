@@ -1,6 +1,5 @@
 # Copyright 2018 Andreas Traber
 # Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
-from rectpack import newPacker
 import copy
 import functools
 import math
@@ -8,31 +7,63 @@ import psutil
 import subprocess
 import threading
 import time
+from rectpack import newPacker
+from typing import List, Tuple
+
+class StreamView:
+    def __init__(
+            self, url: str, crop_x2: int, crop_y2: int, crop_x1: int,
+            crop_y1: int) -> None:
+        self.url = url
+        self.crop_x1 = crop_x1
+        self.crop_x2 = crop_x2
+        self.crop_y1 = crop_y1
+        self.crop_y2 = crop_y2
+
+    def area(self) -> int:
+        return (self.crop_x2 - self.crop_x1) * (self.crop_y2 - self.crop_y1)
+
+    def height(self) -> int:
+        return self.crop_y2 - self.crop_y1
+
+    def width(self) -> int:
+        return self.crop_x2 - self.crop_x1
+
+    def isEqual(self, rhs) -> bool:
+        return \
+                self.url == rhs.url and \
+                self.crop_x1 == rhs.crop_x1 and \
+                self.crop_x2 == rhs.crop_x2 and \
+                self.crop_y1 == rhs.crop_y1 and \
+                self.crop_y2 == rhs.crop_y2
+
 
 class UrlBox:
-    def __init__(self, url, crop_x2, crop_y2, crop_x1 = 0, crop_y1 = 0, orientation = 0):
+    def __init__(self, orientation: int, streamviews: List[StreamView]) -> None:
         if not orientation in [0, 90, 180, 270]:
             print("Unknown orientation. Setting it to 0")
             orientation = 0
 
-        if orientation == 90:
-            crop_x1, crop_y1 = crop_y1, crop_x1
-            crop_x2, crop_y2 = crop_y2, crop_x2
+        self.streamviews = sorted(
+                streamviews,
+                key=lambda view: view.area(),
+                reverse=True)
 
-        if url is None:
-            print("URL does not seem to be set")
-            url = ""
+        if orientation in [0, 180]:
+            self.width = self.streamviews[0].width()
+            self.height = self.streamviews[0].height()
+        elif orientation in [90, 270]:
+            self.width = self.streamviews[0].height()
+            self.height = self.streamviews[0].width()
 
-        self.url = url
         self.pos_x = 0
         self.pos_y = 0
-        self.crop = [crop_x1, crop_y1, crop_x2, crop_y2]
         self.orientation = orientation
 
         self.scaling_factor = 1.0
 
     def getSize(self):
-        size = [self.crop[2] - self.crop[0], self.crop[3] - self.crop[1]]
+        size = [self.width, self.height]
         return list(map(lambda v: int(v * self.scaling_factor), size))
 
     def setScalingFactor(self, scaling_factor):
@@ -41,16 +72,34 @@ class UrlBox:
     def getScalingFactor(self):
         return self.scaling_factor
 
+    def getOptimalStreamView(self) -> StreamView:
+        # TODO: This should return the optimal quality stream view.
+        return self.streamviews[0]
+
+    def getCrop(self) -> Tuple[int, int, int, int]:
+        view = self.getOptimalStreamView()
+        return (view.crop_x1,
+                view.crop_x2,
+                view.crop_y1,
+                view.crop_y2)
+
+    def getUrl(self) -> str:
+        view = self.getOptimalStreamView()
+        return view.url
+
     def isEqual(self, rhs):
-        for i in range(len(self.crop)):
-            if self.crop[i] != rhs.crop[i]:
+        if len(self.streamviews) != len(rhs.streamviews):
+            return False
+
+        for i in range(len(self.streamviews)):
+            if not self.streamviews[0].isEqual(rhs.streamviews[0]):
                 return False
 
-        return self.url         == rhs.url \
-           and self.orientation == rhs.orientation
+        return self.orientation == rhs.orientation
 
     def __repr__(self):
-        return "<UrlBox:{} {}:{} {}x{}".format(self.url, self.pos_x, self.pos_y, *self.getSize())
+        return "<UrlBox:{} {}:{} {}x{}".format(
+                self.url, self.pos_x, self.pos_y, *self.getSize())
 
 
 class Packer:
@@ -166,9 +215,9 @@ class Streamer:
     def omx_cmd(url):
         size = url.getSize()
         win = ','.join(["{}".format(i) for i in [url.pos_x, url.pos_y, int(url.pos_x + size[0]), int(url.pos_y + size[1])]])
-        crop =  ','.join(["{}".format(i) for i in url.crop])
+        crop =  ','.join(["{}".format(i) for i in url.getCrop()])
         return ["omxplayer",
-                url.url,
+                url.getUrl(),
                 "--live",
                 "--win", win,
                 "--crop", crop,
