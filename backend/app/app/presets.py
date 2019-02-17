@@ -12,43 +12,40 @@ presets = Blueprint('presets', __name__)
 
 
 @presets.route('/presets', methods = ['GET'])
-def apiPresets():
+async def apiPresets():
     presets = db.session.query(Preset).order_by(Preset.name).all()
     return jsonify([s.serialize() for s in presets])
 
 
 @presets.route('/preset', methods = ['POST'])
-def apiPresetAdd():
+async def apiPresetAdd():
     if request.headers['Content-Type'] == 'application/json':
         preset = Preset(
-            name = request.json['name']
+            name=(await request.json)['name']
         )
         db.session.add(preset)
         db.session.commit()
-    else:
-        abort(400)
-    return jsonify(preset.serialize())
+        return jsonify(preset.serialize())
+    abort(400)
 
 
 @presets.route('/presets/<int:presetid>', methods = ['POST', 'DELETE'])
-def apiPresetUpdate(presetid: int):
+async def apiPresetUpdate(presetid: int):
     if request.method == 'POST':
         if request.headers['Content-Type'] == 'application/json':
             db_preset = db.session.query(Preset).filter_by(id=presetid).first()
-            db_preset.name = request.json['name']
+            db_preset.name = (await request.json)['name']
             db.session.commit()
             return jsonify(db_preset.serialize())
-        abort(400)
     elif request.method == 'DELETE':
-        if request.headers['Content-Type'] == 'application/json':
-            db.session.query(Preset).filter_by(id=presetid).delete()
-            db.session.commit()
-            return jsonify('ok')
-        abort(400)
+        db.session.query(Preset).filter_by(id=presetid).delete()
+        db.session.commit()
+        return jsonify('ok')
+    abort(400)
 
 
 @presets.route('/preset/activate/<int:presetid>', methods = ['POST'])
-def apiPresetActivate(presetid: int):
+async def apiPresetActivate(presetid: int):
     if request.headers['Content-Type'] == 'application/json':
         preset_old = db.session.query(Preset).filter_by(active=True).first()
         if preset_old:
