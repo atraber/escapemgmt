@@ -1,2 +1,2 @@
 #!/bin/bash
-./node_modules/@angular/cli/bin/ng serve --env=docker
+./node_modules/@angular/cli/bin/ng serve

@@ -11,6 +11,7 @@ import { catchError, retry } from 'rxjs/operators';
 import { environment } from '../environments/environment';
 import { Device } from './device';
 import { Stream } from './stream';
+import { StreamView } from './streamview';
 
 const jsonOptions = {
   headers: new HttpHeaders({
@@ -48,7 +49,7 @@ export class DevicesService {
     // return an ErrorObservable with a user-facing error message
     return new ErrorObservable(
       'Something bad happened; please try again later.');
-  };
+  }
 
   private listenForChanges() {
     let source = new EventSource(environment.apiEndpoint + '/subscribe');
@@ -69,51 +70,59 @@ export class DevicesService {
 
   addDevice(device: Device): Observable<Device> {
     return this.http.post<Device>(environment.apiEndpoint + '/device', device, jsonOptions)
-      .pipe(
-        catchError(this.handleError)
-      );
+      .pipe(catchError(this.handleError));
   }
 
   updateDevice(device: Device): Observable<Device> {
     this.devicesUpdated.emit(this.devices)
     return this.http.post<Device>(environment.apiEndpoint + '/devices/' + device.id, device, jsonOptions)
-      .pipe(
-        catchError(this.handleError)
-      );
-  };
+      .pipe(catchError(this.handleError));
+  }
 
   deleteDevice(device: Device): Observable<{}> {
+    // TODO: The removal from our current list should only be done after the
+    // delete succeeded.
+    let id = device.id;
     var index = this.devices.indexOf(device);
     this.devices.splice(index, 1);
     this.devicesUpdated.emit(this.devices)
-    return this.http.delete(environment.apiEndpoint + '/devices/' + device.id, jsonOptions)
-      .pipe(
-        catchError(this.handleError)
-      );
-  };
+    return this.http.delete(environment.apiEndpoint + '/devices/' + id, jsonOptions)
+      .pipe(catchError(this.handleError));
+  }
 
   addStream(stream: Stream): Observable<Stream> {
     return this.http.post<Stream>(environment.apiEndpoint + '/stream', stream, jsonOptions)
-      .pipe(
-        catchError(this.handleError)
-      );
+      .pipe(catchError(this.handleError));
   }
 
   updateStream(stream: Stream): Observable<Stream> {
     this.streamsUpdated.emit(this.streams)
     return this.http.post<Stream>(environment.apiEndpoint + '/streams/' + stream.id, stream, jsonOptions)
-      .pipe(
-        catchError(this.handleError)
-      );
-  };
+      .pipe(catchError(this.handleError));
+  }
 
   deleteStream(stream: Stream): Observable<{}> {
     var index = this.streams.indexOf(stream);
     this.streams.splice(index, 1);
     this.streamsUpdated.emit(this.streams)
     return this.http.delete(environment.apiEndpoint + '/streams/' + stream.id, jsonOptions)
-      .pipe(
-        catchError(this.handleError)
-      );
-  };
+      .pipe(catchError(this.handleError));
+  }
+
+  addStreamView(streamview: StreamView, stream_id): Observable<StreamView> {
+    return this.http.post<StreamView>(environment.apiEndpoint + '/streamview/' + stream_id, streamview, jsonOptions)
+      .pipe(catchError(this.handleError));
+  }
+
+  updateStreamView(streamview: StreamView): Observable<StreamView> {
+    return this.http.post<StreamView>(environment.apiEndpoint + '/streamviews/' + streamview.id, streamview, jsonOptions)
+      .pipe(catchError(this.handleError));
+  }
+
+  deleteStreamView(stream: Stream, streamview: StreamView): Observable<{}> {
+    let index = stream.streamviews.indexOf(streamview);
+    stream.streamviews.splice(index, 1);
+    return this.http.delete(environment.apiEndpoint + '/streamviews/' + streamview.id, jsonOptions)
+      .pipe(catchError(this.handleError));
+  }
 }

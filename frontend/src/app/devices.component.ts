@@ -44,12 +44,12 @@ export class DevicesComponent {
       return null;
   };
 
-  dev_remove_stream = function (dev, stream) {
+  removeStreamFromDevice(dev: Device, stream: Stream): boolean {
     var index = dev.streams.indexOf(stream);
     dev.streams.splice(index, 1);
 
     return false;
-  };
+  }
 
   deleteDevice(dev) {
     this.devicesService.deleteDevice(dev).subscribe();

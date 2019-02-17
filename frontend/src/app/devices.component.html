@@ -33,7 +33,7 @@
             <li class="list-group-item" *ngFor="let stream of dev_selected.streams">
               <div class="d-flex w-100 justify-content-between">
                 <h5 class="mb-1">{{stream.name}}</h5>
-                <a href="#" (click)="dev_remove_stream(dev_selected, stream)"><i class="fas fa-trash-alt"></i></a>
+                <a href="#" (click)="removeStreamFromDevice(dev_selected, stream)"><i class="fas fa-trash-alt"></i></a>
               </div>
             </li>
             <a href="#" class="list-group-item list-group-item-action" data-toggle="modal" data-target="#addStream"><i class="fas fa-plus-circle"></i> Add</a>
@@ -65,7 +65,6 @@
         <div class="list-group" *ngFor="let stream of streams" (click)="stream_selected=stream">
           <button class="list-group-item list-group-item-action flex-column align-items-start" [ngClass]="{'active': stream_selected == stream}">
             <h5 class="mb-1">{{stream.name}}</h5>
-            <small>{{stream.url}}</small>
           </button>
         </div>
       </div>

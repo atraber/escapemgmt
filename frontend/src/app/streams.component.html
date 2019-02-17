@@ -20,28 +20,21 @@
           <input type="text" class="form-control" id="streamName" name="streamName" [(ngModel)]="stream_selected.name">
         </div>
         <div class="form-group">
-          <label for="streamUrl">URL</label>
-          <input type="text" class="form-control" id="streamUrl" name="streamUrl" [(ngModel)]="stream_selected.url">
-        </div>
-        <div class="form-group">
-          <label for="streamX1">Crop X1</label>
-          <input type="text" class="form-control" id="streamX1" name="streamX1" [(ngModel)]="stream_selected.crop_x1">
-        </div>
-        <div class="form-group">
-          <label for="streamY1">Crop Y1</label>
-          <input type="text" class="form-control" id="streamY1" name="streamY1" [(ngModel)]="stream_selected.crop_y1">
-        </div>
-        <div class="form-group">
-          <label for="streamX2">Crop X2 (Width)</label>
-          <input type="text" class="form-control" id="streamX2" name="streamX2" [(ngModel)]="stream_selected.crop_x2">
-        </div>
-        <div class="form-group">
-          <label for="streamY2">Crop Y2 (Height)</label>
-          <input type="text" class="form-control" id="streamY2" name="streamY2" [(ngModel)]="stream_selected.crop_y2">
-        </div>
-        <div class="form-group">
           <label for="streamOrientation">Orientation</label>
           <input type="text" class="form-control" id="streamOrientation" name="streamOrientation" [(ngModel)]="stream_selected.orientation">
+        </div>
+        <div class="form-group">
+          <label>Views</label>
+          <ul class="list-group">
+            <li class="list-group-item" *ngFor="let view of stream_selected.streamviews">
+              <div class="d-flex w-100 justify-content-between">
+                <h5 class="mb-1 mr-auto">{{view.url}}</h5>
+                <a href="#"  data-toggle="modal" data-target="#editStreamView" (click)="editStreamView(view)"><i class="fas fa-edit"></i></a>
+                <a href="#" (click)="deleteStreamView(view)"><i class="fas fa-trash-alt"></i></a>
+              </div>
+            </li>
+            <a href="#" class="list-group-item list-group-item-action" data-toggle="modal" data-target="#editStreamView" (click)="newStreamView()"><i class="fas fa-plus-circle"></i> Add</a>
+          </ul>
         </div>
         <button type="submit" class="btn btn-primary" (click)="updateStream(stream_selected)">Save</button>
         <button class="btn btn-danger" (click)="deleteStream(stream_selected)"><i class="fas fa-trash-alt"></i> Delete</button>
@@ -71,6 +64,47 @@
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
           <button type="submit" class="btn btn-primary" data-dismiss="modal" (click)="addStream(new_stream_name)">Add</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<!-- Modal -->
+<div class="modal fade" id="editStreamView" tabindex="-1" role="dialog" aria-labelledby="editStreamView" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <form>
+        <div class="modal-header">
+          <h5 class="modal-title" id="editViewLabel">View</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="streamUrl">URL</label>
+            <input type="text" class="form-control" id="streamUrl" name="streamUrl" placeholder="rtsp://example/stream" [(ngModel)]="view.url">
+          </div>
+          <div class="form-group">
+            <label for="streamX1">Crop X1</label>
+            <input type="text" class="form-control" id="streamX1" name="streamX1" placeholder="0" [(ngModel)]="view.crop_x1">
+          </div>
+          <div class="form-group">
+            <label for="streamY1">Crop Y1</label>
+            <input type="text" class="form-control" id="streamY1" name="streamY1" placeholder="0" [(ngModel)]="view.crop_y1">
+          </div>
+          <div class="form-group">
+            <label for="streamX2">Crop X2 (Width)</label>
+            <input type="text" class="form-control" id="streamX2" name="streamX2" placeholder="1920" [(ngModel)]="view.crop_x2">
+          </div>
+          <div class="form-group">
+            <label for="streamY2">Crop Y2 (Height)</label>
+            <input type="text" class="form-control" id="streamY2" name="streamY2" placeholder="1080" [(ngModel)]="view.crop_y2">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary" data-dismiss="modal" (click)="submitStreamView()">Okay</button>
         </div>
       </form>
     </div>
