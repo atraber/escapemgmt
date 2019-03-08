@@ -26,7 +26,7 @@ services:
       timeout: 10s
       retries: 3
     expose:
-      - "80"
+      - "8080"
     networks:
       - frontend
       - backend
@@ -64,8 +64,6 @@ services:
     expose:
       - "6650"
       - "8080"
-    volumes:
-      - ./backend/data/pulsar:/pulsar/data
     entrypoint:
       - bin/pulsar
       - standalone
