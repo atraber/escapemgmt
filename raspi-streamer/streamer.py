@@ -7,6 +7,7 @@ import psutil
 import subprocess
 import threading
 import time
+from logger import logger
 from rectpack import newPacker
 from typing import List, Tuple
 
@@ -41,7 +42,7 @@ class StreamView:
 class UrlBox:
     def __init__(self, orientation: int, streamviews: List[StreamView]) -> None:
         if not orientation in [0, 90, 180, 270]:
-            print("Unknown orientation. Setting it to 0")
+            logger.warning("Unknown orientation. Setting it to 0")
             orientation = 0
 
         self.streamviews = sorted(
@@ -198,8 +199,8 @@ class Streamer:
 
         self.watch(urls)
 
-        print("Streamer class has been initialized width screen size {}x{}"
-            .format(self.screen_size[0], self.screen_size[1]))
+        logger.info('Streamer class has been initialized width screen size '
+                    '{}x{}'.format(self.screen_size[0], self.screen_size[1]))
 
     def build_cmds(self, urls):
         cmds = []
@@ -233,11 +234,11 @@ class Streamer:
     def _watch_thread_entry(self):
         processes = []
         for cmd in self.cmds:
-            print(cmd)
+            logger.info(cmd)
             try:
                 p = subprocess.Popen(cmd, stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
             except FileNotFoundError:
-                print("Could not start streaming application")
+                logger.error("Could not start streaming application")
                 continue
             processes.append(p)
 
@@ -246,12 +247,12 @@ class Streamer:
                 try:
                     p = processes[i]
                     if p.poll() is not None:
-                        print("{} has crashed. Restarting".format(self.cmds[i]))
+                        logger.error("{} has crashed. Restarting".format(self.cmds[i]))
                         p.terminate()
                         processes[i] = subprocess.Popen(self.cmds[i], stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
                 except Exception as e:
-                    print(e)
-                    print("Something went wrong while checking if process is still alive")
+                    logger.error(e)
+                    logger.error("Something went wrong while checking if process is still alive")
 
             time.sleep(1)
 
@@ -267,7 +268,7 @@ class Streamer:
             else:
                 subprocess.call(["/opt/vc/bin/tvservice", "-o"])
         except FileNotFoundError:
-            print("tvservice executable not found. Cannot control monitor")
+            logger.error("tvservice executable not found. Cannot control monitor")
 
         self.monitor_is_on = enable
 
@@ -292,7 +293,8 @@ class Streamer:
         self.stop_event.set()
         self.thread.join(10)
         if self.thread.isAlive():
-            print("Thread is still alive after 10s! We will continue as we can't do anything else")
+            logger.critical('Thread is still alive after 10s! We will continue'
+                            'as we can\'t do anything else')
         self.stop_event.clear()
 
     def setUrls(self, urls):

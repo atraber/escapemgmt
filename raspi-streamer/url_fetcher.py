@@ -7,6 +7,7 @@ import threading
 import time
 import traceback
 import yaml
+from logger import logger
 from sseclient import SSEClient
 from streamer import StreamView, UrlBox
 from uuid import getnode
@@ -30,14 +31,15 @@ class UrlFetcher:
         self.mac = getnode()
         self.push_semaphore = None
         self.watch_push_thread = None
-        print("Device MAC-Address: {:X}".format(self.mac))
+        logger.info("Device MAC-Address: {:X}".format(self.mac))
 
     def request(self):
-        print('Sending request to backend')
+        logger.info('Sending request to backend')
         requestsTotalMetric.inc()
 
         try:
-            response = requests.get(self.api_endpoint + '/raspi/{}'.format(self.mac))
+            response = requests.get(
+                    self.api_endpoint + '/raspi/{}'.format(self.mac))
             response.raise_for_status()
             device = response.json()
         except Exception as e:
@@ -64,8 +66,8 @@ class UrlFetcher:
                                 crop_y2=view['crop_y2']))
 
                 if len(streamviews) == 0:
-                    print('No stream views available for device,'
-                          ' but stream found')
+                    logger.error('No stream views available for device,'
+                                 ' but stream found')
                     return []
 
                 urlbox = UrlBox(
@@ -88,16 +90,22 @@ class UrlFetcher:
 
         When a relevant event is detected, the semaphore self.push_semaphore is set.
         """
-        messages = SSEClient(self.api_endpoint + '/subscribe')
-
-        for msg in messages:
-            print('Received message')
+        while True:
             try:
-                self.push_semaphore.release()
-            except ValueError:
-                # We ignore ValueError as this might happen when our request
-                # thread is not as fast as events come in.
-                pass
+                messages = SSEClient(self.api_endpoint + '/subscribe')
+
+                for msg in messages:
+                    logger.info('Received message')
+                    try:
+                        self.push_semaphore.release()
+                    except ValueError:
+                        # We ignore ValueError as this might happen when our request
+                        # thread is not as fast as events come in.
+                        pass
+            except:
+                logger.error('SSE client experienced a problem')
+                traceback.print_exc()
+                time.sleep(10)
 
     def _config_file_path(self):
         script = os.path.realpath(__file__)
@@ -136,7 +144,7 @@ def watch(fetcher, bg, urls, polling_interval=30):
 
         new_urls = fetcher.request()
         if new_urls is None:
-            print("Failed to get new URLs. Is web server down?")
+            logger.error("Failed to get new URLs. Is web server down?")
             bg.setConnected(False)
             continue
 

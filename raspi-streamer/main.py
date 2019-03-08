@@ -5,6 +5,7 @@ import argparse
 import prometheus_client
 import traceback
 from background import Background
+from logger import logger
 from streamer import Streamer
 from url_fetcher import UrlFetcher, watch
 
@@ -24,28 +25,27 @@ monitoring_port = args.monitoring_port
 if debug:
     api_endpoint = 'http://localhost:5000'
 
-print("Starting Prometheus HTTP server")
+logger.info("Starting Prometheus HTTP server")
 prometheus_client.start_http_server(monitoring_port)
 
-print("Starting OpenGL Fullscreen Application")
+logger.info("Starting OpenGL Fullscreen Application")
 bg = Background(debug)
 
 fetcher = UrlFetcher(api_endpoint)
-try:
-    urls = fetcher.request()
-    fetcher.save(urls)
-    bg.setConnected(True)
-except:
-    traceback.print_exc()
-    print("Failed to request new urls. Falling back to stored urls")
+urls = fetcher.request()
+if urls is None:
+    logger.critical("Failed to request new urls. Falling back to stored urls")
     urls = fetcher.restore()
     bg.setConnected(False)
+else:
+    fetcher.save(urls)
+    bg.setConnected(True)
 
 streamer = Streamer(bg.getScreenSize(), urls)
 
 while True:
     # update loop
     urls = watch(fetcher, bg, urls, polling_interval=polling_interval)
-    print("Got new set of URLs")
+    logger.info("Got new set of URLs")
     fetcher.save(urls)
     streamer.setUrls(urls)
