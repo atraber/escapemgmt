@@ -1,10 +1,17 @@
 # Copyright 2018 Andreas Traber
 # Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
-from OpenGL.GL import *
-from OpenGL.GLUT import *
 import functools
+import prometheus_client
 import subprocess
 import threading
+from OpenGL.GL import *
+from OpenGL.GLUT import *
+
+
+connectedMetric = prometheus_client.Enum(
+        'backend_connected', 'Connected to stream server',
+        states=['True', 'False'])
+
 
 class Background:
     def __init__(self, debug=False):
@@ -70,6 +77,10 @@ class Background:
 
     def setConnected(self, connected):
         self.connected = connected
+        if connected:
+            connectedMetric.state('True')
+        else:
+            connectedMetric.state('False')
 
     def getScreenSize(self):
         return [self.width, self.height]

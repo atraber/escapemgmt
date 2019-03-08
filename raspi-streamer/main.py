@@ -2,68 +2,50 @@
 # Copyright 2018 Andreas Traber
 # Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
 import argparse
-import os
-import requests
-import time
+import prometheus_client
 import traceback
 from background import Background
-from streamer import UrlBox, Streamer
-from url_fetcher import UrlFetcher
+from streamer import Streamer
+from url_fetcher import UrlFetcher, watch
 
-def urlsEqual(lhs, rhs):
-    if len(lhs) != len(rhs):
-        return False
-
-    for i in range(len(lhs)):
-        if not lhs[i].isEqual(rhs[i]):
-            return False
-
-    return True
-
-def watch(parameter_client, bg, urls):
-    while True:
-        try:
-            new_urls = parameter_client.request()
-            bg.setConnected(True)
-
-            if not urlsEqual(new_urls, urls):
-                return new_urls
-        except:
-            traceback.print_exc()
-            print("Failed to get new URLs. Is web server down?")
-            bg.setConnected(False)
-
-        time.sleep(1)
 
 parser = argparse.ArgumentParser(description='Display video streams')
-parser.add_argument('--debug', action='store_true')
+parser.add_argument('--escape_backend_address', default='http://192.168.0.150/raspi-api')
+parser.add_argument('--monitoring_port', default=8081)
+parser.add_argument('--polling_interval', default=1)
+parser.add_argument('--debug', action='store_true', help='Start in debug mode. No video streams will be displayed and the debug endpoint will be used.')
 args = parser.parse_args()
+
 debug = args.debug
+api_endpoint = args.escape_backend_address
+polling_interval = args.polling_interval
+monitoring_port = args.monitoring_port
 
 if debug:
-    apiEndpoint = 'http://localhost:5000'
-else:
-    apiEndpoint = 'http://192.168.0.150/raspi-api'
+    api_endpoint = 'http://localhost:5000'
+
+print("Starting Prometheus HTTP server")
+prometheus_client.start_http_server(monitoring_port)
 
 print("Starting OpenGL Fullscreen Application")
 bg = Background(debug)
 
-pc = UrlFetcher(apiEndpoint)
+fetcher = UrlFetcher(api_endpoint)
 try:
-    urls = pc.request()
-    pc.save(urls)
+    urls = fetcher.request()
+    fetcher.save(urls)
     bg.setConnected(True)
-except Exception as e:
-    print(e)
+except:
+    traceback.print_exc()
     print("Failed to request new urls. Falling back to stored urls")
-    urls = pc.restore()
+    urls = fetcher.restore()
     bg.setConnected(False)
 
 streamer = Streamer(bg.getScreenSize(), urls)
 
 while True:
     # update loop
-    urls = watch(pc, bg, urls)
+    urls = watch(fetcher, bg, urls, polling_interval=polling_interval)
     print("Got new set of URLs")
-    pc.save(urls)
+    fetcher.save(urls)
     streamer.setUrls(urls)
