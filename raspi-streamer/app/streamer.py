@@ -80,8 +80,8 @@ class UrlBox:
     def getCrop(self) -> Tuple[int, int, int, int]:
         view = self.getOptimalStreamView()
         return (view.crop_x1,
-                view.crop_x2,
                 view.crop_y1,
+                view.crop_x2,
                 view.crop_y2)
 
     def getUrl(self) -> str:

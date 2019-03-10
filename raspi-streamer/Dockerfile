@@ -17,7 +17,6 @@ COPY supervisord.conf /etc/supervisord.conf
 COPY requirements.txt /tmp/
 RUN pip3 install --pre --no-cache-dir -r /tmp/requirements.txt
 
-COPY ./app /app
 COPY ./omxplayer /usr/bin/omxplayer
 COPY ./omxplayer.bin /usr/bin/omxplayer.bin
 
@@ -26,5 +25,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && apt-get clean
 
 ENV LD_LIBRARY_PATH /opt/vc/lib/
+
+COPY ./app /app
 
 CMD [ "/usr/bin/supervisord" ]

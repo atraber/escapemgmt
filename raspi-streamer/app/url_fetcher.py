@@ -39,12 +39,15 @@ class UrlFetcher:
 
         try:
             response = requests.get(
-                    self.api_endpoint + '/raspi/{}'.format(self.mac))
+                    self.api_endpoint + '/raspi/{}'.format(self.mac),
+                    timeout=5)
             response.raise_for_status()
             device = response.json()
         except Exception as e:
+            logger.info('Received exception while waiting for config from backend')
             requestsErrorMetric.inc()
             return None
+        logger.info('Received config from backend')
 
         # if the screen should be off, just return an empty list of urls
         if not device['screen_enable']:
