@@ -85,7 +85,7 @@ async def apiDeviceUpdate(deviceid: int):
                 db.session.query(DeviceStream).filter_by(
                         stream_id=stream_id,
                         device_id=db_device.id,
-                        preset_id=db_preset.id).first().delete()
+                        preset_id=db_preset.id).delete()
 
             for stream_id in streams_added:
                 device_stream = DeviceStream(device=db_device, preset=db_preset,
