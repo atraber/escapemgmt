@@ -1,11 +1,14 @@
 # Copyright 2018 Andreas Traber
 # Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
-import functools
 import prometheus_client
 import subprocess
 import threading
+from absl import flags
 from OpenGL.GL import *
 from OpenGL.GLUT import *
+
+
+FLAGS = flags.FLAGS
 
 
 connectedMetric = prometheus_client.Enum(
@@ -14,11 +17,10 @@ connectedMetric = prometheus_client.Enum(
 
 
 class Background:
-    def __init__(self, debug=False):
-        self.debug = debug
+    def __init__(self):
         self.connected = False
 
-        if not self.debug:
+        if not FLAGS.debug:
             self.screensaver_disable()
 
         self.setup_event = threading.Event()
@@ -49,7 +51,7 @@ class Background:
         glutInit()
         glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB)
 
-        if self.debug:
+        if FLAGS.debug:
             glutInitWindowPosition(100, 100)
             glutInitWindowSize(1024, 768)
             glutCreateWindow("Background")

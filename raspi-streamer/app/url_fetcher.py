@@ -7,10 +7,22 @@ import threading
 import time
 import traceback
 import yaml
+from absl import flags
 from logger import logger
 from sseclient import SSEClient
 from streamer import StreamView, UrlBox
 from uuid import getnode
+
+
+FLAGS = flags.FLAGS
+
+flags.DEFINE_boolean(
+        'pubsub_enable', default=False,
+        help='Enable pubsub to fetch new video streams from backend. '
+             'Disabled by default.')
+flags.DEFINE_integer(
+        'backend_request_timeout', default=5,
+        help='Timeout for requests to escape backend. Defaults to 5 seconds.')
 
 
 screenEnabledMetric = prometheus_client.Enum(
@@ -40,7 +52,7 @@ class UrlFetcher:
         try:
             response = requests.get(
                     self.api_endpoint + '/raspi/{}'.format(self.mac),
-                    timeout=5)
+                    timeout=FLAGS.backend_request_timeout)
             response.raise_for_status()
             device = response.json()
         except Exception as e:
@@ -139,11 +151,16 @@ def urlsEqual(lhs, rhs):
 
 
 def watch(fetcher, bg, urls, polling_interval=30):
-    semaphore = fetcher.watch_push()
+    if FLAGS.pubsub_enable:
+        semaphore = fetcher.watch_push()
+
     while True:
         # After this function returns, we either received an event or the
         # timeout has expired. Either way, let's check for new streams.
-        semaphore.acquire(timeout=polling_interval)
+        if FLAGS.pubsub_enable:
+            semaphore.acquire(timeout=polling_interval)
+        else:
+            time.sleep(polling_interval)
 
         new_urls = fetcher.request()
         if new_urls is None:
