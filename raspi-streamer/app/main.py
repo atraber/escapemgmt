@@ -11,7 +11,7 @@ from url_fetcher import UrlFetcher, watch
 
 
 parser = argparse.ArgumentParser(description='Display video streams')
-parser.add_argument('--escape_backend_address', default='http://192.168.0.150/raspi-api')
+parser.add_argument('--escape_backend_address', default='http://192.168.0.150/api')
 parser.add_argument('--monitoring_port', default=8081)
 parser.add_argument('--polling_interval', default=1)
 parser.add_argument('--debug', action='store_true', help='Start in debug mode. No video streams will be displayed and the debug endpoint will be used.')
