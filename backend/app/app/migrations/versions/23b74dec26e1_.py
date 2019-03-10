@@ -44,7 +44,7 @@ def upgrade():
     streams = session.query(Stream).all()
     for stream in streams:
         streamview = StreamView(
-            stream_id=stream.id,
+            stream=stream,
             url=stream.url,
             crop_x1=stream.crop_x1,
             crop_x2=stream.crop_x2,
