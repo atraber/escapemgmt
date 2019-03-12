@@ -1,0 +1,17 @@
+- hosts: raspis
+  user: pi
+  become: true
+  become_user: root
+  become_method: sudo
+  tasks:
+    - name: Stop docker-compose
+      become: true
+      command: docker-compose -f /home/pi/docker-compose.rpi.yml down
+
+    - name: Pull docker-compose
+      become: true
+      command: docker-compose -f /home/pi/docker-compose.rpi.yml pull
+
+    - name: Start docker-compose
+      become: true
+      command: docker-compose -f /home/pi/docker-compose.rpi.yml up -d

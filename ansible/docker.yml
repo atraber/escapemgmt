@@ -1,0 +1,69 @@
+- hosts: raspis
+  user: pi
+  become: true
+  become_user: root
+  become_method: sudo
+  tasks:
+    - name: Download Docker install file
+      get_url:
+        url: https://get.docker.com/
+        dest: /home/pi/get-docker.sh
+    - name: Install docker
+      become: true
+      command: /bin/sh /home/pi/get-docker.sh
+    - name: Install docker-compose
+      become: true
+      command: pip3 install docker-compose
+
+    - name: Create repository entry
+      copy:
+        dest: "/etc/docker/daemon.json"
+        owner: root
+        group: root
+        content: |
+          {
+            "insecure-registries" : ["192.168.0.150:5000"]
+          }
+
+    - name: Restart docker daemon
+      become: true
+      command: systemctl restart docker
+
+    - name: Add docker-compose file
+      copy:
+        dest: "/home/pi/docker-compose.rpi.yml"
+        content: |
+          version: '3'
+          services:
+            streamer:
+              image: 192.168.0.150:5000/escape_streamer:2019-03-10
+              ports:
+                - "8081:8081"
+              restart: always
+              environment:
+                - DISPLAY=:0
+              network_mode: "host"
+              devices:
+                - "/dev/vchiq:/dev/vchiq"
+                - "/dev/snd:/dev/snd"
+                - "/dev/fb0:/dev/fb0"
+              volumes:
+                - /tmp/.X11-unix:/tmp/.X11-unix
+                - /home/pi/.Xauthority:/root/.Xauthority
+                - /opt/vc/:/opt/vc
+
+    - name: Delete autostart entry
+      file:
+        state: absent
+        path: "/home/pi/.config/autostart/stream.desktop"
+
+    - name: Start docker-compose
+      become: true
+      command: docker-compose -f /home/pi/docker-compose.rpi.yml up -d
+
+    - name: Restart server
+      become: true
+      command: reboot
+      async: 0
+      poll: 0
+      ignore_errors: true
