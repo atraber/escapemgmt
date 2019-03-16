@@ -29,6 +29,7 @@
               volumes:
                 - /tmp/.X11-unix:/tmp/.X11-unix
                 - /home/pi/.Xauthority:/root/.Xauthority
+                - /home/pi/config.yml:/app/config.yml
 
     - name: Pull docker-compose
       become: true

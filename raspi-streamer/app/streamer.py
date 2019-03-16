@@ -20,7 +20,7 @@ from typing import List, Tuple
 FLAGS = flags.FLAGS
 
 flags.DEFINE_integer(
-        'omxplayer_vol', default=1000,
+        'omxplayer_vol', default=800,
         help='--vol of omxplayer. 0 is no amplification.')
 
 flags.DEFINE_integer(
@@ -235,9 +235,11 @@ class OmxProcess:
         time_diff = (datetime.datetime.now() - self.last_active).total_seconds()
         try:
             if self.p.poll() is not None or time_diff > FLAGS.omxplayer_dead_time:
+                if time_diff > FLAGS.omxplayer_dead_time:
+                    logger.error("No reaction within {}".format(time_diff))
                 logger.error("{} has crashed. Restarting".format(self.cmd))
-                self.p.terminate()
-                self.p = self._cmd_popen(self.cmd)
+                self.kill()
+                self.p = self._cmd_popen()
                 self.update_timestamp()
         except Exception as e:
             logger.error(e)
@@ -339,6 +341,12 @@ class Streamer:
         self.thread = threading.Thread(target=self._watch_thread_entry)
         self.thread.start()
 
+    def kill_children(self, pid):
+        process = psutil.Process(pid)
+        for proc in process.children(recursive=True):
+            proc.kill()
+        process.kill()
+
     def stop(self):
         if not self.monitor_is_on:
             return
@@ -346,8 +354,8 @@ class Streamer:
         self.stop_event.set()
         self.thread.join(10)
         if self.thread.isAlive():
-            logger.critical('Thread is still alive after 10s! We will continue'
-                            'as we can\'t do anything else')
+            logger.critical('Thread is still alive after 10s! We will try to crash')
+            os._exit(-1)
         self.stop_event.clear()
 
     def setUrls(self, urls):

@@ -3,36 +3,6 @@
   become_user: root
   become_method: sudo
   tasks:
-    - name: Install OS dependencies
-      become: true
-      apt:
-        update_cache: yes
-        cache_valid_time: 3600
-        name: git,python3-venv
-        state: present
-
-    - name: Checkout github repository
-      git: repo='https://github.com/atraber/escapemgmt.git' dest=/home/pi/escapemgmt version=master
-
-    - name: Create virtualenv
-      pip:
-        requirements: /home/pi/escapemgmt/raspi-streamer/requirements.txt
-        virtualenv: /home/pi/escapemgmt/raspi-streamer/venv
-        virtualenv_command: /usr/bin/python3 -m venv
-
-    - name: Create autostart entry
-      copy:
-        dest: "/home/pi/.config/autostart/stream.desktop"
-        content: |
-          [Desktop Entry]
-          Encoding=UTF-8
-          Name=stream
-          GenericName=stream
-          Exec=/home/pi/escapemgmt/raspi-streamer/start.sh
-          Terminal=false
-          Type=Application
-          Categories=
-
     - name: Wallpaper
       copy:
         src: ./raspi/desktop.jpg
@@ -59,6 +29,57 @@
         dest: "/boot/cmdline.txt"
         content: |
          dwc_otg.lpm_enable=0 console=serial0,115200 console=tty1 root=PARTUUID=5ade1fc3-02 rootfstype=ext4 elevator=deadline fsck.repair=yes rootwait quiet splash logo.nologo
+
+    - name: Download Docker install file
+      get_url:
+        url: https://get.docker.com/
+        dest: /home/pi/get-docker.sh
+    - name: Install docker
+      become: true
+      command: /bin/sh /home/pi/get-docker.sh
+    - name: Install docker-compose
+      become: true
+      command: pip3 install docker-compose
+
+    - name: Create repository entry
+      copy:
+        dest: "/etc/docker/daemon.json"
+        owner: root
+        group: root
+        content: |
+          {
+            "insecure-registries" : ["192.168.0.150:5000"]
+          }
+
+    - name: Restart docker daemon
+      become: true
+      command: systemctl restart docker
+
+    - name: Add docker-compose file
+      copy:
+        dest: "/home/pi/docker-compose.rpi.yml"
+        content: |
+          version: '3'
+          services:
+            streamer:
+              image: 192.168.0.150:5000/escape_streamer:2019-03-10
+              ports:
+                - "8081:8081"
+              restart: always
+              environment:
+                - DISPLAY=:0
+              network_mode: "host"
+              devices:
+                - "/dev/vchiq:/dev/vchiq"
+                - "/dev/snd:/dev/snd"
+                - "/dev/fb0:/dev/fb0"
+              volumes:
+                - /tmp/.X11-unix:/tmp/.X11-unix
+                - /home/pi/.Xauthority:/root/.Xauthority
+
+    - name: Start docker-compose
+      become: true
+      command: docker-compose -f /home/pi/docker-compose.rpi.yml up -d
 
     - name: Restart server
       become: true

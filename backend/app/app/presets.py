@@ -4,7 +4,7 @@ from quart import abort, Blueprint, request, jsonify
 
 from app import db
 from app.logger import logger
-from app.models import Preset
+from app.models import Device, Preset
 from app.pubsub import publish
 
 
@@ -55,6 +55,13 @@ async def apiPresetActivate(presetid: int):
 
         preset_new = db.session.query(Preset).filter_by(id=presetid).first()
         preset_new.active = True
+
+        # Activate all screens
+        devices = db.session.query(Device).all()
+
+        for device in devices:
+            device.screen_enable = True
+
         db.session.commit()
         publish('devicesChanged')
         return jsonify('ok')
