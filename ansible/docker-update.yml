@@ -8,6 +8,28 @@
       become: true
       command: docker-compose -f /home/pi/docker-compose.rpi.yml down
 
+    - name: Update docker-compose file
+      copy:
+        dest: "/home/pi/docker-compose.rpi.yml"
+        content: |
+          version: '3'
+          services:
+            streamer:
+              image: 192.168.0.150:5000/escape_streamer:2019-03-16
+              ports:
+                - "8081:8081"
+              restart: always
+              environment:
+                - DISPLAY=:0
+              network_mode: "host"
+              devices:
+                - "/dev/vchiq:/dev/vchiq"
+                - "/dev/snd:/dev/snd"
+                - "/dev/fb0:/dev/fb0"
+              volumes:
+                - /tmp/.X11-unix:/tmp/.X11-unix
+                - /home/pi/.Xauthority:/root/.Xauthority
+
     - name: Pull docker-compose
       become: true
       command: docker-compose -f /home/pi/docker-compose.rpi.yml pull
