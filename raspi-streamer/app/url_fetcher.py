@@ -1,11 +1,12 @@
 # Copyright 2018 Andreas Traber
 # Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
+import json
 import os
 import prometheus_client
-import requests
 import threading
 import time
 import traceback
+import urllib.request
 import yaml
 from absl import flags
 from logger import logger
@@ -50,13 +51,14 @@ class UrlFetcher:
         requestsTotalMetric.inc()
 
         try:
-            response = requests.get(
-                    self.api_endpoint + '/raspi/{}'.format(self.mac),
-                    timeout=FLAGS.backend_request_timeout)
-            response.raise_for_status()
-            device = response.json()
-        except Exception as e:
-            logger.info('Received exception while waiting for config from backend')
+            url = self.api_endpoint + '/raspi/{}'.format(self.mac)
+            with urllib.request.urlopen(
+                    url=url,
+                    timeout=FLAGS.backend_request_timeout) as response:
+               data = response.read()
+               device = json.loads(data)
+        except urllib.error.HTTPError as e:
+            logger.info('Server did not respond with OK')
             requestsErrorMetric.inc()
             return None
         logger.info('Received config from backend')
