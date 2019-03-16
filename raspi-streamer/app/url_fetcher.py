@@ -161,8 +161,10 @@ def watch(fetcher, bg, urls, polling_interval=30):
         # timeout has expired. Either way, let's check for new streams.
         if FLAGS.pubsub_enable:
             semaphore.acquire(timeout=polling_interval)
+            logger.info("Received message via pubsub or polling...")
         else:
             time.sleep(polling_interval)
+            logger.info("Polling now...")
 
         new_urls = fetcher.request()
         if new_urls is None:
@@ -173,4 +175,5 @@ def watch(fetcher, bg, urls, polling_interval=30):
         bg.setConnected(True)
 
         if not urlsEqual(new_urls, urls):
+            logger.info("URLs are not equal!")
             return new_urls
