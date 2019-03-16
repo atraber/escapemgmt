@@ -1,10 +1,14 @@
 # Copyright 2018 Andreas Traber
 # Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
 import copy
+import datetime
+import fcntl
 import functools
 import math
+import os
 import psutil
 import subprocess
+import sys
 import threading
 import time
 from absl import flags
@@ -18,6 +22,14 @@ FLAGS = flags.FLAGS
 flags.DEFINE_integer(
         'omxplayer_vol', default=1000,
         help='--vol of omxplayer. 0 is no amplification.')
+
+flags.DEFINE_integer(
+        'omxplayer_poll_interval', default=1,
+        help='Polling interval used to check if omxplayer is still alive.')
+
+flags.DEFINE_integer(
+        'omxplayer_dead_time', default=20,
+        help='Time interval after which omxplayer is restarted if no output is produced.')
 
 
 class StreamView:
@@ -200,6 +212,49 @@ def pack(urls, screen_size):
     return p.urls
 
 
+class OmxProcess:
+    def __init__(self, cmd):
+        self.cmd = cmd
+        self.p = self._cmd_popen()
+        self.update_timestamp()
+
+    def _cmd_popen(self):
+        p = subprocess.Popen(self.cmd, stderr=subprocess.DEVNULL, stdout=subprocess.PIPE, shell=False)
+
+        # make stdin a non-blocking file
+        fd = p.stdout.fileno()
+        fl = fcntl.fcntl(fd, fcntl.F_GETFL)
+        fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
+
+        return p
+
+    def update_timestamp(self):
+        self.last_active = datetime.datetime.now()
+
+    def check(self):
+        time_diff = (datetime.datetime.now() - self.last_active).total_seconds()
+        try:
+            if self.p.poll() is not None or time_diff > FLAGS.omxplayer_dead_time:
+                logger.error("{} has crashed. Restarting".format(self.cmds[i]))
+                self.p.terminate()
+                self.p = self._cmd_popen(self.cmds[i])
+                self.update_timestamp()
+        except Exception as e:
+            logger.error(e)
+            logger.error("Something went wrong while checking if process is still alive")
+
+        try:
+            stdout = self.p.stdout.read()
+            if type(stdout) is bytes and len(stdout) > 0:
+                self.update_timestamp()
+        except BlockingIOError:
+            # This is expected, just continue
+            pass
+
+    def kill(self):
+        self.p.terminate()
+
+
 class Streamer:
     def __init__(self, screen_size, urls):
         self.stop_event = threading.Event()
@@ -226,9 +281,10 @@ class Streamer:
         size = url.getSize()
         win = ','.join(["{}".format(i) for i in [url.pos_x, url.pos_y, int(url.pos_x + size[0]), int(url.pos_y + size[1])]])
         crop =  ','.join(["{}".format(i) for i in url.getCrop()])
-        return ["omxplayer",
+        return ["/usr/bin/omxplayer.bin",
                 url.getUrl(),
                 "--live",
+                "-s",
                 "--avdict", "rtsp_transport:tcp",
                 "--win", win,
                 "--crop", crop,
@@ -236,41 +292,24 @@ class Streamer:
                 "--vol", "{}".format(FLAGS.omxplayer_vol),
             ]
 
-    def kill_children(self, pid):
-        process = psutil.Process(pid)
-        for proc in process.children(recursive=True):
-            proc.kill()
-        process.kill()
-
     def _watch_thread_entry(self):
         processes = []
         for cmd in self.cmds:
             logger.info(cmd)
             try:
-                p = subprocess.Popen(cmd, stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+                p = OmxProcess(cmd)
             except FileNotFoundError:
                 logger.error("Could not start streaming application")
                 continue
             processes.append(p)
 
         while True:
-            for i in range(len(processes)):
-                try:
-                    p = processes[i]
-                    if p.poll() is not None:
-                        logger.error("{} has crashed. Restarting".format(self.cmds[i]))
-                        p.terminate()
-                        processes[i] = subprocess.Popen(self.cmds[i], stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
-                except Exception as e:
-                    logger.error(e)
-                    logger.error("Something went wrong while checking if process is still alive")
+            for p in processes:
+                p.check()
 
-            time.sleep(1)
-
-            if self.stop_event.wait(1.0):
+            if self.stop_event.wait(float(FLAGS.omxplayer_poll_interval)):
                 for p in processes:
-                    self.kill_children(p.pid)
-                return
+                    p.kill()
 
     def _monitor_enable(self, enable):
         try:
@@ -296,6 +335,7 @@ class Streamer:
 
         urls = copy.deepcopy(urls)
         self.cmds = self.build_cmds(urls)
+        logger.info("Starting background task to watch omxplayers")
         self.thread = threading.Thread(target=self._watch_thread_entry)
         self.thread.start()
 
