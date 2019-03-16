@@ -7,9 +7,18 @@ import psutil
 import subprocess
 import threading
 import time
+from absl import flags
 from logger import logger
 from rectpack import newPacker
 from typing import List, Tuple
+
+
+FLAGS = flags.FLAGS
+
+flags.DEFINE_integer(
+        'omxplayer_vol', default=1000,
+        help='--vol of omxplayer. 0 is no amplification.')
+
 
 class StreamView:
     def __init__(
@@ -220,10 +229,13 @@ class Streamer:
         return ["omxplayer",
                 url.getUrl(),
                 "--live",
+                "--avdict", "rtsp_transport:tcp",
                 "--win", win,
                 "--crop", crop,
                 "--orientation", str(url.orientation),
                 "-o", "alsa"]
+                "--vol", "{}".format(FLAGS.omxplayer_vol),
+            ]
 
     def kill_children(self, pid):
         process = psutil.Process(pid)

@@ -75,7 +75,6 @@ class Background:
         subprocess.call(["xset", "s", "off"])
         subprocess.call(["xset", "s", "noblank"])
         subprocess.call(["xset", "-dpms"])
-        subprocess.call(["amixer", "cset", "numid=3", "100%"])
 
     def setConnected(self, connected):
         self.connected = connected
