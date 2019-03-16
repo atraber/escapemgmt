@@ -3,9 +3,10 @@
 import prometheus_client
 import subprocess
 import threading
-from absl import flags
 from OpenGL.GL import *
 from OpenGL.GLUT import *
+from absl import flags
+from logger import logger
 
 
 FLAGS = flags.FLAGS
@@ -32,19 +33,19 @@ class Background:
         t.start()
 
         if not self.setup_event.wait(timeout=5):
-            print("Background drawing task has been blocked for more than 5 seconds")
+            logger.error("Background drawing task has been blocked for more than 5 seconds")
 
     def display(self):
         if self.connected:
             glClearColor(0.0, 0.0, 0.0, 1.0)
         else:
             glClearColor(1.0, 0.0, 0.0, 1.0)
-        glClear(GL_COLOR_BUFFER_BIT)
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         glutSwapBuffers()
 
     def timer(self, arg):
         glutPostRedisplay()
-        glutTimerFunc(100, self.timer, 0)
+        glutTimerFunc(1000, self.timer, 0)
 
     def glMain(self):
         # Initialize OpenGL
@@ -70,6 +71,7 @@ class Background:
 
         # Enters the GLUT event processing loop
         glutMainLoop()
+        logger.critical("glutMainLoop has exited")
 
     def screensaver_disable(self):
         subprocess.call(["xset", "s", "off"])

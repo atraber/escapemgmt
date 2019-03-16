@@ -29,7 +29,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt /tmp/
 RUN pip3 install --pre --no-cache-dir -r /tmp/requirements.txt
 
-COPY supervisord.conf /etc/supervisord.conf
 COPY ./app /app
 
-CMD [ "/usr/bin/supervisord" ]
+ENTRYPOINT [ "python3", "/app/main.py" ]

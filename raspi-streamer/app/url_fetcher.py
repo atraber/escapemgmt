@@ -3,6 +3,7 @@
 import json
 import os
 import prometheus_client
+import socket
 import threading
 import time
 import traceback
@@ -60,6 +61,12 @@ class UrlFetcher:
         except urllib.error.HTTPError as e:
             logger.info('Server did not respond with OK')
             requestsErrorMetric.inc()
+            return None
+        except socket.timeout as e:
+            logger.info('Connection timed out')
+            requestsErrorMetric.inc()
+            return None
+
             return None
         logger.info('Received config from backend')
 

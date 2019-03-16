@@ -235,9 +235,9 @@ class OmxProcess:
         time_diff = (datetime.datetime.now() - self.last_active).total_seconds()
         try:
             if self.p.poll() is not None or time_diff > FLAGS.omxplayer_dead_time:
-                logger.error("{} has crashed. Restarting".format(self.cmds[i]))
+                logger.error("{} has crashed. Restarting".format(self.cmd))
                 self.p.terminate()
-                self.p = self._cmd_popen(self.cmds[i])
+                self.p = self._cmd_popen(self.cmd)
                 self.update_timestamp()
         except Exception as e:
             logger.error(e)
