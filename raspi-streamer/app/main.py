@@ -41,11 +41,14 @@ def main(argv):
         urls = fetcher.restore()
         bg.setConnected(False)
     else:
+        logger.info("Get a set of URLs. Saving those to file now.")
         fetcher.save(urls)
         bg.setConnected(True)
 
+    logger.info("Starting streamer")
     streamer = Streamer(bg.getScreenSize(), urls)
 
+    logger.info("Entering update loop")
     while True:
         # update loop
         urls = watch(fetcher, bg, urls, polling_interval=FLAGS.polling_interval)

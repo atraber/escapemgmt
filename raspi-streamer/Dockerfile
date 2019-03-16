@@ -10,23 +10,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libasound2 libavutil55 libavcodec57 libavformat57 x11-xserver-utils alsa-utils freeglut3 libgl1-mesa-dri \
   && apt-get clean
 
-# Install raspberry libraries
-RUN curl http://archive.raspbian.org/raspbian/pool/firmware/r/raspberrypi-firmware-nokernel/libraspberrypi0_1.20180328-1~nokernel1_armhf.deb \
-    -o /tmp/libraspberrypi0.deb && \
-    dpkg -i /tmp/libraspberrypi0.deb && \
-    rm /tmp/libraspberrypi0.deb
+# Add raspbian repo
+RUN echo "\ndeb http://archive.raspbian.org/raspbian stretch main firmware contrib non-free rpi\n" \
+	"deb-src http://archive.raspbian.org/raspbian stretch main firmware contrib non-free rpi\n" \
+    >> /etc/apt/sources.list && \
+    wget https://archive.raspbian.org/raspbian.public.key -O - | apt-key add -
 
-# Install tvservice binary
-RUN curl http://archive.raspbian.org/raspbian/pool/firmware/r/raspberrypi-firmware-nokernel/libraspberrypi-bin_1.20180328-1~nokernel1_armhf.deb \
-    -o /tmp/libraspberrypi-bin.deb && \
-    dpkg -i /tmp/libraspberrypi-bin.deb && \
-    rm /tmp/libraspberrypi-bin.deb
+# Add raspberry repo
+RUN echo "\ndeb http://archive.raspberrypi.org/debian stretch main\n" \
+    >> /etc/apt/sources.list && \
+    wget http://archive.raspberrypi.org/debian/raspberrypi.gpg.key -O - | apt-key add -
 
-# Install omxplayer binary
-RUN curl http://archive.raspberrypi.org/debian/pool/main/o/omxplayer/omxplayer_20180905+git061425a-1_armhf.deb \
-    -o /tmp/omxplayer.deb && \
-    dpkg -i /tmp/omxplayer.deb && \
-    rm /tmp/omxplayer.deb
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libraspberrypi0 libraspberrypi-bin omxplayer && \
+    apt-get clean
 
 # Python requirements
 COPY requirements.txt /tmp/

@@ -28,7 +28,7 @@ flags.DEFINE_integer(
 
 screenEnabledMetric = prometheus_client.Enum(
         'screen_enabled', 'Screen enabled on device',
-        states=['True', 'false'])
+        states=['True', 'False'])
 
 requestsTotalMetric = prometheus_client.Counter(
         'backend_requests_total',
@@ -64,12 +64,13 @@ class UrlFetcher:
         logger.info('Received config from backend')
 
         # if the screen should be off, just return an empty list of urls
+        urls = []
         if not device['screen_enable']:
+            logger.info('Screen is disabled')
             screenEnabledMetric.state('False')
-            return []
+            return urls
         screenEnabledMetric.state('True')
 
-        urls = []
         if device['streams'] and len(device['streams']) > 0:
             for stream in device['streams']:
                 streamviews = []
