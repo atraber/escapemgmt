@@ -275,8 +275,10 @@ class Streamer:
     def _monitor_enable(self, enable):
         try:
             if enable:
+                logger.info("Turning monitor on")
                 subprocess.call(["/opt/vc/bin/tvservice", "-p"])
             else:
+                logger.info("Turning monitor off")
                 subprocess.call(["/opt/vc/bin/tvservice", "-o"])
         except FileNotFoundError:
             logger.error("tvservice executable not found. Cannot control monitor")
