@@ -233,7 +233,6 @@ class Streamer:
                 "--win", win,
                 "--crop", crop,
                 "--orientation", str(url.orientation),
-                "-o", "alsa"]
                 "--vol", "{}".format(FLAGS.omxplayer_vol),
             ]
 
