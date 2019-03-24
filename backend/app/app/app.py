@@ -81,7 +81,7 @@ async def PerformInitDB(app: Quart):
 def InitDB():
     app = App()
 
-    asyncio.run(PerformInitDB())
+    asyncio.run(PerformInitDB(app))
 
     return app
 
