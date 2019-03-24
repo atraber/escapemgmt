@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # Copyright 2018 Andreas Traber
 # Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
+import os
 import prometheus_client
 import traceback
 from absl import app
@@ -56,5 +57,10 @@ def main(argv):
         fetcher.save(urls)
         streamer.setUrls(urls)
 
+
 if __name__ == '__main__':
-    app.run(main)
+    try:
+        app.run(main)
+    except:
+        # Give up entirely if this happens!
+        os._exit(-1)

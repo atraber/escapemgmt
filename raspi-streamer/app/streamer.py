@@ -254,6 +254,7 @@ class OmxProcess:
             pass
 
     def kill(self):
+        self.p.kill()
         self.p.terminate()
 
 
@@ -310,8 +311,11 @@ class Streamer:
                 p.check()
 
             if self.stop_event.wait(float(FLAGS.omxplayer_poll_interval)):
-                for p in processes:
-                    p.kill()
+                break
+
+        # Kill all ou processes.
+        for p in processes:
+            p.kill()
 
     def _monitor_enable(self, enable):
         try:
@@ -340,12 +344,6 @@ class Streamer:
         logger.info("Starting background task to watch omxplayers")
         self.thread = threading.Thread(target=self._watch_thread_entry)
         self.thread.start()
-
-    def kill_children(self, pid):
-        process = psutil.Process(pid)
-        for proc in process.children(recursive=True):
-            proc.kill()
-        process.kill()
 
     def stop(self):
         if not self.monitor_is_on:

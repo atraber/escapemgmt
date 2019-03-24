@@ -1,5 +1,7 @@
 # Copyright 2018 Andreas Traber
 # Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
+import datetime
+import http
 import json
 import os
 import prometheus_client
@@ -31,6 +33,9 @@ screenEnabledMetric = prometheus_client.Enum(
         'screen_enabled', 'Screen enabled on device',
         states=['True', 'False'])
 
+backendLastCheckMetric = prometheus_client.Gauge(
+        'backend_last_check',
+        'Time of last check to backend')
 requestsTotalMetric = prometheus_client.Counter(
         'backend_requests_total',
         'Requests to the backend supplying streaming info')
@@ -50,6 +55,7 @@ class UrlFetcher:
     def request(self):
         logger.info('Sending request to backend')
         requestsTotalMetric.inc()
+        backendLastCheckMetric.set(datetime.datetime.now().timestamp())
 
         try:
             url = self.api_endpoint + '/raspi/{}'.format(self.mac)
@@ -58,7 +64,7 @@ class UrlFetcher:
                     timeout=FLAGS.backend_request_timeout) as response:
                data = response.read()
                device = json.loads(data)
-        except urllib.error.HTTPError as e:
+        except (urllib.error.URLError, urllib.error.HTTPError, http.client.RemoteDisconnected):
             logger.info('Server did not respond with OK')
             requestsErrorMetric.inc()
             return None
