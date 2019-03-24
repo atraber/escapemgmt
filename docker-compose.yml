@@ -21,7 +21,7 @@ services:
       SQLALCHEMY_DATABASE_URI: 'mysql+pymysql://raspimgmt:raspberrypi@escape-mariadb/raspimgmt?charset=utf8'
       PULSAR_URL: 'pulsar://escape-pulsar:6650'
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/devices"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/devices"]
       interval: 30s
       timeout: 10s
       retries: 3
