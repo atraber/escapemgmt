@@ -1,0 +1,45 @@
+- hosts: raspis
+  user: pi
+  become_user: root
+  become_method: sudo
+  tasks:
+    # Take care of docker
+    - name: Docker Command exists
+      shell: docker --version >/dev/null 2>&1
+      register: dockercmd
+      ignore_errors: yes
+
+    - name: Download Docker install file
+      get_url:
+        url: https://get.docker.com/
+        dest: /home/pi/get-docker.sh
+      when: dockercmd|failed
+
+    - name: Install docker
+      become: true
+      command: /bin/sh /home/pi/get-docker.sh
+
+    - name: Create repository entry
+      copy:
+        dest: "/etc/docker/daemon.json"
+        owner: root
+        group: root
+        content: |
+          {
+            "insecure-registries" : ["192.168.0.150:5000"]
+          }
+
+    - name: Restart docker daemon
+      become: true
+      command: systemctl restart docker
+      when: dockercmd|failed
+
+    - name: docker-compose Command exists
+      shell: docker-compose --version >/dev/null 2>&1
+      register: dockercomposecmd
+      ignore_errors: yes
+
+    - name: Install docker-compose
+      become: true
+      command: pip3 install docker-compose
+      when: dockercomposecmd|failed
