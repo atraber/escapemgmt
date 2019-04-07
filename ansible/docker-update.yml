@@ -15,12 +15,17 @@
           version: '3'
           services:
             streamer:
-              image: 192.168.0.150:5000/escape_streamer:2019-03-16
+              image: 192.168.0.150:5000/escape_streamer:2019-03-24
               ports:
                 - "8081:8081"
               restart: always
               environment:
                 - DISPLAY=:0
+              healthcheck:
+                  test: ["CMD", "python3", "-u", "/app/health_check_client.py"]
+                  interval: 30s
+                  timeout: 10s
+                  retries: 3
               network_mode: "host"
               devices:
                 - "/dev/vchiq:/dev/vchiq"
