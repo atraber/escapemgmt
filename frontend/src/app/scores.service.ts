@@ -1,12 +1,12 @@
 /**
- * Copyright 2018 Andreas Traber
+ * Copyright 2019 Andreas Traber
  * Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
  */
 import { Injectable, EventEmitter } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
-import { Observable } from 'rxjs/Observable';
-import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
-import { catchError, retry } from 'rxjs/operators';
+import { Observable, throwError } from 'rxjs';
+import { catchError, retryWhen} from 'rxjs/operators';
+import { genericRetryStrategy } from './rxjs-utils';
 import { environment } from '../environments/environment';
 import { Room } from './room';
 import { Score } from './score';
@@ -27,10 +27,20 @@ export class ScoresService {
     this.rooms = [];
 
     this.http.get<Room[]>(environment.apiEndpoint + '/rooms')
-      .subscribe(rooms => {this.rooms = rooms; this.roomsUpdated.emit(rooms)});
+      .pipe(
+        retryWhen(genericRetryStrategy({
+          maxRetryAttempts: 0,
+          scalingDuration: 2000,
+          excludedStatusCodes: [500]
+        })))
+      .pipe(catchError(this.handleError))
+      .subscribe(rooms => {
+        this.rooms = rooms;
+        this.roomsUpdated.emit(rooms);
+      });
   }
 
-  private handleError(error: HttpErrorResponse) {
+  private handleError(error: HttpErrorResponse): Observable<never> {
     if (error.error instanceof ErrorEvent) {
       // A client-side or network error occurred. Handle it accordingly.
       console.error('An error occurred:', error.error.message);
@@ -41,48 +51,57 @@ export class ScoresService {
         `Backend returned code ${error.status}, ` +
         `body was: ${error.error}`);
     }
-    // return an ErrorObservable with a user-facing error message
-    return new ErrorObservable(
-      'Something bad happened; please try again later.');
-  };
+    // TODO: Use the snackbar or something to deliver this in a user friendly
+    // manner.
+    return throwError('Something bad happened; please try again later.');
+  }
 
   addRoom(room: Room): Observable<Room> {
-    return this.http.post<Room>(environment.apiEndpoint + '/room', room, jsonOptions)
-      .pipe(
-        catchError(this.handleError)
-      );
+    return Observable.create(observer => {
+      this.http.post<Room>(environment.apiEndpoint + '/room', room, jsonOptions)
+        .pipe(catchError(this.handleError))
+        .subscribe(room => {
+          observer.next(room);
+          console.log(room);
+          this.rooms.push(room);
+          this.roomsUpdated.emit(this.rooms);
+          observer.complete();
+        }, err => {
+          observer.error(err);
+        });
+    });
   }
 
   updateRoom(room: Room): Observable<Room> {
     return Observable.create(observer => {
       this.http.post<Room>(environment.apiEndpoint + '/rooms/' + room.id, room, jsonOptions)
         .pipe(catchError(this.handleError))
-        .subscribe(
-          room => {
-            observer.next(room);
-            this.roomsUpdated.emit(this.rooms)
-            observer.complete();
-          }
-        );
+        .subscribe(room => {
+          observer.next(room);
+          this.roomsUpdated.emit(this.rooms);
+          observer.complete();
+        }, err => {
+          observer.error(err);
+        });
     });
-  };
+  }
 
   deleteRoom(room: Room): Observable<{}> {
     return Observable.create(observer => {
       this.http.delete(environment.apiEndpoint + '/rooms/' + room.id, jsonOptions)
         .pipe(catchError(this.handleError))
-        .subscribe(
-          data => {
-            var index = this.rooms.indexOf(room);
-            this.rooms.splice(index, 1);
-            this.roomsUpdated.emit(this.rooms)
-            observer.complete();
-          }
-        );
+        .subscribe(data => {
+          let index = this.rooms.indexOf(room);
+          this.rooms.splice(index, 1);
+          this.roomsUpdated.emit(this.rooms);
+          observer.complete();
+        }, err => {
+          observer.error(err);
+        });
     });
   };
 
-  addScoreToRoom(room: Room, score: Score): Observable<{Score}> {
+  addScoreToRoom(room: Room, score: Score): Observable<Score> {
     return this.http.post<Score>(environment.apiEndpoint + '/rooms/' + room.id + '/score', score, jsonOptions)
       .pipe(catchError(this.handleError));
   };
@@ -95,7 +114,7 @@ export class ScoresService {
           data => {
             var index = room.scores.indexOf(score);
             room.scores.splice(index, 1);
-            this.roomsUpdated.emit(this.rooms)
+            this.roomsUpdated.emit(this.rooms);
             observer.complete();
           }
         );

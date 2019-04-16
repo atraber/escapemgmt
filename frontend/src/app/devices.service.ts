@@ -5,8 +5,6 @@
 import { Injectable, EventEmitter } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { Observable } from 'rxjs/Observable';
-import * as EventSource from 'eventsource';
-import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
 import { catchError, retry } from 'rxjs/operators';
 import { environment } from '../environments/environment';
 import { Device } from './device';
@@ -46,9 +44,9 @@ export class DevicesService {
         `Backend returned code ${error.status}, ` +
         `body was: ${error.error}`);
     }
-    // return an ErrorObservable with a user-facing error message
-    return new ErrorObservable(
-      'Something bad happened; please try again later.');
+    // TODO: Use the snackbar or something to deliver this in a user friendly
+    // manner.
+    return Observable.throw('Something bad happened; please try again later.');
   }
 
   private listenForChanges() {

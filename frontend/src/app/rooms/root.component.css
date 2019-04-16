@@ -1,0 +1,11 @@
+.rooms-sidenav-container {
+  min-height: calc(100vh - 64px);
+}
+
+.rooms-sidenav-container mat-sidenav {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+a.mat-list-item:not(.main) {
+  font-size: 14px;
+}

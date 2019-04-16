@@ -1,0 +1,19 @@
+.room-form-container {
+  display: flex;
+  flex-direction: column;
+  margin: 10px;
+}
+
+.room-form-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.room-form-container > .buttons {
+  flex-direction: row;
+}
+
+.room-form-container > .buttons button {
+  margin-left: 4px;
+  margin-right: 4px;
+}

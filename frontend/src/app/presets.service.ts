@@ -45,9 +45,9 @@ export class PresetsService {
         `Backend returned code ${error.status}, ` +
         `body was: ${error.error}`);
     }
-    // return an ErrorObservable with a user-facing error message
-    return new ErrorObservable(
-      'Something bad happened; please try again later.');
+    // TODO: Use the snackbar or something to deliver this in a user friendly
+    // manner.
+    return Observable.throw('Something bad happened; please try again later.');
   }
 
   activatePreset(preset: Preset): Observable<{}> {

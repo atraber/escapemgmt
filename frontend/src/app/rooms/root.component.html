@@ -1,0 +1,16 @@
+<mat-sidenav-container class="rooms-sidenav-container">
+  <mat-sidenav opened disableClose mode="side">
+    <mat-nav-list>
+      <a mat-list-item class="main" routerLink="/rooms">Rooms</a>
+      <mat-divider></mat-divider>
+      <a mat-list-item routerLink="/rooms/new">Create a new Room</a>
+      <a mat-list-item routerLink="/scores">Scores</a>
+    </mat-nav-list>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <main>
+      <router-outlet></router-outlet>
+    </main>
+  </mat-sidenav-content>
+</mat-sidenav-container>

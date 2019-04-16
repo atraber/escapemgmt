@@ -1,0 +1,43 @@
+<mat-list>
+  <a mat-list-item>Rooms</a>
+</mat-list>
+<mat-divider></mat-divider>
+<mat-accordion class="room-accordion">
+  <mat-expansion-panel *ngFor="let room of rooms">
+    <mat-expansion-panel-header>
+      <mat-panel-title>
+        {{room.name}}
+      </mat-panel-title>
+      <mat-panel-description>
+        {{room.description}}
+      </mat-panel-description>
+    </mat-expansion-panel-header>
+
+    <div class="room-form-container">
+      <mat-form-field>
+        <input matInput [(ngModel)]="room.name" placeholder="Name">
+      </mat-form-field>
+
+      <mat-form-field>
+        <input matInput [(ngModel)]="room.description" placeholder="Description">
+      </mat-form-field>
+
+      <mat-form-field>
+        <input matInput [(ngModel)]="room.profile_image" placeholder="Profile Image (URL)">
+      </mat-form-field>
+
+      <mat-form-field>
+        <input matInput [(ngModel)]="room.background_image" placeholder="Background Image (URL)">
+      </mat-form-field>
+
+      <div class="buttons">
+        <button mat-raised-button color="warn" (click)="deleteRoomDialog(room)">Delete</button>
+        <button mat-raised-button color="primary" (click)="updateRoom(room)">Save</button>
+      </div>
+    </div>
+  </mat-expansion-panel>
+</mat-accordion>
+
+<div class="rooms-create-field">
+  <a mat-button routerLink="/rooms/new" color="primary">Create a new Room</a>
+</div>

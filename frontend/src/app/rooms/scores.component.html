@@ -1,3 +1,4 @@
+<!--
 <div class="container">
   <div class="row">
     <h1>High Scores</h1>
@@ -82,3 +83,38 @@
     </form>
   </div>
 </div>
+-->
+<mat-list>
+  <a mat-list-item>Scores</a>
+</mat-list>
+<mat-divider></mat-divider>
+<mat-accordion class="room-accordion">
+  <mat-expansion-panel *ngFor="let room of rooms">
+    <mat-expansion-panel-header>
+      <mat-panel-title>
+        {{room.name}}
+      </mat-panel-title>
+      <mat-panel-description>
+        {{room.description}}
+      </mat-panel-description>
+    </mat-expansion-panel-header>
+
+    <table mat-table [dataSource]="room.scores">
+
+      <ng-container matColumnDef="position">
+        <th mat-header-cell *matHeaderCellDef> No. </th>
+        <td mat-cell *matCellDef="let element"> {{element.position}} </td>
+      </ng-container>
+
+      <!-- Name Column -->
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef> Name </th>
+        <td mat-cell *matCellDef="let element"> {{element.name}} </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+
+  </mat-expansion-panel>
+</mat-accordion>
