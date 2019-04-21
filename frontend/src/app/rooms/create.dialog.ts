@@ -3,23 +3,22 @@
  * Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
  */
 import {Component} from '@angular/core';
-import {MatSnackBar} from '@angular/material';
+import {MatDialogRef, MatSnackBar} from '@angular/material';
 
 import {ScoresService} from '../scores.service';
 import {Room} from '../room';
 
 @Component({
-  templateUrl: './create.component.html',
-  styleUrls: ['./create.component.css']
+  templateUrl: './create.dialog.html',
+  styleUrls: ['./create.dialog.css']
 })
-export class RoomCreateComponent {
-  room: Room;
+export class RoomCreateDialog {
+  room: Room = new Room();
 
   constructor(
+    public dialogRef: MatDialogRef<RoomCreateDialog>,
     private scoresService: ScoresService,
-    private snackBar: MatSnackBar) {
-    this.room = new Room();
-  }
+    private snackBar: MatSnackBar) {}
 
   addRoom(room): void {
     console.log(room);
@@ -27,6 +26,7 @@ export class RoomCreateComponent {
       this.snackBar.open('New Room was created', 'Hide', {
         duration: 2000,
       });
+      this.dialogRef.close();
     }, err => {
       this.snackBar.open('Failed to create room. Please try again!', 'Hide', {
         duration: 2000,

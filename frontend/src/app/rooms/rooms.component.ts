@@ -4,6 +4,7 @@
  */
 import {Component, Inject} from '@angular/core';
 import {MatDialog, MatDialogRef, MAT_DIALOG_DATA, MatSnackBar} from '@angular/material';
+import {RoomCreateDialog} from './create.dialog';
 import {ScoresService} from '../scores.service';
 import {Room} from '../room';
 
@@ -23,6 +24,12 @@ export class RoomsComponent {
     this.scoresService.roomsUpdated.subscribe(
       (rooms) => this.rooms = rooms
     );
+  }
+
+  addRoom(): void {
+    const dialogRef = this.dialog.open(RoomCreateDialog, {
+      width: '500px'
+    });
   }
 
   updateRoom(room): void {
@@ -56,8 +63,10 @@ export class RoomsComponent {
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      console.log('The dialog was closed. Deleting the room.');
-      this.deleteRoom(result);
+      if (result != "") {
+        console.log('The dialog was closed. Deleting the room.');
+        this.deleteRoom(result);
+      }
     });
   }
 }
@@ -70,8 +79,4 @@ export class RoomsDeleteDialog {
   constructor(
     public dialogRef: MatDialogRef<RoomsDeleteDialog>,
     @Inject(MAT_DIALOG_DATA) public data: Room) {}
-
-  onNoClick(): void {
-    this.dialogRef.close();
-  }
 }

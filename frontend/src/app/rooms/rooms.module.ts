@@ -8,9 +8,10 @@ import {CommonModule} from '../common.module';
 
 import {RoomsRootComponent} from './root.component';
 import {RoomsComponent, RoomsDeleteDialog} from './rooms.component';
-import {RoomCreateComponent} from './create.component';
+import {RoomCreateDialog} from './create.dialog';
 
-import {ScoresComponent} from './scores.component';
+import {ScoresComponent, ScoreAddDialog, ScoreEditDialog, ScoreDeleteDialog} from './scores.component';
+import {TimeInput} from './timeinput.component';
 
 const routes: Routes = [
   {
@@ -18,16 +19,9 @@ const routes: Routes = [
     component: RoomsRootComponent,
     children: [
       { path: '', component: RoomsComponent },
-      { path: 'new', component: RoomCreateComponent },
+      { path: 'scores', component: ScoresComponent },
     ]
   },
-  {
-    path: 'scores',
-    component: RoomsRootComponent,
-    children: [
-      { path: '', component: ScoresComponent },
-    ],
-  }
 ];
 
 @NgModule({
@@ -35,11 +29,20 @@ const routes: Routes = [
     RoomsRootComponent,
     RoomsComponent,
     RoomsDeleteDialog,
-    RoomCreateComponent,
+    RoomCreateDialog,
     ScoresComponent,
+    ScoreAddDialog,
+    ScoreEditDialog,
+    ScoreDeleteDialog,
+    TimeInput,
   ],
   entryComponents: [
+    RoomCreateDialog,
     RoomsDeleteDialog,
+    ScoreAddDialog,
+    ScoreEditDialog,
+    ScoreDeleteDialog,
+    TimeInput,
   ],
   imports: [
     CommonModule,

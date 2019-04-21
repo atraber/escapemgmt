@@ -94,30 +94,43 @@ export class ScoresService {
           let index = this.rooms.indexOf(room);
           this.rooms.splice(index, 1);
           this.roomsUpdated.emit(this.rooms);
+          observer.next(null);
           observer.complete();
         }, err => {
           observer.error(err);
         });
     });
-  };
+  }
 
   addScoreToRoom(room: Room, score: Score): Observable<Score> {
-    return this.http.post<Score>(environment.apiEndpoint + '/rooms/' + room.id + '/score', score, jsonOptions)
-      .pipe(catchError(this.handleError));
-  };
+    return Observable.create(observer => {
+      this.http.post<Score>(
+          environment.apiEndpoint + '/rooms/' + room.id + '/score', score, jsonOptions)
+        .pipe(catchError(this.handleError))
+        .subscribe(data => {
+          room.scores.push(data);
+          observer.next(data);
+          observer.complete();
+          this.roomsUpdated.emit(this.rooms);
+        }, err => {
+          observer.error(err);
+        });
+    });
+  }
 
   deleteScoreFromRoom(room: Room, score: Score): Observable<{}> {
     return Observable.create(observer => {
       this.http.delete(environment.apiEndpoint + '/rooms/' + room.id + '/scores/' + score.id, jsonOptions)
         .pipe(catchError(this.handleError))
-        .subscribe(
-          data => {
-            var index = room.scores.indexOf(score);
-            room.scores.splice(index, 1);
-            this.roomsUpdated.emit(this.rooms);
-            observer.complete();
-          }
-        );
+        .subscribe(data => {
+          let index = room.scores.indexOf(score);
+          room.scores.splice(index, 1);
+          this.roomsUpdated.emit(this.rooms);
+          observer.next(null);
+          observer.complete();
+        }, err => {
+          observer.error(err);
+        });
     });
-  };
+  }
 }

@@ -6,6 +6,10 @@
   background: rgba(0, 0, 0, 0.02);
 }
 
+.mat-sidenav-content {
+  overflow: visible;
+}
+
 a.mat-list-item:not(.main) {
   font-size: 14px;
 }

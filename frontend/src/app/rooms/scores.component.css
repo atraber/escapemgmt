@@ -1,5 +1,32 @@
-.mat-accordion {
+.scores-table-container {
   display: flex;
   flex-direction: column;
   margin: 10px;
+}
+
+.score-add-field {
+  background: rgba(0, 0, 0, 0.03);
+  margin: 10px;
+}
+
+.mat-drawer {
+  margin: 10px;
+  padding: 10px;
+  min-width: calc(15vw);
+  overflow-y: visible;
+  bottom: initial;
+}
+
+.mat-drawer-container {
+  overflow: visible;
+}
+
+.mat-button-toggle-group {
+  width: 98%;
+}
+
+table {
+  margin-left: auto;
+  margin-right: auto;
+  min-width: 400px;
 }
