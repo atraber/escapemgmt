@@ -9,7 +9,6 @@ import {CommonModule} from '../common.module';
 import {RoomsRootComponent} from './root.component';
 import {RoomsComponent, RoomsDeleteDialog} from './rooms.component';
 import {RoomCreateDialog} from './create.dialog';
-
 import {ScoresComponent, ScoreAddDialog, ScoreEditDialog, ScoreDeleteDialog} from './scores.component';
 import {TimeInput} from './timeinput.component';
 

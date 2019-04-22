@@ -20,8 +20,7 @@ export class RoomCreateDialog {
     private scoresService: ScoresService,
     private snackBar: MatSnackBar) {}
 
-  addRoom(room): void {
-    console.log(room);
+  addRoom(room: Room): void {
     this.scoresService.addRoom(room).subscribe(() => {
       this.snackBar.open('New Room was created', 'Hide', {
         duration: 2000,

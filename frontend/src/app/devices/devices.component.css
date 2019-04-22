@@ -1,0 +1,62 @@
+.device-add-field {
+  background: rgba(0, 0, 0, 0.03);
+  margin: 10px;
+}
+
+.stream-add-field {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.mat-drawer {
+  padding: 10px;
+  min-width: calc(15vw);
+  overflow-y: visible;
+  bottom: initial;
+}
+
+.mat-drawer-container {
+  overflow: visible;
+}
+
+.mat-button-toggle-group {
+  width: 98%;
+}
+
+.form-full-width {
+  width: 98%;
+}
+
+.button-text {
+  line-height: normal;
+}
+
+.text-muted {
+  font-size: x-small;
+  color: rgba(80, 80, 80, 1.0);
+}
+
+.form-container {
+  margin: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-container > .buttons {
+  margin-top: 10px;
+  flex-direction: row;
+}
+
+.form-container > .buttons button {
+  margin-left: 4px;
+  margin-right: 4px;
+}
+
+table {
+  width: 100%;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.preset-form-field {
+  min-width: 200px;
+}

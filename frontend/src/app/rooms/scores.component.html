@@ -9,7 +9,7 @@
     </mat-button-toggle-group>
   </mat-drawer>
   <mat-drawer-content>
-    <div  class="scores-table-container" *ngIf="roomSelected != null">
+    <div class="scores-table-container" *ngIf="roomSelected != null">
       <table mat-table [dataSource]="roomSelectedScoresDataSource">
 
         <ng-container matColumnDef="index">

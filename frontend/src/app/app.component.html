@@ -5,10 +5,8 @@
 <mat-sidenav-container>
   <mat-sidenav #snav [fixedTopGap]="56" [mode]="side">
     <mat-nav-list>
-      <a mat-list-item routerLink="/presets">Presets</a>
-      <a mat-list-item routerLink="/devices">Devices</a>
-      <a mat-list-item routerLink="/streams">Streams</a>
-      <a mat-list-item routerLink="/rooms">Rooms &amp; Scores</a>
+      <a mat-list-item routerLink="/devices"><mat-icon>important_devices</mat-icon> Devices &amp; Streams</a>
+      <a mat-list-item routerLink="/rooms"><mat-icon>score</mat-icon> Rooms &amp; Scores</a>
     </mat-nav-list>
   </mat-sidenav>
 

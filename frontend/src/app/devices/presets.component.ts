@@ -3,8 +3,8 @@
  * Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
  */
 import { Component } from '@angular/core';
-import { Preset } from './preset';
-import { PresetsService } from './presets.service';
+import { Preset } from '../preset';
+import { PresetsService } from '../presets.service';
 
 @Component({
   templateUrl: './presets.component.html',

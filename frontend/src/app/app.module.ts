@@ -7,39 +7,33 @@ import {RouterModule, Routes} from '@angular/router';
 import {CommonModule} from './common.module';
 
 import {AppComponent} from './app.component';
-import {DevicesComponent} from './devices.component';
-import {StreamsComponent} from './streams.component';
 
 import {DevicesService} from './devices.service';
 import {PresetsService} from './presets.service';
 import {ScoresService} from './scores.service';
 
-import {FrontscreenComponent} from './frontscreen/frontscreen.component';
-import {HighscoreComponent} from './frontscreen/highscore.component';
+// import {FrontscreenComponent} from './frontscreen/frontscreen.component';
+// import {HighscoreComponent} from './frontscreen/highscore.component';
 import {RoomsService} from './frontscreen/rooms.service';
 
-import {PresetsComponent} from './presets.component';
+import {DevicesModule} from './devices/devices.module';
 import {RoomsModule} from './rooms/rooms.module';
 
 const appRoutes: Routes = [
-  //{ path: 'devices', component: DevicesComponent },
-  //{ path: 'frontscreen', component: FrontscreenComponent },
-  //{ path: 'presets', component: PresetsComponent },
-  //{ path: 'rooms', component: RoomsRootComponent },
-  //{ path: 'scores', component: ScoresComponent },
-  //{ path: 'streams', component: StreamsComponent },
+  {
+    path: 'devices',
+    loadChildren: './devices/devices.module#DevicesModule',
+  },
   {
     path: 'rooms',
     loadChildren: './rooms/rooms.module#RoomsModule',
   },
   { path: '',
-    //redirectTo: '/devices',
-    redirectTo: '/rooms',
+    redirectTo: '/devices',
     pathMatch: 'full'
   },
   { path: '**',
-    // redirectTo: '/devices',
-    redirectTo: '/rooms',
+    redirectTo: '/devices',
     pathMatch: 'full'
   },
 ];
@@ -53,6 +47,7 @@ const appRoutes: Routes = [
       appRoutes
     ),
     RoomsModule,
+    DevicesModule,
     CommonModule,
   ],
   providers: [

@@ -3,20 +3,19 @@
  * Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
  */
 import {Component, Inject, ViewChild} from '@angular/core';
-import {DataSource} from '@angular/cdk/collections';
-import {MatDialog, MatDialogRef, MAT_DIALOG_DATA, MatSnackBar, MatTable, MatTableDataSource} from '@angular/material';
-import {BehaviorSubject, Observable} from 'rxjs';
+import {MatDialog, MatDialogRef, MAT_DIALOG_DATA, MatSnackBar, MatTableDataSource} from '@angular/material';
+import {BehaviorSubject} from 'rxjs';
+import * as moment from 'moment';
+
 import {ScoresService} from '../scores.service';
 import {Room} from '../room';
 import {Score} from '../score';
-import * as moment from 'moment';
 
 @Component({
   templateUrl: './scores.component.html',
   styleUrls: ['./scores.component.css']
 })
 export class ScoresComponent {
-  @ViewChild(MatTable) table: MatTable<any>;
   rooms: Room[];
   roomSelected: Room = null;
   roomSelectedScoresDataSource = new ScoreDataSource();

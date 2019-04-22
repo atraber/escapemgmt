@@ -3,9 +3,9 @@
  * Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
  */
 import { Component } from '@angular/core';
-import { DevicesService } from './devices.service';
-import { Stream } from './stream';
-import { StreamView } from './streamview';
+import { DevicesService } from '../devices.service';
+import { Stream } from '../stream';
+import { StreamView } from '../streamview';
 
 @Component({
   templateUrl: './streams.component.html',

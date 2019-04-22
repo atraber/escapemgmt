@@ -67,25 +67,48 @@ export class DevicesService {
   }
 
   addDevice(device: Device): Observable<Device> {
-    return this.http.post<Device>(environment.apiEndpoint + '/device', device, jsonOptions)
-      .pipe(catchError(this.handleError));
+    return Observable.create(observer => {
+      this.http.post<Device>(environment.apiEndpoint + '/device', device, jsonOptions)
+        .pipe(catchError(this.handleError))
+        .subscribe(data => {
+          this.devices.push(data);
+          this.devicesUpdated.emit(this.devices);
+          observer.next(data);
+          observer.complete();
+        }, err => {
+          observer.error(err);
+        });
+    });
   }
 
   updateDevice(device: Device): Observable<Device> {
-    this.devicesUpdated.emit(this.devices)
-    return this.http.post<Device>(environment.apiEndpoint + '/devices/' + device.id, device, jsonOptions)
-      .pipe(catchError(this.handleError));
+    return Observable.create(observer => {
+      this.http.post<Device>(environment.apiEndpoint + '/devices/' + device.id, device, jsonOptions)
+        .pipe(catchError(this.handleError))
+        .subscribe(data => {
+          this.devicesUpdated.emit(this.devices);
+          observer.next(data);
+          observer.complete();
+        }, err => {
+          observer.error(err);
+        });
+    });
   }
 
   deleteDevice(device: Device): Observable<{}> {
-    // TODO: The removal from our current list should only be done after the
-    // delete succeeded.
-    let id = device.id;
-    var index = this.devices.indexOf(device);
-    this.devices.splice(index, 1);
-    this.devicesUpdated.emit(this.devices)
-    return this.http.delete(environment.apiEndpoint + '/devices/' + id, jsonOptions)
-      .pipe(catchError(this.handleError));
+    return Observable.create(observer => {
+      this.http.delete(environment.apiEndpoint + '/devices/' + device.id, jsonOptions)
+        .pipe(catchError(this.handleError))
+        .subscribe(data => {
+          let index = this.devices.indexOf(device);
+          this.devices.splice(index, 1);
+          this.devicesUpdated.emit(this.devices)
+          observer.next(null);
+          observer.complete();
+        }, err => {
+          observer.error(err);
+        });
+    });
   }
 
   addStream(stream: Stream): Observable<Stream> {
