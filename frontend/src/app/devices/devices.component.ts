@@ -7,6 +7,7 @@ import {MatDialog, MatDialogRef, MAT_DIALOG_DATA, MatSnackBar, MatTableDataSourc
 import {BehaviorSubject} from 'rxjs';
 import * as moment from 'moment';
 
+import {DeviceAddStreamDialog} from './device-add-stream.dialog';
 import {DeviceCreateDialog} from './device-create.dialog';
 import {DevicesService} from '../devices.service';
 import {PresetsService} from '../presets.service';
@@ -137,21 +138,20 @@ export class DevicesComponent {
   }
 
   addStreamDialog(device: Device): void {
-    // TODO: This is not the correct dialog
-    const dialogRef = this.dialog.open(DeviceCreateDialog, {
-      width: '500px'
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result != "") {
-        this.selectDevice(null);
-      }
+    const dialogRef = this.dialog.open(DeviceAddStreamDialog, {
+      width: '500px',
+      data: device
     });
   }
 
-  deleteStreamFromDevice(device: Device, stream: Stream): void {
+  removeStreamFromDevice(device: Device, stream: Stream): void {
     let index = device.streams.indexOf(stream);
-    device.streams.splice(index, 1);
+    if (index >= 0) {
+      device.streams.splice(index, 1);
+
+      // TODO: This is a hack at best!
+      this.devicesService.devicesUpdated.emit(this.devicesService.devices);
+    }
   }
 }
 

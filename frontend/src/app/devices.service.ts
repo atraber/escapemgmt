@@ -175,13 +175,14 @@ export class DevicesService {
     });
   }
 
-  addStreamView(streamview: StreamView, stream_id: number): Observable<StreamView> {
+  addStreamView(stream: Stream, streamview: StreamView): Observable<StreamView> {
     return Observable.create(observer => {
       this.http.post<StreamView>(
-        environment.apiEndpoint + '/streamview/' + stream_id,
+        environment.apiEndpoint + '/streamview/' + stream.id,
         streamview, jsonOptions)
         .pipe(catchError(this.handleError))
         .subscribe(data => {
+          streamview.id = data.id;
           // TODO: Figure out how to add the streamview to the stream
           observer.next(data);
           observer.complete();

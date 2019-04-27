@@ -25,11 +25,11 @@
   <mat-drawer-content>
     <div *ngIf="deviceSelected != null" class="form-container">
       <mat-form-field>
-        <input matInput [(ngModel)]="deviceSelected.name" placeholder="Name">
+        <input matInput [(ngModel)]="deviceSelected.name" placeholder="Name" required>
       </mat-form-field>
 
       <mat-form-field>
-        <input matInput [(ngModel)]="deviceSelected.mac" placeholder="MAC Address">
+        <input matInput [(ngModel)]="deviceSelected.mac" placeholder="MAC Address" required>
       </mat-form-field>
 
       <mat-form-field class="preset-form-field">
@@ -39,7 +39,7 @@
             {{preset.name}} {{preset.active ? "*": ""}}
           </mat-option>
         </mat-select>
-        <mat-hint align="start"><strong>Showing streams for this preset</strong></mat-hint>
+        <mat-hint align="start"><strong>Only streams for the selected preset are shown below.<strong>TODO: THIS DOES NOT WORK YET!</strong></strong></mat-hint>
       </mat-form-field>
 
       <div>
@@ -53,7 +53,7 @@
           <ng-container matColumnDef="controls">
             <th mat-header-cell *matHeaderCellDef></th>
             <td mat-cell *matCellDef="let element">
-              <button mat-icon-button (click)="deleteStreamFromDevice(deviceSelected, element)">
+              <button mat-icon-button (click)="removeStreamFromDevice(deviceSelected, element)">
                 <mat-icon>delete</mat-icon>
               </button>
             </td>

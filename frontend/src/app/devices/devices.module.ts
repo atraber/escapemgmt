@@ -6,6 +6,7 @@ import {NgModule} from '@angular/core';
 import {RouterModule, Routes} from '@angular/router';
 import {CommonModule} from '../common.module';
 
+import {DeviceAddStreamDialog} from './device-add-stream.dialog';
 import {DeviceCreateDialog} from './device-create.dialog';
 import {DevicesComponent, DeviceDeleteDialog} from './devices.component';
 import {DevicesRootComponent} from './root.component';
@@ -30,6 +31,7 @@ const routes: Routes = [
 
 @NgModule({
   declarations: [
+    DeviceAddStreamDialog,
     DeviceCreateDialog,
     DeviceDeleteDialog,
     DevicesComponent,
@@ -43,6 +45,7 @@ const routes: Routes = [
     StreamsComponent,
   ],
   entryComponents: [
+    DeviceAddStreamDialog,
     DeviceCreateDialog,
     DeviceDeleteDialog,
     PresetCreateDialog,
