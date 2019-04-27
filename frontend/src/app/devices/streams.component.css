@@ -1,1 +1,18 @@
+.table-container {
+  display: flex;
+  flex-direction: column;
+  margin: 10px;
+}
 
+.stream-add-field {
+  background: rgba(0, 0, 0, 0.03);
+  margin: 10px;
+}
+
+.form-full-width {
+  width: 98%;
+}
+
+table {
+  width: 100%;
+}

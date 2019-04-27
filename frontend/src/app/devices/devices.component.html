@@ -5,11 +5,11 @@
 <mat-drawer-container autosize>
   <mat-drawer opened="true" disableClose mode="side">
     <mat-form-field class="form-full-width">
-      <input matInput placeholder="Filter">
+      <input matInput placeholder="Filter" (keyup)="applyDeviceFilter($event.target.value)">
     </mat-form-field>
 
     <mat-button-toggle-group vertical="true">
-       <mat-button-toggle *ngFor="let device of devices" value="device" (click)="selectDevice(device)" [checked]="deviceSelected == device">
+       <mat-button-toggle *ngFor="let device of filteredDevices" value="device" (click)="selectDevice(device)" [checked]="deviceSelected == device">
          <div class="button-text">
            <div>{{device.name}}</div>
            <div class="text-muted">{{device.mac}}</div>

@@ -2,7 +2,7 @@
  * Copyright 2018 Andreas Traber
  * Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
  */
-import {Component, Inject, OnInit} from '@angular/core';
+import {Component, Inject} from '@angular/core';
 import {MatDialog, MatDialogRef, MAT_DIALOG_DATA, MatSnackBar, MatTableDataSource} from '@angular/material';
 import {BehaviorSubject} from 'rxjs';
 import * as moment from 'moment';
@@ -18,13 +18,15 @@ import {Stream} from '../stream';
   templateUrl: './devices.component.html',
   styleUrls: ['./devices.component.css']
 })
-export class DevicesComponent implements OnInit {
-  devices: Device[];
-  streams: Stream[];
-  presets: Preset[];
+export class DevicesComponent {
+  devices: Device[] = [];
+  filteredDevices: Device[] = [];
+  streams: Stream[] = [];
+  presets: Preset[] = [];
   presetSelected: Preset = null;
   deviceSelected: Device = null;
   deviceSelectedStreamsDataSource = new StreamsDataSource();
+  deviceFilter: string = "";
 
   constructor(
       private devicesService: DevicesService,
@@ -34,9 +36,12 @@ export class DevicesComponent implements OnInit {
     this.devices = this.devicesService.devices;
     this.streams = this.devicesService.streams;
     this.presets = this.presetsService.presets;
+    this.updateDeviceFilter();
+    this.selectDevice(null);
 
     this.devicesService.devicesUpdated.subscribe(devices => {
       this.devices = devices;
+      this.updateDeviceFilter();
       this.selectDevice(null);
     });
 
@@ -49,16 +54,28 @@ export class DevicesComponent implements OnInit {
     });
   }
 
-  ngOnInit() {
-    // This is necessary since it will loose its selected device when
-    // switching between pages.
-    this.selectDevice(null);
+  applyDeviceFilter(filterValue: string): void {
+    this.deviceFilter = filterValue.trim().toLowerCase();
+    this.updateDeviceFilter();
+  }
+
+  updateDeviceFilter(): void {
+    if (this.deviceFilter.length == 0) {
+      this.filteredDevices = this.devices;
+    } else {
+      let filtered = [];
+      for (let device of this.devices) {
+        if (device.name.indexOf(this.deviceFilter) != -1)
+          filtered.push(device);
+      }
+      this.filteredDevices = filtered;
+    }
   }
 
   selectDevice(device: Device | null): void {
     if (device == null) {
-      if (this.deviceSelected == null && this.devices.length > 0) {
-        this.deviceSelected = this.devices[0];
+      if (this.deviceSelected == null && this.filteredDevices.length > 0) {
+        this.deviceSelected = this.filteredDevices[0];
       }
     } else {
       this.deviceSelected = device;
@@ -161,7 +178,7 @@ export class DeviceDeleteDialog {
       private snackBar: MatSnackBar,
       @Inject(MAT_DIALOG_DATA) public data: Device) {}
 
-  deleteDevice(device) {
+  deleteDevice(device: Device) {
     this.devicesService.deleteDevice(device).subscribe(() => {
       this.snackBar.open('Device was deleted.', 'Hide', {
         duration: 2000,

@@ -10,7 +10,11 @@ import {DeviceCreateDialog} from './device-create.dialog';
 import {DevicesComponent, DeviceDeleteDialog} from './devices.component';
 import {DevicesRootComponent} from './root.component';
 import {PresetsComponent} from './presets.component';
-import {StreamsComponent} from './streams.component';
+import {PresetCreateDialog} from './preset-create.dialog';
+import {PresetDeleteDialog} from './preset-delete.dialog';
+import {StreamCreateDialog} from './stream-create.dialog';
+import {StreamEditDialog} from './stream-edit.dialog';
+import {StreamsComponent, StreamDeleteDialog} from './streams.component';
 
 const routes: Routes = [
   {
@@ -30,12 +34,22 @@ const routes: Routes = [
     DeviceDeleteDialog,
     DevicesComponent,
     DevicesRootComponent,
+    PresetCreateDialog,
+    PresetDeleteDialog,
     PresetsComponent,
+    StreamCreateDialog,
+    StreamEditDialog,
+    StreamDeleteDialog,
     StreamsComponent,
   ],
   entryComponents: [
-    DeviceDeleteDialog,
     DeviceCreateDialog,
+    DeviceDeleteDialog,
+    PresetCreateDialog,
+    PresetDeleteDialog,
+    StreamCreateDialog,
+    StreamEditDialog,
+    StreamDeleteDialog,
   ],
   imports: [
     CommonModule,

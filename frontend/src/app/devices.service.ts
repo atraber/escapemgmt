@@ -2,14 +2,16 @@
  * Copyright 2018 Andreas Traber
  * Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
  */
-import { Injectable, EventEmitter } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
-import { Observable } from 'rxjs/Observable';
-import { catchError, retry } from 'rxjs/operators';
-import { environment } from '../environments/environment';
-import { Device } from './device';
-import { Stream } from './stream';
-import { StreamView } from './streamview';
+import {Injectable, EventEmitter} from '@angular/core';
+import {HttpClient, HttpHeaders, HttpErrorResponse} from '@angular/common/http';
+import {Observable} from 'rxjs/Observable';
+import {catchError, retryWhen} from 'rxjs/operators';
+import {genericRetryStrategy} from './rxjs-utils';
+
+import {environment} from '../environments/environment';
+import {Device} from './device';
+import {Stream} from './stream';
+import {StreamView} from './streamview';
 
 const jsonOptions = {
   headers: new HttpHeaders({
@@ -19,16 +21,13 @@ const jsonOptions = {
 
 @Injectable()
 export class DevicesService {
-  devices: Device[];
-  streams: Stream[];
+  devices: Device[] = [];
+  streams: Stream[] = [];
 
   devicesUpdated: EventEmitter<Device[]> = new EventEmitter();
   streamsUpdated: EventEmitter<Stream[]> = new EventEmitter();
 
   constructor(private http: HttpClient) {
-    this.devices = [];
-    this.streams = [];
-
     this.refresh();
     this.listenForChanges();
   }
@@ -60,10 +59,28 @@ export class DevicesService {
   private refresh() {
     console.log('refresh() called in DevicesService');
     this.http.get<Stream[]>(environment.apiEndpoint + '/streams')
-      .subscribe(streams => {this.streams = streams; this.streamsUpdated.emit(streams)});
+      .pipe(
+        retryWhen(genericRetryStrategy({
+          maxRetryAttempts: 3,
+          scalingDuration: 2000,
+          excludedStatusCodes: [500]
+        })))
+      .subscribe(streams => {
+        this.streams = streams;
+        this.streamsUpdated.emit(streams)
+      });
 
     this.http.get<Device[]>(environment.apiEndpoint + '/devices')
-      .subscribe(devices => {this.devices = devices; this.devicesUpdated.emit(devices)});
+      .pipe(
+        retryWhen(genericRetryStrategy({
+          maxRetryAttempts: 3,
+          scalingDuration: 2000,
+          excludedStatusCodes: [500]
+        })))
+      .subscribe(devices => {
+        this.devices = devices;
+        this.devicesUpdated.emit(devices)
+      });
   }
 
   addDevice(device: Device): Observable<Device> {
@@ -112,38 +129,93 @@ export class DevicesService {
   }
 
   addStream(stream: Stream): Observable<Stream> {
-    return this.http.post<Stream>(environment.apiEndpoint + '/stream', stream, jsonOptions)
-      .pipe(catchError(this.handleError));
+    return Observable.create(observer => {
+      this.http.post<Stream>(environment.apiEndpoint + '/stream', stream, jsonOptions)
+        .pipe(catchError(this.handleError))
+        .subscribe(data => {
+          this.streams.push(data);
+          this.streamsUpdated.emit(this.streams);
+          observer.next(data);
+          observer.complete();
+        }, err => {
+          observer.error(err);
+        });
+    });
   }
 
   updateStream(stream: Stream): Observable<Stream> {
-    this.streamsUpdated.emit(this.streams)
-    return this.http.post<Stream>(environment.apiEndpoint + '/streams/' + stream.id, stream, jsonOptions)
-      .pipe(catchError(this.handleError));
+    return Observable.create(observer => {
+      this.http.post<Stream>(
+        environment.apiEndpoint + '/streams/' + stream.id,
+        stream, jsonOptions)
+        .pipe(catchError(this.handleError))
+        .subscribe(data => {
+          this.streamsUpdated.emit(this.streams);
+          observer.next(data);
+          observer.complete();
+        }, err => {
+          observer.error(err);
+        });
+    });
   }
 
   deleteStream(stream: Stream): Observable<{}> {
-    var index = this.streams.indexOf(stream);
-    this.streams.splice(index, 1);
-    this.streamsUpdated.emit(this.streams)
-    return this.http.delete(environment.apiEndpoint + '/streams/' + stream.id, jsonOptions)
-      .pipe(catchError(this.handleError));
+    return Observable.create(observer => {
+      this.http.delete(environment.apiEndpoint + '/streams/' + stream.id, jsonOptions)
+        .pipe(catchError(this.handleError))
+        .subscribe(data => {
+          let index = this.streams.indexOf(stream);
+          this.streams.splice(index, 1);
+          this.streamsUpdated.emit(this.streams)
+          observer.next(null);
+          observer.complete();
+        }, err => {
+          observer.error(err);
+        });
+    });
   }
 
-  addStreamView(streamview: StreamView, stream_id): Observable<StreamView> {
-    return this.http.post<StreamView>(environment.apiEndpoint + '/streamview/' + stream_id, streamview, jsonOptions)
-      .pipe(catchError(this.handleError));
+  addStreamView(streamview: StreamView, stream_id: number): Observable<StreamView> {
+    return Observable.create(observer => {
+      this.http.post<StreamView>(
+        environment.apiEndpoint + '/streamview/' + stream_id,
+        streamview, jsonOptions)
+        .pipe(catchError(this.handleError))
+        .subscribe(data => {
+          // TODO: Figure out how to add the streamview to the stream
+          observer.next(data);
+          observer.complete();
+        }, err => {
+          observer.error(err);
+        });
+    });
   }
 
   updateStreamView(streamview: StreamView): Observable<StreamView> {
-    return this.http.post<StreamView>(environment.apiEndpoint + '/streamviews/' + streamview.id, streamview, jsonOptions)
-      .pipe(catchError(this.handleError));
+    return Observable.create(observer => {
+      this.http.post<StreamView>(environment.apiEndpoint + '/streamviews/' + streamview.id, streamview, jsonOptions)
+        .pipe(catchError(this.handleError))
+        .subscribe(data => {
+          observer.next(data);
+          observer.complete();
+        }, err => {
+          observer.error(err);
+        });
+    });
   }
 
   deleteStreamView(stream: Stream, streamview: StreamView): Observable<{}> {
-    let index = stream.streamviews.indexOf(streamview);
-    stream.streamviews.splice(index, 1);
-    return this.http.delete(environment.apiEndpoint + '/streamviews/' + streamview.id, jsonOptions)
-      .pipe(catchError(this.handleError));
+    return Observable.create(observer => {
+      this.http.delete(environment.apiEndpoint + '/streamviews/' + streamview.id, jsonOptions)
+        .pipe(catchError(this.handleError))
+        .subscribe(data => {
+          let index = stream.streamviews.indexOf(streamview);
+          stream.streamviews.splice(index, 1);
+          observer.next(null);
+          observer.complete();
+        }, err => {
+          observer.error(err);
+        });
+    });
   }
 }

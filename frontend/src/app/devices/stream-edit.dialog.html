@@ -1,0 +1,83 @@
+<h1 mat-dialog-title>Edit Stream {{data.name}}</h1>
+<div mat-dialog-content>
+  <div class="form-container">
+    <mat-form-field>
+      <input matInput [(ngModel)]="data.name" placeholder="Name" required>
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>Orientation</mat-label>
+      <mat-select [(value)]="data.orientation" required>
+        <mat-option value="0">0</mat-option>
+        <mat-option value="90">90</mat-option>
+        <mat-option value="180">180</mat-option>
+        <mat-option value="270">270</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>Orientation</mat-label>
+      <mat-select [(value)]="data.orientation" required>
+        <mat-option value="0">0</mat-option>
+        <mat-option value="90">90</mat-option>
+        <mat-option value="180">180</mat-option>
+        <mat-option value="270">270</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>Orientation</mat-label>
+      <mat-select [(ngModel)]="data.orientation" required>
+        <mat-option value="0">0</mat-option>
+        <mat-option value="90">90</mat-option>
+        <mat-option value="180">180</mat-option>
+        <mat-option value="270">270</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>Orientation</mat-label>
+      <mat-select [(ngModel)]="data.orientation" required>
+        <mat-option value="0">0</mat-option>
+        <mat-option value="90">90</mat-option>
+        <mat-option value="180">180</mat-option>
+        <mat-option value="270">270</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-accordion>
+      <mat-expansion-panel *ngFor="let streamview of data.streamviews">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            {{streamview.url}}
+          </mat-panel-title>
+          <mat-panel-description>
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+
+        <div class="form-container">
+          <mat-form-field>
+            <input matInput [(ngModel)]="streamview.url" placeholder="URL">
+          </mat-form-field>
+          <mat-form-field>
+            <input matInput [(ngModel)]="streamview.crop_x1" placeholder="Crop X1">
+          </mat-form-field>
+          <mat-form-field>
+            <input matInput [(ngModel)]="streamview.crop_y1" placeholder="Crop Y1">
+          </mat-form-field>
+          <mat-form-field>
+            <input matInput [(ngModel)]="streamview.crop_x2" placeholder="Crop X2">
+          </mat-form-field>
+          <mat-form-field>
+            <input matInput [(ngModel)]="streamview.crop_y2" placeholder="Crop Y2">
+          </mat-form-field>
+        </div>
+      </mat-expansion-panel>
+    </mat-accordion>
+
+    <div class="preset-create-field">
+      <button mat-button color="primary" (click)="addPresetDialog()">Create additional stream view</button>
+    </div>
+
+  </div>
+</div>
+<div mat-dialog-actions>
+  <button mat-raised-button mat-dialog-close>Close</button>
+  <button mat-raised-button cdkFocusInitial color="primary" (click)="updateStream()">Save</button>
+</div>

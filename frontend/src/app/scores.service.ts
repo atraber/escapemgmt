@@ -2,14 +2,15 @@
  * Copyright 2019 Andreas Traber
  * Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
  */
-import { Injectable, EventEmitter } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError, retryWhen} from 'rxjs/operators';
-import { genericRetryStrategy } from './rxjs-utils';
-import { environment } from '../environments/environment';
-import { Room } from './room';
-import { Score } from './score';
+import {Injectable, EventEmitter} from '@angular/core';
+import {HttpClient, HttpHeaders, HttpErrorResponse} from '@angular/common/http';
+import {Observable, throwError} from 'rxjs';
+import {catchError, retryWhen} from 'rxjs/operators';
+import {genericRetryStrategy} from './rxjs-utils';
+
+import {environment} from '../environments/environment';
+import {Room} from './room';
+import {Score} from './score';
 
 const jsonOptions = {
   headers: new HttpHeaders({

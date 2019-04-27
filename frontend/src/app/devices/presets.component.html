@@ -1,56 +1,28 @@
-<div class="container">
-  <div class="row">
-    <h1>Presets</h1>
-  </div>
-  <div class="row">
-    <div class="col-sm-4">
-      <div class="list-group">
-        <button class="list-group-item list-group-item-action flex-column align-items-start" *ngFor="let preset of presets" (click)="preset_selected=preset" [ngClass]="{'active': preset_selected == preset}">
-          <div class="d-flex w-100 justify-content-between">
-            <h5 class="mb-1">{{preset.name}}</h5>
-          </div>
-          <small *ngIf="preset.active" class="text-muted">Active</small>
-        </button>
-        <a href="#" class="list-group-item list-group-item-action" data-toggle="modal" data-target="#newPreset"><i class="fas fa-plus-circle"></i> Add</a>
-      </div>
-    </div>
-    <div class="col-sm-8" *ngIf="preset_selected">
-      <h2>Preset Settings</h2>
+<mat-accordion class="preset-accordion">
+  <mat-expansion-panel *ngFor="let preset of presets">
+    <mat-expansion-panel-header>
+      <mat-panel-title>
+        {{preset.name}}
+      </mat-panel-title>
+      <mat-panel-description>
+        {{preset.active ? "Active" : ""}}
+      </mat-panel-description>
+    </mat-expansion-panel-header>
 
-      <form>
-        <div class="form-group">
-          <label for="presetName">Name</label>
-          <input type="text" class="form-control" id="presetName" name="presetName" [(ngModel)]="preset_selected.name">
-        </div>
-        <button type="submit" class="btn btn-success" (click)="activatePreset(preset_selected)">Activate</button>
-        <button type="submit" class="btn btn-primary" (click)="updatePreset(preset_selected)">Save</button>
-        <button class="btn btn-danger" (click)="deletePreset(preset_selected)"><i class="fas fa-trash-alt"></i> Delete</button>
-      </form>
-
+    <div class="form-container">
+      <mat-form-field>
+        <input matInput [(ngModel)]="preset.name" placeholder="Name">
+      </mat-form-field>
     </div>
-  </div>
-</div>
 
-<!-- Modal -->
-<div class="modal fade" id="newPreset" tabindex="-1" role="dialog" aria-labelledby="newPresetLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="newPresetLabel">Create Preset</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <div class="form-group">
-          <label for="presetName">Name</label>
-          <input type="text" class="form-control" id="presetName" name="presetName" [(ngModel)]="new_preset_name">
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary" data-dismiss="modal" (click)="addPreset(new_preset_name)">Save</button>
-      </div>
-    </div>
-  </div>
+    <mat-action-row>
+      <button mat-raised-button color="warn" (click)="deletePresetDialog(preset)">Delete</button>
+      <button mat-raised-button color="accent" (click)="activatePreset(preset)">Activate</button>
+      <button mat-raised-button color="primary" (click)="updatePreset(preset)">Save</button>
+    </mat-action-row>
+  </mat-expansion-panel>
+</mat-accordion>
+
+<div class="preset-create-field">
+  <button mat-button color="primary" (click)="addPresetDialog()">Create a new Preset</button>
 </div>

@@ -4,7 +4,6 @@
  */
 import {Component, Inject, ViewChild} from '@angular/core';
 import {MatDialog, MatDialogRef, MAT_DIALOG_DATA, MatSnackBar, MatTableDataSource} from '@angular/material';
-import {BehaviorSubject} from 'rxjs';
 import * as moment from 'moment';
 
 import {ScoresService} from '../scores.service';
@@ -16,9 +15,9 @@ import {Score} from '../score';
   styleUrls: ['./scores.component.css']
 })
 export class ScoresComponent {
-  rooms: Room[];
+  rooms: Room[] = [];
   roomSelected: Room = null;
-  roomSelectedScoresDataSource = new ScoreDataSource();
+  roomSelectedScoresDataSource = new MatTableDataSource<Score>();
 
   constructor(
     private scoresService: ScoresService,
@@ -43,7 +42,7 @@ export class ScoresComponent {
     }
 
     if (this.roomSelected != null) {
-      this.roomSelectedScoresDataSource.dataChange.next(this.roomSelected.scores);
+      this.roomSelectedScoresDataSource.data = this.roomSelected.scores;
     }
   }
 
@@ -125,7 +124,7 @@ export class ScoresComponent {
     });
 
     // Update table since it does not detect changes automatically
-    this.roomSelectedScoresDataSource.dataChange.next(this.roomSelected.scores);
+    this.roomSelectedScoresDataSource.data = this.roomSelected.scores;
   }
 
   deleteScoreFromRoom(room: Room, score: Score): void {
@@ -140,19 +139,7 @@ export class ScoresComponent {
     });
 
     // Update table since it does not detect changes automatically
-    this.roomSelectedScoresDataSource.dataChange.next(this.roomSelected.scores);
-  }
-}
-
-class ScoreDataSource extends MatTableDataSource<Score> {
-  dataChange = new BehaviorSubject<Score[]>([]);
-
-  connect() {
-    return this.dataChange;
-  }
-
-  disconnect(): void {
-    return this.dataChange.complete();
+    this.roomSelectedScoresDataSource.data = this.roomSelected.scores;
   }
 }
 
