@@ -2,9 +2,8 @@
  * Copyright 2018 Andreas Traber
  * Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
  */
-import { ViewChild } from '@angular/core';
-import { Component } from '@angular/core';
-import { MatSidenavModule } from '@angular/material';
+import {Component, ViewChild} from '@angular/core';
+import {Router} from '@angular/router';
 
 @Component({
   selector: 'app-root',
@@ -12,9 +11,5 @@ import { MatSidenavModule } from '@angular/material';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  title = 'app';
-
-  @ViewChild('MatSidenavModule')
-  snav: MatSidenavModule;
-
+  constructor(private router: Router) {}
 }

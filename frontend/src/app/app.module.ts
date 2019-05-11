@@ -12,11 +12,10 @@ import {DevicesService} from './devices.service';
 import {PresetsService} from './presets.service';
 import {ScoresService} from './scores.service';
 
-// import {FrontscreenComponent} from './frontscreen/frontscreen.component';
-// import {HighscoreComponent} from './frontscreen/highscore.component';
 import {RoomsService} from './frontscreen/rooms.service';
 
 import {DevicesModule} from './devices/devices.module';
+import {FrontscreenModule} from './frontscreen/frontscreen.module';
 import {RoomsModule} from './rooms/rooms.module';
 
 const appRoutes: Routes = [
@@ -43,12 +42,11 @@ const appRoutes: Routes = [
     AppComponent,
   ],
   imports: [
-    RouterModule.forRoot(
-      appRoutes
-    ),
-    RoomsModule,
-    DevicesModule,
     CommonModule,
+    DevicesModule,
+    FrontscreenModule,
+    RoomsModule,
+    RouterModule.forRoot(appRoutes),
   ],
   providers: [
     DevicesService,

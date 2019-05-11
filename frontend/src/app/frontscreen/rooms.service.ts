@@ -1,10 +1,17 @@
-import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
-import { EventEmitter, Injectable } from '@angular/core';
+/**
+ * Copyright 2019 Andreas Traber
+ * Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
+ */
+import {HttpClient, HttpErrorResponse, HttpHeaders} from '@angular/common/http';
+import {EventEmitter, Injectable} from '@angular/core';
+import {Observable} from 'rxjs';
+import {catchError, retryWhen} from 'rxjs/operators';
+import {genericRetryStrategy} from '../rxjs-utils';
+import {timer} from 'rxjs/observable/timer';
+import {environment} from '../../environments/environment';
+
 import * as moment from 'moment';
-import { Observable } from 'rxjs';
-import { timer } from 'rxjs/observable/timer';
-import { environment } from '../../environments/environment';
-import { Room } from '../room';
+import {Room} from '../room';
 
 const jsonOptions = {
   headers: new HttpHeaders({
@@ -14,23 +21,21 @@ const jsonOptions = {
 
 @Injectable()
 export class RoomsService {
-  rooms: Room[];
-
+  rooms: Room[] = [];
   roomsUpdated: EventEmitter<Room[]> = new EventEmitter();
 
   constructor(private http: HttpClient) {
-    this.rooms = [];
-
-    let t = timer(0, 15 * 1000);
-    t.subscribe(t => {
-      console.log("rooms updated");
-      this.updateRooms();
-    });
+    this.updateRooms();
+    // TODO
+    //let t = timer(0, 15 * 1000);
+    //t.subscribe(t => {
+    //  this.updateRooms();
+    //});
   }
 
-  private sortRooms(rooms) {
+  private sortRooms(rooms: Room[]): Room[] {
     for (let room of rooms) {
-      room.scores.sort(function (s1, s2) {
+      room.scores.sort((s1, s2) => {
         var m1 = moment.utc(s1.time * 1000);
         var m2 = moment.utc(s2.time * 1000);
         var t1 = (m1.hours() * 60 + m1.minutes()) * 60 * 1000;
@@ -46,8 +51,14 @@ export class RoomsService {
     return rooms;
   }
 
-  private updateRooms() {
+  private updateRooms(): void {
     this.http.get<Room[]>(environment.apiEndpoint + '/rooms')
+      .pipe(
+        retryWhen(genericRetryStrategy({
+          maxRetryAttempts: 3,
+          scalingDuration: 2000,
+          excludedStatusCodes: [500]
+        })))
       .subscribe(rooms => {
         this.rooms = this.sortRooms(rooms);
         this.roomsUpdated.emit(rooms)

@@ -1,25 +1,61 @@
-<div id="carouselSlides" class="carousel slide" data-interval="15000" data-ride="carousel" data-pause="false">
-  <div class="carousel-inner">
-    <div class="carousel-item active">
-      <carousel-highscore></carousel-highscore>
-    </div>
+<!-- TODO: THIS SHOULD BE 15000 -->
+<div class="container">
+  <mat-carousel
+       timings="250ms ease-in"
+       [autoplay]="false"
+       interval="1500"
+       [loop]="true"
+       [hideArrows]="true"
+       [hideIndicators]="true"
+       [useKeyboard]="true"
+       [useMouseWheel]="false"
+       [proportion]="25"
+       orientation="ltr">
 
-    <div class="carousel-item" id="logo-item">
-      <img class="d-block" src="http://www.houdinis.ch/wp-content/uploads/2018/01/houdinis_quest_logo_2018_neu_300_weiss.png">
-    </div>
+    <mat-carousel-slide>
+      <carousel-highscore></carousel-highscore>
+    </mat-carousel-slide>
+    <mat-carousel-slide>
+      <img class="logo-background" src="http://www.houdinis.ch/wp-content/uploads/2018/01/houdinis_quest_logo_2018_neu_300_weiss.png">
+    </mat-carousel-slide>
 
     <ng-container *ngFor="let room of rooms; let idx = index">
-      <div class="carousel-item">
+      <mat-carousel-slide>
         <carousel-highscore></carousel-highscore>
-      </div>
+      </mat-carousel-slide>
 
-      <div class="carousel-item" id="room-item" [style.background-image]="'url(' + room.bg_image + ')'">
-          <div class="band-container">
-            <div class="band head">{{room.name}}</div>
-            <div class="band" *ngFor="let desc of room.description.split('\n')">{{desc}}</div>
-            <div class="band" *ngIf="room.scores.length > 0">Bestzeit: {{room.scores[0].time | amFromUnix | amUtc | amDateFormat: "HH:mm"}}</div>
+      <mat-carousel-slide>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">{{room.name}}</div>
+            <div class="card-subtitle">{{room.description}}</div>
           </div>
-      </div>
+          <img src="{{room.bg_image ? room.bg_image : 'http://www.houdinis.ch/wp-content/uploads/2018/01/houdinis_quest_logo_2018_neu_300_weiss.png'}}">
+          <div class="card-row">
+            <div class="card-row-element">
+              <mat-icon>timer</mat-icon>
+              <p>Dauer</p>
+              <p>1:00</p>
+            </div>
+            <div class="card-row-element">
+              <mat-icon>update</mat-icon>
+              <p>Rekord</p>
+              <p *ngIf="room.scores.length > 0">{{room.scores[0].time}}</p>
+              <p *ngIf="room.scores.length == 0">N/A</p>
+            </div>
+            <div class="card-row-element">
+              <mat-icon>people</mat-icon>
+              <p>Anzahl Spieler</p>
+              <p>2 - 5</p>
+            </div>
+            <div class="card-row-element">
+              <mat-icon>done</mat-icon>
+              <p>Erfolgsquote</p>
+              <p>50%</p>
+            </div>
+          </div>
+        </div>
+      </mat-carousel-slide>
     </ng-container>
-  </div>
+  </mat-carousel>
 </div>

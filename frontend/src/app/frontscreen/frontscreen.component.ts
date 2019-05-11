@@ -1,53 +1,34 @@
-import { Component } from '@angular/core';
-import { RoomsService } from './rooms.service';
-import { Room } from '../room';
+/**
+ * Copyright 2019 Andreas Traber
+ * Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
+ */
+import {ChangeDetectorRef, Component} from '@angular/core';
+import {MatCarousel, MatCarouselComponent} from '@ngmodule/material-carousel';
+import {timer} from 'rxjs/observable/timer';
+
+import {Room} from '../room';
+import {RoomsService} from './rooms.service';
 
 @Component({
-    selector: 'app-root',
-    templateUrl: './frontscreen.component.html',
-    styleUrls: ['./frontscreen.component.css']
+  templateUrl: './frontscreen.component.html',
+  styleUrls: ['./frontscreen.component.css']
 })
 export class FrontscreenComponent {
-    rooms: Room[];
-    init_done: Boolean;
+  rooms: Room[] = [];
 
-    private hasChanged(rooms: Room[]) {
-        if (this.rooms.length != rooms.length)
-            return true;
+  constructor(
+      private cdr: ChangeDetectorRef,
+      private roomsService: RoomsService) {
+    this.rooms = this.roomsService.rooms;
 
-        for (var i = 0; i < this.rooms.length; ++i) {
-            if (this.rooms[i].description != rooms[i].description
-                || this.rooms[i].name != rooms[i].name) {
-                return true;
-            }
+    this.roomsService.roomsUpdated.subscribe((rooms) => {
+      this.rooms = rooms;
+    });
+  }
 
-            if (this.rooms[i].scores.length <= 1 && rooms[i].scores.length <= 1) {
-                continue;
-            }
+  ngOnInit() {}
 
-            if (this.rooms[i].scores[0].name != rooms[i].scores[0].name
-                || this.rooms[i].scores[0].time != rooms[i].scores[0].time) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    constructor(private roomsService: RoomsService) {
-        this.init_done = false;
-        this.rooms = this.roomsService.rooms;
-
-        this.roomsService.roomsUpdated.subscribe((rooms) => {
-            if (!this.init_done) {
-                this.init_done = true;
-                this.rooms = rooms;
-            } else {
-                if (this.hasChanged(rooms)) {
-                    console.log("significant change, need to reload");
-                    window.location.reload();
-                }
-            }
-        });
-    }
+  ngAfterViewInit(): void {
+    this.cdr.detectChanges();
+  }
 }

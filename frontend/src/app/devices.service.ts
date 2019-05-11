@@ -56,7 +56,7 @@ export class DevicesService {
     });
   }
 
-  private refresh() {
+  private refresh(): void {
     console.log('refresh() called in DevicesService');
     this.http.get<Stream[]>(environment.apiEndpoint + '/streams')
       .pipe(
