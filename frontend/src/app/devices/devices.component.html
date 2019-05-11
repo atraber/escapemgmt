@@ -2,7 +2,7 @@
   <a mat-list-item>Devices</a>
 </mat-list>
 <mat-divider></mat-divider>
-<mat-drawer-container autosize>
+<mat-drawer-container autosize class="devices-drawer-list">
   <mat-drawer opened="true" disableClose mode="side">
     <mat-form-field class="form-full-width">
       <input matInput placeholder="Filter" (keyup)="applyDeviceFilter($event.target.value)">

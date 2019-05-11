@@ -1,15 +1,5 @@
+@import 'styles.scss';
+
 .sidenav-container {
-  min-height: calc(100vh - 64px);
-}
-
-.sidenav-container mat-sidenav {
-  background: rgba(0, 0, 0, 0.02);
-}
-
-.mat-sidenav-content {
-  overflow: visible;
-}
-
-a.mat-list-item:not(.main) {
-  font-size: 14px;
+  @include sidenav-container
 }

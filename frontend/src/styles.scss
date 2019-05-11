@@ -1,4 +1,44 @@
 $orange: #f39200;
 @import "~@angular/material/prebuilt-themes/indigo-pink.css";
+
+@mixin button-add-field {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+@mixin sidenav-container {
+  min-height: calc(100vh - 64px);
+
+  & > mat-sidenav {
+    background: rgba(0, 0, 0, 0.02);
+  }
+
+  & > .mat-sidenav-content {
+    overflow: visible;
+  }
+
+  & > mat-sidenav > mat-nav-list > a.mat-list-item:not(.main) {
+    font-size: 14px;
+  }
+}
+
+@mixin drawer-button-list {
+  overflow: visible;
+
+  & > .mat-drawer {
+    padding: 10px;
+    min-width: calc(15vw);
+    overflow-y: visible;
+    bottom: initial;
+  }
+
+  & > .mat-drawer .mat-button-toggle-group {
+    width: 98%;
+  }
+}
+
+.form-full-width {
+  width: 98%;
+}
+
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }

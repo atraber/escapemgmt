@@ -2,7 +2,7 @@
   <a mat-list-item>Scores</a>
 </mat-list>
 <mat-divider></mat-divider>
-<mat-drawer-container>
+<mat-drawer-container class="room-drawer-list">
   <mat-drawer opened disableClose mode="side">
     <mat-button-toggle-group vertical="true">
        <mat-button-toggle *ngFor="let room of rooms" value="room" (click)="selectRoom(room)" [checked]="roomSelected == room">{{room.name}}</mat-button-toggle>

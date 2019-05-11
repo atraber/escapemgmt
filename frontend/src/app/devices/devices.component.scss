@@ -1,29 +1,16 @@
+@import 'styles.scss';
+
 .device-add-field {
-  background: rgba(0, 0, 0, 0.03);
+  @include button-add-field
   margin-top: 10px;
 }
 
 .stream-add-field {
-  background: rgba(0, 0, 0, 0.03);
+  @include button-add-field
 }
 
-.mat-drawer {
-  padding: 10px;
-  min-width: calc(15vw);
-  overflow-y: visible;
-  bottom: initial;
-}
-
-.mat-drawer-container {
-  overflow: visible;
-}
-
-.mat-button-toggle-group {
-  width: 98%;
-}
-
-.form-full-width {
-  width: 98%;
+.devices-drawer-list {
+  @include drawer-button-list
 }
 
 .button-text {
@@ -55,6 +42,10 @@ table {
   width: 100%;
   margin-top: 10px;
   margin-bottom: 10px;
+}
+
+td:not(.mat-column-controls) {
+  width: 100%;
 }
 
 .preset-form-field {

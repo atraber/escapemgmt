@@ -1,3 +1,5 @@
+@import 'styles.scss';
+
 .table-container {
   display: flex;
   flex-direction: column;
@@ -5,14 +7,18 @@
 }
 
 .stream-add-field {
-  background: rgba(0, 0, 0, 0.03);
+  @include button-add-field
   margin: 10px;
-}
-
-.form-full-width {
-  width: 100%;
 }
 
 table {
   width: 100%;
+}
+
+td:not(.mat-column-controls) {
+  width: 100%;
+}
+
+td.mat-column-controls {
+  white-space: nowrap;
 }

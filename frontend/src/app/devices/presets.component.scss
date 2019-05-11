@@ -1,3 +1,5 @@
+@import 'styles.scss';
+
 .mat-accordion {
   display: flex;
   flex-direction: column;
@@ -5,7 +7,7 @@
 }
 
 .preset-create-field {
-  background: rgba(0, 0, 0, 0.03);
+  @include button-add-field
   margin: 10px;
 }
 
