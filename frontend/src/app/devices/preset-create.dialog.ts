@@ -10,7 +10,7 @@ import {Preset} from '../preset';
 
 @Component({
   templateUrl: './preset-create.dialog.html',
-  styleUrls: ['./preset-create.dialog.css']
+  styleUrls: ['./preset-create.dialog.scss']
 })
 export class PresetCreateDialog {
   preset: Preset = new Preset();

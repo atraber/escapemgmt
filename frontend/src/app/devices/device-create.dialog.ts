@@ -10,7 +10,7 @@ import {Device} from '../device';
 
 @Component({
   templateUrl: './device-create.dialog.html',
-  styleUrls: ['./device-create.dialog.css']
+  styleUrls: ['./device-create.dialog.scss']
 })
 export class DeviceCreateDialog {
   device: Device = new Device();

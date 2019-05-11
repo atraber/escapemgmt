@@ -18,7 +18,7 @@ class StreamAnnotated {
 
 @Component({
   templateUrl: './device-add-stream.dialog.html',
-  styleUrls: ['./device-add-stream.dialog.css']
+  styleUrls: ['./device-add-stream.dialog.scss']
 })
 export class DeviceAddStreamDialog {
   device: Device;

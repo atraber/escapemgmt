@@ -10,7 +10,7 @@ import {Room} from '../room';
 
 @Component({
   templateUrl: './create.dialog.html',
-  styleUrls: ['./create.dialog.css']
+  styleUrls: ['./create.dialog.scss']
 })
 export class RoomCreateDialog {
   room: Room = new Room();

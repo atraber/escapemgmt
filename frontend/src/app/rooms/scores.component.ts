@@ -12,7 +12,7 @@ import {Score} from '../score';
 
 @Component({
   templateUrl: './scores.component.html',
-  styleUrls: ['./scores.component.css']
+  styleUrls: ['./scores.component.scss']
 })
 export class ScoresComponent {
   rooms: Room[] = [];

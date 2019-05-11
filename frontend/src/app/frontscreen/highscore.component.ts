@@ -10,7 +10,7 @@ import { RoomsService } from './rooms.service';
 @Component({
   selector: 'carousel-highscore',
   templateUrl: './highscore.component.html',
-  styleUrls: ['./highscore.component.css']
+  styleUrls: ['./highscore.component.scss']
 })
 export class HighscoreComponent {
   rooms: Room[];

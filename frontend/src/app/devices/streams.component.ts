@@ -13,7 +13,7 @@ import {StreamView} from '../streamview';
 
 @Component({
   templateUrl: './streams.component.html',
-  styleUrls: ['./streams.component.css']
+  styleUrls: ['./streams.component.scss']
 })
 export class StreamsComponent {
   streams: Stream[] = [];

@@ -10,7 +10,7 @@ import {Stream} from '../stream';
 
 @Component({
   templateUrl: './stream-create.dialog.html',
-  styleUrls: ['./stream-create.dialog.css']
+  styleUrls: ['./stream-create.dialog.scss']
 })
 export class StreamCreateDialog {
   stream: Stream = new Stream();

@@ -17,7 +17,7 @@ import {Stream} from '../stream';
 
 @Component({
   templateUrl: './devices.component.html',
-  styleUrls: ['./devices.component.css']
+  styleUrls: ['./devices.component.scss']
 })
 export class DevicesComponent {
   devices: Device[] = [];

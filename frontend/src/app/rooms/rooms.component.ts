@@ -10,7 +10,7 @@ import {Room} from '../room';
 
 @Component({
   templateUrl: './rooms.component.html',
-  styleUrls: ['./rooms.component.css']
+  styleUrls: ['./rooms.component.scss']
 })
 export class RoomsComponent {
   rooms: Room[];

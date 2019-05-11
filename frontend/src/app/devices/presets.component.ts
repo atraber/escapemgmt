@@ -12,7 +12,7 @@ import {PresetsService} from '../presets.service';
 
 @Component({
   templateUrl: './presets.component.html',
-  styleUrls: ['./presets.component.css']
+  styleUrls: ['./presets.component.scss']
 })
 export class PresetsComponent {
   presets: Preset[] = [];

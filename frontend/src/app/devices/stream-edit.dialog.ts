@@ -11,7 +11,7 @@ import {StreamView} from '../streamview';
 
 @Component({
   templateUrl: './stream-edit.dialog.html',
-  styleUrls: ['./stream-edit.dialog.css']
+  styleUrls: ['./stream-edit.dialog.scss']
 })
 export class StreamEditDialog {
   orientation: string;

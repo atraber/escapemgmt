@@ -11,7 +11,7 @@ import {RoomsService} from './rooms.service';
 
 @Component({
   templateUrl: './frontscreen.component.html',
-  styleUrls: ['./frontscreen.component.css']
+  styleUrls: ['./frontscreen.component.scss']
 })
 export class FrontscreenComponent {
   rooms: Room[] = [];
