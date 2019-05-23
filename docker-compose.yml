@@ -42,7 +42,7 @@ services:
       MYSQL_PASSWORD: raspberrypi
     image: mariadb
     expose:
-      - "3360"
+      - "3306"
     networks:
       backend:
         aliases:
