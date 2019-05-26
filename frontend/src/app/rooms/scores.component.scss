@@ -18,7 +18,9 @@
 table {
   margin-left: 10px;
   margin-right: 10px;
-  min-width: 400px;
+  @media only screen and (min-width: 850px) {
+    min-width: 400px;
+  }
 }
 
 td.mat-column-time, td.mat-column-index,

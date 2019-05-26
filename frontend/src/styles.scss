@@ -29,10 +29,20 @@ $orange: #f39200;
     min-width: calc(15vw);
     overflow-y: visible;
     bottom: initial;
+
+    @media only screen and (max-width: 850px) {
+      position: relative;
+    }
   }
 
   & > .mat-drawer .mat-button-toggle-group {
     width: 98%;
+  }
+
+  & > .mat-drawer-content {
+    @media only screen and (max-width: 850px) {
+      margin-left: 10px !important;
+    }
   }
 }
 
