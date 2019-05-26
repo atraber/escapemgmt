@@ -1,0 +1,38 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: escape-backend
+spec:
+  selector:
+    matchLabels:
+      app: escape-backend
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: escape-backend
+    spec:
+      containers:
+      - name: escape-backend
+        image: localhost:5000/escape_backend:2019-03-24
+        ports:
+        - containerPort: 8080
+        env:
+        - name: SQLALCHEMY_DATABASE_URI
+          value: 'mysql+pymysql://raspimgmt:raspberrypi@escape-mariadb/raspimgmt?charset=utf8'
+        - name: PULSAR_URL
+          value: 'pulsar://escape-pulsar:6650'
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: escape-backend
+spec:
+  selector:
+    app: escape-backend
+  ports:
+  - name: http
+    protocol: TCP
+    port: 8080
+    targetPort: 8080

@@ -1,0 +1,42 @@
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: data-escape-mariadb-master-0-pv
+  labels:
+    app: "mariadb"
+    component: "master"
+    release: "escape-mariadb"
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/data/escape-mariadb-master-0"
+  persistentVolumeReclaimPolicy: Recycle
+  claimRef:
+    namespace: default
+    name: data-escape-mariadb-master-0
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: data-escape-mariadb-slave-0-pv
+  labels:
+    app: "mariadb"
+    component: "slave"
+    release: "escape-mariadb"
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/data/escape-mariadb-slave-0"
+  persistentVolumeReclaimPolicy: Recycle
+  claimRef:
+    namespace: default
+    name: data-escape-mariadb-slave-0
