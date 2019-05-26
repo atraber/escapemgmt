@@ -36,7 +36,7 @@ export class StreamsComponent {
     this.streamsDataSource.filter = filterValue.trim().toLowerCase();
   }
 
-  addStreamDialog(stream: Stream): void {
+  addStreamDialog(): void {
     const dialogRef = this.dialog.open(StreamCreateDialog, {
       width: '500px'
     });

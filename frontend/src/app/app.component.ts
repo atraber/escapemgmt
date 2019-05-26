@@ -11,5 +11,9 @@ import {Router} from '@angular/router';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  constructor(private router: Router) {}
+  _router: any;
+
+  constructor(private router: Router) {
+    this._router = router;
+  }
 }

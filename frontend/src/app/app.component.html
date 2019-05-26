@@ -1,4 +1,4 @@
-<div *ngIf="router.url.includes('frontscreen'); else normalHome">
+<div *ngIf="_router.url.includes('frontscreen'); else normalHome">
   <router-outlet></router-outlet>
 </div>
 <ng-template #normalHome>
