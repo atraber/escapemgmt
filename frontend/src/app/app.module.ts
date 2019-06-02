@@ -15,11 +15,16 @@ import {NavService} from './nav.service';
 
 import {RoomsService} from './frontscreen/rooms.service';
 
+import {BookingsModule} from './bookings/bookings.module';
 import {DevicesModule} from './devices/devices.module';
 import {FrontscreenModule} from './frontscreen/frontscreen.module';
 import {RoomsModule} from './rooms/rooms.module';
 
 const appRoutes: Routes = [
+  {
+    path: 'bookings',
+    loadChildren: './bookings/bookings.module#BookingsModule',
+  },
   {
     path: 'devices',
     loadChildren: './devices/devices.module#DevicesModule',
@@ -44,6 +49,7 @@ const appRoutes: Routes = [
   ],
   imports: [
     CommonModule,
+    BookingsModule,
     DevicesModule,
     FrontscreenModule,
     RoomsModule,
