@@ -11,6 +11,7 @@ import {AppComponent} from './app.component';
 import {DevicesService} from './devices.service';
 import {PresetsService} from './presets.service';
 import {ScoresService} from './scores.service';
+import {NavService} from './nav.service';
 
 import {RoomsService} from './frontscreen/rooms.service';
 
@@ -53,6 +54,7 @@ const appRoutes: Routes = [
     PresetsService,
     RoomsService,
     ScoresService,
+    NavService,
   ],
   bootstrap: [AppComponent]
 })

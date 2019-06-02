@@ -1,16 +1,3 @@
-<mat-sidenav-container class="sidenav-container">
-  <mat-sidenav opened disableClose mode="side">
-    <mat-nav-list>
-      <a mat-list-item class="main" routerLink="/devices"><mat-icon>important_devices</mat-icon> Devices</a>
-      <mat-divider></mat-divider>
-      <a mat-list-item routerLink="/devices/presets"><mat-icon>featured_play_list</mat-icon> Presets</a>
-      <a mat-list-item routerLink="/devices/streams"><mat-icon>screen_share</mat-icon> Streams</a>
-    </mat-nav-list>
-  </mat-sidenav>
-
-  <mat-sidenav-content>
     <main>
       <router-outlet></router-outlet>
     </main>
-  </mat-sidenav-content>
-</mat-sidenav-container>
