@@ -9,7 +9,6 @@ import {CommonModule} from '../common.module';
 import {DeviceAddStreamDialog} from './device-add-stream.dialog';
 import {DeviceCreateDialog} from './device-create.dialog';
 import {DevicesComponent, DeviceDeleteDialog} from './devices.component';
-import {DevicesRootComponent} from './root.component';
 import {PresetsComponent} from './presets.component';
 import {PresetCreateDialog} from './preset-create.dialog';
 import {PresetDeleteDialog} from './preset-delete.dialog';
@@ -18,15 +17,9 @@ import {StreamEditDialog} from './stream-edit.dialog';
 import {StreamsComponent, StreamDeleteDialog} from './streams.component';
 
 const routes: Routes = [
-  {
-    path: 'devices',
-    component: DevicesRootComponent,
-    children: [
-      { path: '', component: DevicesComponent },
-      { path: 'streams', component: StreamsComponent },
-      { path: 'presets', component: PresetsComponent },
-    ]
-  },
+  { path: 'devices', component: DevicesComponent },
+  { path: 'devices/streams', component: StreamsComponent },
+  { path: 'devices/presets', component: PresetsComponent },
 ];
 
 @NgModule({
@@ -35,7 +28,6 @@ const routes: Routes = [
     DeviceCreateDialog,
     DeviceDeleteDialog,
     DevicesComponent,
-    DevicesRootComponent,
     PresetCreateDialog,
     PresetDeleteDialog,
     PresetsComponent,
