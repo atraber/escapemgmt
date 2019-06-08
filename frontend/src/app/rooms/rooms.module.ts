@@ -14,8 +14,7 @@ import {TimeInput} from './timeinput.component';
 
 const routes: Routes = [
   {
-    path: 'rooms',
-    component: RoomsRootComponent,
+    path: 'rooms', component: RoomsRootComponent,
     children: [
       { path: '', component: RoomsComponent },
       { path: 'scores', component: ScoresComponent },

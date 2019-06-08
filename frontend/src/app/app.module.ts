@@ -34,11 +34,11 @@ const appRoutes: Routes = [
     loadChildren: './rooms/rooms.module#RoomsModule',
   },
   { path: '',
-    redirectTo: '/devices',
+    redirectTo: '/bookings/dash',
     pathMatch: 'full'
   },
   { path: '**',
-    redirectTo: '/devices',
+    redirectTo: '/bookings/dash',
     pathMatch: 'full'
   },
 ];
