@@ -1,5 +1,8 @@
-.nav[mode="side"] {
+.nav {
   min-height: calc(100vh - 64px);
+}
+
+.nav[mode="side"] {
   overflow: hidden;
   overflow-y: auto;
   white-space: nowrap;
