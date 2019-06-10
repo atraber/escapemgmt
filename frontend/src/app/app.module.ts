@@ -8,6 +8,7 @@ import {CommonModule} from './common.module';
 
 import {AppComponent} from './app.component';
 
+import {BookingsService} from './bookings.service';
 import {DevicesService} from './devices.service';
 import {PresetsService} from './presets.service';
 import {ScoresService} from './scores.service';
@@ -56,6 +57,7 @@ const appRoutes: Routes = [
     RouterModule.forRoot(appRoutes),
   ],
   providers: [
+    BookingsService,
     DevicesService,
     PresetsService,
     RoomsService,

@@ -7,6 +7,7 @@ import {RouterModule, Routes} from '@angular/router';
 import {CommonModule} from '../common.module';
 
 import {BookingsComponent} from './bookings.component';
+import {BookingsCard} from './bookings-card.component';
 import {BookingsDashComponent} from './dash.component';
 
 const routes: Routes = [
@@ -17,9 +18,11 @@ const routes: Routes = [
 @NgModule({
   declarations: [
     BookingsComponent,
+    BookingsCard,
     BookingsDashComponent,
   ],
   entryComponents: [
+    BookingsCard,
   ],
   imports: [
     CommonModule,

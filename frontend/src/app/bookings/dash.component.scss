@@ -1,1 +1,13 @@
+.cards {
+  display: flex;
+  flex-direction: row;
+  margin-top: 10px;
+  margin-left: 5px;
+  margin-right: 5px;
+}
 
+.cards > .mat-card {
+  width: 100%;
+  margin-left: 5px;
+  margin-right: 5px;
+}

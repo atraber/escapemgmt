@@ -7,7 +7,7 @@
     <span>Escape Management</span>
   </mat-toolbar>
   <mat-drawer-container class="nav">
-    <mat-drawer #snav mode="side" class="nav">
+    <mat-drawer #snav [opened]="snavOpened" [mode]="snavMode" class="nav">
       <mat-nav-list>
         <a mat-list-item routerLink="/bookings/dash" class="nav-group-item"><mat-icon>home</mat-icon> Home </a>
 

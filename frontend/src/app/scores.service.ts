@@ -20,13 +20,11 @@ const jsonOptions = {
 
 @Injectable()
 export class ScoresService {
-  rooms: Room[];
+  rooms: Room[] = [];
 
   roomsUpdated: EventEmitter<Room[]> = new EventEmitter();
 
   constructor(private http: HttpClient) {
-    this.rooms = [];
-
     this.http.get<Room[]>(environment.apiEndpoint + '/rooms')
       .pipe(
         retryWhen(genericRetryStrategy({
