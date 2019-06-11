@@ -169,6 +169,55 @@ class Room(db.Model):  # type: ignore
         }
 
 
+class Booking(db.Model):  # type: ignore
+    __tablename__ = 'bookings'
+
+    id = sa.Column(sa.Integer, primary_key=True)
+    name = sa.Column(sa.String(100))
+    first_name = sa.Column(sa.String(100))
+    room_id = sa.Column(sa.Integer, sa.ForeignKey('rooms.id'))
+    room = orm.relationship('Room')
+    slot_from = sa.Column(sa.Integer)
+    slot_to = sa.Column(sa.Integer)
+    created_at = sa.Column(sa.Integer)
+
+    def __init__(self, id=None, first_name=None, name=None, room=None,
+            slot_from=None, slot_to=None, created_at=None):
+        self.id = id
+        self.name = name
+
+        if room is None:
+            raise Exception("room cannot be empty")
+        self.room = room
+        self.room_id = room.id
+
+        self.slot_from = slot_from
+        self.slot_to = slot_to
+
+        if created_at is None:
+            self.created_at = int(datetime.now().timestamp())
+        else:
+            self.created_at = created_at
+
+    def serialize(self):
+        out = {
+            'id': self.id,
+            'name': self.name,
+            'first_name': self.first_name,
+            'slot_from': self.slot_from,
+            'slot_to': self.slot_to,
+            'created_at': self.created_at,
+        }
+
+        if self.room:
+            out['room'] = {
+                'id': self.room.id,
+                'name': self.room.name,
+            }
+
+        return out
+
+
 class Score(db.Model):  # type: ignore
     __tablename__ = 'scores'
 

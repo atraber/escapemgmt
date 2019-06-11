@@ -60,8 +60,8 @@ well:
 
 ## First time setup: Creating tables in DB
 
-    export FLASK_CONFIG=development
-    export FLASK_APP=app.initdb:initdb
+    export QUART_CONFIG=development
+    export QUART_APP=app.initdb:initdb
     cd app && python3 ./app/init.db.py
 
 ## Creating DB migrations
@@ -70,11 +70,7 @@ The following commands will automatically create a new candidate revision.
 Please ensure that it matches what you expected and only then apply the
 revision.
 
-    export FLASK_CONFIG=development
-    export FLASK_APP=app.migrate:migrate
-    cd app && flask db revision -d ./app/migrations --autogenerate
+    cd app && alembic -c ./app/migrations/alembic.ini revision --autogenerate
 
 ## Performing migrations
-    export FLASK_CONFIG=development
-    export FLASK_APP=app.migrate:migrate
-    cd app && flask db upgrade -d ./app/migrations
+    cd app && alembic -c ./app/migrations/alembic.ini upgrade

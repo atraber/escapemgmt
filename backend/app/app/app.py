@@ -37,6 +37,9 @@ def App() -> Quart:
     pulsar_client = pulsar.Client(app.config['PULSAR_URL'])
 
     logger.info('Registering blueprints')
+    from app.bookings import bp as bookings_blueprint
+    app.register_blueprint(bookings_blueprint)
+
     from app.devices import devices as devices_blueprint
     app.register_blueprint(devices_blueprint)
 
