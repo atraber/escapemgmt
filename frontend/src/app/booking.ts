@@ -6,6 +6,7 @@ import {Room} from './room';
 
 export class Booking {
   id: number;
+  first_name: string;
   name: string;
   created_at: number;
   room: Room;
@@ -13,6 +14,7 @@ export class Booking {
   slot_to: number;
 
   constructor () {
+    this.first_name = "";
     this.name = "";
     this.created_at = 0;
     this.room = null;

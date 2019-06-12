@@ -1,2 +1,29 @@
 @import 'styles.scss';
 
+.container {
+}
+
+table {
+  width: 100%;
+}
+
+.filter {
+  width: 100%;
+}
+
+.table-container {
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
+.mat-column-first_name {
+  min-width: 75px;
+}
+
+.mat-column-name, .mat-column-room {
+  min-width: 100px;
+}
+
+.mat-column-slot_from {
+  min-width: 225px;
+}

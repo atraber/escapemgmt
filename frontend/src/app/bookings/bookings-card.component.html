@@ -1,4 +1,4 @@
-<table mat-table [dataSource]="bookingsDataSource">
+<table mat-table [dataSource]="bookingsDataSource" *ngIf="bookingsDataSource.data.length > 0; else noData">
 
   <ng-container matColumnDef="name">
     <th mat-header-cell *matHeaderCellDef>Name</th>
@@ -17,3 +17,6 @@
 
   <tr mat-row *matRowDef="let row; columns: ['room', 'name', 'slot']"></tr>
 </table>
+<ng-template #noData>
+  No bookings available.
+</ng-template>

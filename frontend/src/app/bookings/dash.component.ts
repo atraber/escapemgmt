@@ -29,33 +29,6 @@ export class BookingsDashComponent {
     });
   }
 
-  // TODO: DELETE THIS!
-  // private generate(): void {
-  //   let bookings = [
-  //     new Booking(),
-  //     new Booking(),
-  //     new Booking(),
-  //   ];
-
-  //   bookings[0].id = 0;
-  //   bookings[0].name = 'Andy';
-  //   bookings[0].room = this.rooms[0];
-  //   bookings[0].slot_from = moment().subtract(3, 'hours').unix();
-  //   bookings[0].slot_to = moment().subtract(2, 'hours').unix();
-  //   bookings[1].id = 1;
-  //   bookings[1].name = 'Someone';
-  //   bookings[0].room = this.rooms[2];
-  //   bookings[1].slot_from = moment().unix();
-  //   bookings[1].slot_to = moment().add(1, 'hours').unix();
-  //   bookings[2].id = 2;
-  //   bookings[2].name = 'Dom';
-  //   bookings[0].room = this.rooms[2];
-  //   bookings[2].slot_from = moment().add(9, 'hours').unix();
-  //   bookings[2].slot_to = moment().add(10, 'hours').unix();
-
-  //   this.filterAndSortBookings(bookings);
-  // }
-
   private filterAndSortBookings(bookings: Booking[]) {
     let now = moment();
 

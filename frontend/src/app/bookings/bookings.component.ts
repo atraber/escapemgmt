@@ -2,63 +2,51 @@
  * Copyright 2019 Andreas Traber
  * Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
  */
-import {Component, Inject} from '@angular/core';
-import {MatDialog, MatDialogRef, MAT_DIALOG_DATA, MatSnackBar, MatTableDataSource} from '@angular/material';
+import {Component, OnInit, ViewChild} from '@angular/core';
+import {MatPaginator, MatSort, MatTableDataSource} from '@angular/material';
 import * as moment from 'moment';
 
 import {Booking} from '../booking';
-import {Room} from '../room';
-import {ScoresService} from '../scores.service';
+import {BookingsService} from '../bookings.service';
 
 @Component({
   templateUrl: './bookings.component.html',
   styleUrls: ['./bookings.component.scss']
 })
-export class BookingsComponent {
-  rooms: Room[];
-  bookings: Booking[];
-  bookingsDataSource = new MatTableDataSource<Booking>();
+export class BookingsComponent implements OnInit {
+  dataSource = new MatTableDataSource<Booking>();
+  @ViewChild(MatPaginator) paginator: MatPaginator;
+  @ViewChild(MatSort) sort: MatSort;
 
   constructor(
-    private scoresService: ScoresService,
-    private dialog: MatDialog,
-    private snackBar: MatSnackBar) {
-    this.rooms = this.scoresService.rooms;
+    private bookingsService: BookingsService) {
+    this.dataSource.data = this.bookingsService.bookings;
 
-    this.scoresService.roomsUpdated.subscribe(
-      (rooms) => this.rooms = rooms
-    );
-
-    this.generate();
+    this.bookingsService.bookingsUpdated.subscribe((bookings) => {
+      this.dataSource.data = bookings;
+    });
   }
 
-  private generate(): void {
-    this.bookings = [
-      new Booking(),
-      new Booking(),
-      new Booking(),
-    ];
-    this.bookings[0].id = 0;
-    this.bookings[0].name = 'Andy';
-    this.bookings[0].room = this.rooms[0];
-    this.bookings[0].slot_from = moment("2019-06-08T12:00", "YYYY-MM-DDTh:m").unix();
-    this.bookings[0].slot_to = moment("2019-06-08T12:45", "YYYY-MM-DDTh:m").unix();
-    this.bookings[1].id = 1;
-    this.bookings[1].name = 'Someone';
-    this.bookings[0].room = this.rooms[2];
-    this.bookings[1].slot_from = moment("2019-06-08T14:00", "YYYY-MM-DDTh:m").unix();
-    this.bookings[1].slot_to = moment("2019-06-08T14:45", "YYYY-MM-DDTh:m").unix();
-    this.bookings[2].id = 2;
-    this.bookings[2].name = 'Dom';
-    this.bookings[0].room = this.rooms[2];
-    this.bookings[2].slot_from = moment("2019-06-08T13:00", "YYYY-MM-DDTh:m").unix();
-    this.bookings[2].slot_to = moment("2019-06-08T13:45", "YYYY-MM-DDTh:m").unix();
-    this.bookingsDataSource.data = this.bookings;
+  ngOnInit() {
+    this.dataSource.paginator = this.paginator;
+    this.sort.direction = 'desc';
+    this.sort.active = 'slot_from';
+    this.dataSource.sort = this.sort;
+  }
+
+  applyFilter(filterValue: string) {
+    this.dataSource.filter = filterValue.trim().toLowerCase();
   }
 
   formatDatetime(time: number): string {
     // Need to multiply with 1000 to get from seconds to millis which is used
     // by JavaScript by default.
-    return moment(time * 1000).format('LLL');
+    return moment(time * 1000).format('LL LT');
+  }
+
+  formatEndTime(time: number): string {
+    // Need to multiply with 1000 to get from seconds to millis which is used
+    // by JavaScript by default.
+    return moment(time * 1000).format('LT');
   }
 }

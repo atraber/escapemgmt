@@ -27,7 +27,6 @@ export class BookingsCard{
 
   @Input()
   set bookings(bookings: Booking[]) {
-    console.log(bookings);
     this.bookingsDataSource.data = bookings;
   }
 }

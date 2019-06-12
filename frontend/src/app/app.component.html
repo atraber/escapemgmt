@@ -6,7 +6,7 @@
     <button mat-icon-button (click)="snavToggle()"><mat-icon>menu</mat-icon></button>
     <span>Escape Management</span>
   </mat-toolbar>
-  <mat-drawer-container class="nav">
+  <mat-drawer-container>
     <mat-drawer #snav [opened]="snavOpened" [mode]="snavMode" class="nav">
       <mat-nav-list>
         <a mat-list-item routerLink="/bookings/dash" class="nav-group-item"><mat-icon>home</mat-icon> Home </a>

@@ -30,6 +30,7 @@
 }
 
 mat-nav-list {
+  overflow-x: hidden;
   & > a.nav-group-item {
     font-weight: 500;
     padding-top: 5px;
