@@ -1,0 +1,9 @@
+config.yaml
+__pycache__
+/bin
+/include
+/lib
+/lib64
+/venv
+pip-selfcheck.json
+.mypy_cache
