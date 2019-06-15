@@ -77,10 +77,4 @@ export class BookingsDashComponent {
     this.currentBookings = current;
     this.upcomingBookings = upcoming;
   }
-
-  formatTime(time: number): string {
-    // Need to multiply with 1000 to get from seconds to millis which is used
-    // by JavaScript by default.
-    return moment(time * 1000).format('HH:MM');
-  }
 }

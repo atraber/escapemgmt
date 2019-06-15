@@ -1,17 +1,19 @@
 .cards {
   display: flex;
+  margin-top: 5px;
   margin-left: 5px;
   margin-right: 5px;
 
   flex-direction: row;
-  @media only screen and (max-width: 600px) {
+  @media only screen and (max-width: 900px) {
     flex-direction: column;
   }
 }
 
 .cards > .mat-card {
   width: 100%;
-  margin-top: 10px;
+  margin-top: 5px;
   margin-left: 5px;
   margin-right: 5px;
+  margin-bottom: 5px;
 }

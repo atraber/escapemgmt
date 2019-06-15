@@ -22,7 +22,7 @@ export class BookingsCard{
   formatTime(time: number): string {
     // Need to multiply with 1000 to get from seconds to millis which is used
     // by JavaScript by default.
-    return moment(time * 1000).format('HH:MM');
+    return moment(time * 1000).format('HH:mm');
   }
 
   @Input()
