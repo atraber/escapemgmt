@@ -12,12 +12,14 @@ import {DevicesComponent, DeviceDeleteDialog} from './devices.component';
 import {PresetsComponent} from './presets.component';
 import {PresetCreateDialog} from './preset-create.dialog';
 import {PresetDeleteDialog} from './preset-delete.dialog';
+import {ScreensComponent} from './screens.component';
 import {StreamCreateDialog} from './stream-create.dialog';
 import {StreamEditDialog} from './stream-edit.dialog';
 import {StreamsComponent, StreamDeleteDialog} from './streams.component';
 
 const routes: Routes = [
   { path: 'devices', component: DevicesComponent },
+  { path: 'devices/screens', component: ScreensComponent },
   { path: 'devices/streams', component: StreamsComponent },
   { path: 'devices/presets', component: PresetsComponent },
 ];
@@ -31,6 +33,7 @@ const routes: Routes = [
     PresetCreateDialog,
     PresetDeleteDialog,
     PresetsComponent,
+    ScreensComponent,
     StreamCreateDialog,
     StreamEditDialog,
     StreamDeleteDialog,

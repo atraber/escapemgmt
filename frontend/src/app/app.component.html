@@ -9,17 +9,18 @@
   <mat-drawer-container>
     <mat-drawer #snav [opened]="snavOpened" [mode]="snavMode" class="nav">
       <mat-nav-list>
-        <a mat-list-item routerLink="/bookings/dash" class="nav-group-item"><mat-icon>home</mat-icon> Home </a>
-
-        <a mat-list-item routerLink="/devices" class="nav-group-item"><mat-icon>important_devices</mat-icon> Devices </a>
-          <a mat-list-item routerLink="/devices/presets"><mat-icon>featured_play_list</mat-icon> Presets</a>
-          <a mat-list-item routerLink="/devices/streams"><mat-icon>screen_share</mat-icon> Streams</a>
+        <a mat-list-item routerLink="/bookings/dash" class="nav-group-item"><mat-icon>home</mat-icon> Games</a>
+          <a mat-list-item routerLink="/bookings"><mat-icon>how_to_reg</mat-icon> Bookings</a>
+          <a mat-list-item routerLink="/devices/screens"><mat-icon>featured_play_list</mat-icon> Screens</a>
+          <a mat-list-item routerLink="/rooms/scores"><mat-icon>score</mat-icon> Scores</a>
 
         <mat-divider></mat-divider>
 
-        <a mat-list-item routerLink="/rooms" class="nav-group-item"><mat-icon>meeting_room</mat-icon> Rooms </a>
-          <a mat-list-item routerLink="/rooms/scores"><mat-icon>score</mat-icon> Scores</a>
-          <a mat-list-item routerLink="/bookings"><mat-icon>how_to_reg</mat-icon> Bookings</a>
+        <a mat-list-item routerLink="/devices" class="nav-group-item"><mat-icon>important_devices</mat-icon> Settings</a>
+          <a mat-list-item routerLink="/devices"><mat-icon>important_devices</mat-icon> Devices</a>
+          <a mat-list-item routerLink="/devices/presets"><mat-icon>featured_play_list</mat-icon> Presets</a>
+          <a mat-list-item routerLink="/rooms"><mat-icon>meeting_room</mat-icon> Rooms </a>
+          <a mat-list-item routerLink="/devices/streams"><mat-icon>screen_share</mat-icon> Streams</a>
 
       </mat-nav-list>
     </mat-drawer>

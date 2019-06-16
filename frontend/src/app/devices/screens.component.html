@@ -1,0 +1,25 @@
+<mat-list>
+  <a mat-list-item>Screens</a>
+</mat-list>
+<mat-divider></mat-divider>
+<div class="table-container">
+  <table mat-table [dataSource]="dataSource">
+
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef>Name</th>
+      <td mat-cell *matCellDef="let element">{{element.name}}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="controls">
+      <th mat-header-cell *matHeaderCellDef></th>
+      <td mat-cell *matCellDef="let element">
+        <button mat-raised-button (click)="activatePreset(element)" color="primary" [disabled]="element.active">
+          <mat-icon>add</mat-icon> Activate
+        </button>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="['name', 'controls']"></tr>
+    <tr mat-row *matRowDef="let row; columns: ['name', 'controls']"></tr>
+  </table>
+</div>
