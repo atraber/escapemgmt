@@ -1,0 +1,16 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: escape-bookings-import
+spec:
+  activeDeadlineSeconds: 120
+  ttlSecondsAfterFinished: 120
+  template:
+    spec:
+      containers:
+      - name: escape-bookings-import
+        image: localhost:5000/escape_bookings_import:2019-06-15
+        command: ["python3", "/app/import.py", "--synth", "--backend_service", "http://escape-backend:8080/" ]
+        workingDir: "/app"
+      restartPolicy: Never
