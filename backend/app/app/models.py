@@ -53,6 +53,11 @@ class Device(db.Model):  # type: ignore
             backref='devices',
             viewonly=True)
 
+    presets_used = orm.relationship('Preset',
+            primaryjoin='Device.id == device_streams.c.device_id',
+            secondary='join(device_streams, Preset, device_streams.c.preset_id == Preset.id)',
+            viewonly=True)
+
     def __init__(self, id=None, name=None, mac=None, screen_enable=True):
         self.id = id
         self.name = name
@@ -67,6 +72,8 @@ class Device(db.Model):  # type: ignore
             'screen_enable': self.screen_enable,
             'last_seen': self.last_seen,
             'streams': [s.serialize() for s in self.streams],
+            'presets_used': [s.serialize(load_streams=True)
+                for s in self.presets_used],
         }
 
 
@@ -131,17 +138,27 @@ class Preset(db.Model):  # type: ignore
     name = sa.Column(sa.String(100))
     active = sa.Column(sa.Boolean, default=False, nullable=False)
 
+    streams = orm.relationship('Stream',
+            primaryjoin='Preset.id == device_streams.c.preset_id',
+            secondary='join(device_streams, Stream, device_streams.c.stream_id == Stream.id)',
+            viewonly=True, lazy='select')
+
     def __init__(self, id=None, name=None, active=False):
         self.id = id
         self.name = name
         self.active = active
 
-    def serialize(self):
-        return {
+    def serialize(self, load_streams=False):
+        out = {
             'id': self.id,
             'name': self.name,
             'active': self.active,
         }
+
+        if load_streams:
+            out['streams'] = [s.serialize() for s in self.streams]
+
+        return out
 
 
 class Room(db.Model):  # type: ignore
@@ -176,6 +193,9 @@ class Booking(db.Model):  # type: ignore
     name = sa.Column(sa.String(100))
     first_name = sa.Column(sa.String(100))
     room_id = sa.Column(sa.Integer, sa.ForeignKey('rooms.id'))
+    # TODO: I'm not exactly sure what gets loaded here. If it is only Room
+    # without the scores, this is fine. However, it seems it doubles the
+    # query time for Bookings.
     room = orm.relationship('Room')
     slot_from = sa.Column(sa.Integer)
     slot_to = sa.Column(sa.Integer)

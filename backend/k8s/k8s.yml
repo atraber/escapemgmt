@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: escape-backend
-        image: localhost:5000/escape_backend:2019-03-24
+        image: localhost:5000/escape_backend:2019-06-15
         ports:
         - containerPort: 8080
         env:

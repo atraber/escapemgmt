@@ -34,12 +34,12 @@
 
       <mat-form-field class="preset-form-field">
         <mat-label>Preset</mat-label>
-        <mat-select [value]="findActivePreset()">
+        <mat-select [(value)]="active_preset" (selectionChange)="deviceSelectPreset($event.value)">
           <mat-option *ngFor="let preset of presets" [value]="preset">
             {{preset.name}} {{preset.active ? "*": ""}}
           </mat-option>
         </mat-select>
-        <mat-hint align="start"><strong>Only streams for the selected preset are shown below.<strong>TODO: THIS DOES NOT WORK YET!</strong></strong></mat-hint>
+        <mat-hint align="start"><strong>Only streams for the selected preset are shown below.</strong></mat-hint>
       </mat-form-field>
 
       <div>
@@ -53,7 +53,7 @@
           <ng-container matColumnDef="controls">
             <th mat-header-cell *matHeaderCellDef></th>
             <td mat-cell *matCellDef="let element">
-              <button mat-icon-button (click)="removeStreamFromDevice(deviceSelected, element)">
+              <button mat-icon-button (click)="removeStreamFromDevicePreset(deviceSelected, active_preset, element)">
                 <mat-icon>delete</mat-icon>
               </button>
             </td>
@@ -65,7 +65,7 @@
       </div>
 
       <div class="stream-add-field">
-        <button mat-button color="primary" (click)="addStreamDialog(deviceSelected)">Add additional Stream</button>
+        <button mat-button color="primary" (click)="addPresetStreamDialog(deviceSelected, active_preset)">Add additional Stream</button>
       </div>
 
       <div class="buttons">

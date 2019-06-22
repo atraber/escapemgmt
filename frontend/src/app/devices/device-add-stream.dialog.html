@@ -15,10 +15,10 @@
       <ng-container matColumnDef="controls">
         <th mat-header-cell *matHeaderCellDef></th>
         <td mat-cell *matCellDef="let element">
-          <button mat-raised-button (click)="addStreamToDevice(device, element.stream)" color="primary" *ngIf="!element.added">
+          <button mat-raised-button (click)="addStreamToDevice(device, preset, element.stream)" color="primary" *ngIf="!element.added">
             <mat-icon>add</mat-icon> Add
           </button>
-          <button mat-raised-button (click)="removeStreamFromDevice(device, element.stream)" color="primary" *ngIf="element.added">
+          <button mat-raised-button (click)="removeStreamFromDevice(device, preset, element.stream)" color="primary" *ngIf="element.added">
             <mat-icon>delete</mat-icon> Remove
           </button>
         </td>

@@ -2,7 +2,8 @@
  * Copyright 2018 Andreas Traber
  * Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
  */
-import { Stream } from './stream';
+import {Preset} from './preset';
+import {Stream} from './stream';
 
 export class Device {
   id: number;
@@ -11,6 +12,7 @@ export class Device {
   screen_enable: Boolean;
   last_seen: number;
   streams: Stream[];
+  presets_used: Preset[];
 
   constructor () {
     this.name = "";
@@ -18,5 +20,6 @@ export class Device {
     this.screen_enable = true;
     this.last_seen = 0;
     this.streams = [];
+    this.presets_used = [];
   }
 }

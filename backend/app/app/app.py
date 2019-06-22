@@ -87,13 +87,3 @@ def InitDB():
     asyncio.run(PerformInitDB(app))
 
     return app
-
-
-def Migrate():
-    app = App()
-
-    # perform DB migrations
-    logger.info('Performing schema migrations')
-    FlaskMigrate(app, db)
-
-    return app

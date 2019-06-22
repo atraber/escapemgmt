@@ -7,6 +7,7 @@ import {MatDialog, MatDialogRef, MAT_DIALOG_DATA, MatSnackBar, MatTableDataSourc
 
 import {DevicesService} from '../devices.service';
 import {Device} from '../device';
+import {Preset} from '../preset';
 import {Stream} from '../stream';
 
 
@@ -22,6 +23,7 @@ class StreamAnnotated {
 })
 export class DeviceAddStreamDialog {
   device: Device;
+  preset: Preset;
   streams: Stream[] = [];
   streamsDataSource = new MatTableDataSource<StreamAnnotated>();
 
@@ -29,8 +31,9 @@ export class DeviceAddStreamDialog {
       public dialogRef: MatDialogRef<DeviceAddStreamDialog>,
       private devicesService: DevicesService,
       private snackBar: MatSnackBar,
-      @Inject(MAT_DIALOG_DATA) public data: Device) {
-    this.device = data;
+      @Inject(MAT_DIALOG_DATA) public data) {
+    this.device = data['device'];
+    this.preset = data['preset'];
 
     this.streamsDataSource.filterPredicate = (data: StreamAnnotated, filter: string): boolean => {
       let value = data.stream.name.toLowerCase();
@@ -38,11 +41,11 @@ export class DeviceAddStreamDialog {
     }
 
     this.streams = this.devicesService.streams;
-    this.streamsDataSource.data = this.annotateStreams(this.streams);
+    this.streamsDataSource.data = this.annotateStreams(this.streams, this.preset);
 
     this.devicesService.streamsUpdated.subscribe(streams => {
       this.streams = streams;
-      this.streamsDataSource.data = this.annotateStreams(this.streams);
+      this.streamsDataSource.data = this.annotateStreams(this.streams, this.preset);
     });
   }
 
@@ -50,10 +53,18 @@ export class DeviceAddStreamDialog {
     this.streamsDataSource.filter = filterValue.trim().toLowerCase();
   }
 
-  private annotateStreams(streams: Stream[]): StreamAnnotated[] {
+  private annotateStreams(streams: Stream[], preset: Preset): StreamAnnotated[] {
     let added = new Set();
-    for (let stream of this.device.streams) {
-      added.add(stream.id);
+
+    // TODO: This is terrible and should be refactored...
+    let p_used = this.device.presets_used.find(e => {
+      return e.id == preset.id;
+    });
+
+    if (p_used != undefined) {
+      for (let stream of p_used.streams) {
+        added.add(stream.id);
+      }
     }
 
     let arr: StreamAnnotated[] = [];
@@ -68,24 +79,49 @@ export class DeviceAddStreamDialog {
     return arr;
   }
 
-  addStreamToDevice(device: Device, stream: Stream): void {
-    this.device.streams.push(stream);
+  addStreamToDevice(device: Device, preset: Preset, stream: Stream): void {
+    // TODO: This is terrible and should be refactored...
+    let p_used = device.presets_used.find(e => {
+      return e.id == preset.id;
+    });
+
+    if (p_used == undefined) {
+      // TODO: Implement a real clone or find another option how to do this.
+      let cloned = new Preset();
+      cloned.id = preset.id;
+      cloned.name = preset.name;
+      cloned.active = preset.active;
+      cloned.streams = [];
+      device.presets_used.push(cloned);
+      p_used = cloned;
+    }
+
+    p_used.streams.push(stream);
     // TODO: This is a hack at best!
     this.devicesService.devicesUpdated.emit(this.devicesService.devices);
-    this.streamsDataSource.data = this.annotateStreams(this.streams);
+    this.streamsDataSource.data = this.annotateStreams(this.streams, this.preset);
   }
 
-  removeStreamFromDevice(device: Device, stream: Stream): void {
-    for (let i = 0; i < this.device.streams.length; i++) {
-      if (this.device.streams[i].id == stream.id) {
-        this.device.streams.splice(i, 1);
+  removeStreamFromDevice(device: Device, preset: Preset, stream: Stream): void {
+    // TODO: This is terrible and should be refactored...
+    let p_used = device.presets_used.find(e => {
+      return e.id == preset.id;
+    });
 
-        // TODO: This is a hack at best!
-        this.devicesService.devicesUpdated.emit(this.devicesService.devices);
-        this.streamsDataSource.data = this.annotateStreams(this.streams);
-        // At most one stream should match, thus we can early exit.
-        break;
+    if (p_used != undefined) {
+      for (let i = 0; i < p_used.streams.length; i++) {
+        if (p_used.streams[i].id == stream.id) {
+          p_used.streams.splice(i, 1);
+
+          // TODO: This is a hack at best!
+          this.devicesService.devicesUpdated.emit(this.devicesService.devices);
+          this.streamsDataSource.data = this.annotateStreams(this.streams, this.preset);
+          // At most one stream should match, thus we can early exit.
+          break;
+        }
       }
+    } else {
+      console.log('Could not remove stream: Preset not found');
     }
   }
 }
