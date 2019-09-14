@@ -6,6 +6,8 @@ import {NgModule} from '@angular/core';
 import {RouterModule, Routes} from '@angular/router';
 import {CommonModule} from '../common.module';
 
+import {FileUploadComponent} from './fileupload.component';
+import {FileUploadService} from './fileupload.service';
 import {RoomsComponent, RoomsDeleteDialog} from './rooms.component';
 import {RoomCreateDialog} from './create.dialog';
 import {ScoresComponent, ScoreAddDialog, ScoreEditDialog, ScoreDeleteDialog} from './scores.component';
@@ -18,13 +20,14 @@ const routes: Routes = [
 
 @NgModule({
   declarations: [
+    FileUploadComponent,
+    RoomCreateDialog,
     RoomsComponent,
     RoomsDeleteDialog,
-    RoomCreateDialog,
-    ScoresComponent,
     ScoreAddDialog,
-    ScoreEditDialog,
     ScoreDeleteDialog,
+    ScoreEditDialog,
+    ScoresComponent,
     TimeInput,
   ],
   entryComponents: [
@@ -41,6 +44,9 @@ const routes: Routes = [
   ],
   exports: [
     RouterModule
-  ]
+  ],
+  providers: [
+    FileUploadService,
+  ],
 })
 export class RoomsModule { }

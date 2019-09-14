@@ -4,6 +4,9 @@
  */
 import {Component, Inject} from '@angular/core';
 import {MatDialog, MatDialogRef, MAT_DIALOG_DATA, MatSnackBar} from '@angular/material';
+
+import {FileBuffer} from './filebuffer';
+import {FileUploadService} from './fileupload.service';
 import {RoomCreateDialog} from './create.dialog';
 import {ScoresService} from '../scores.service';
 import {Room} from '../room';
@@ -17,6 +20,7 @@ export class RoomsComponent {
 
   constructor(
     private scoresService: ScoresService,
+    private fileUploadService: FileUploadService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar) {
     this.rooms = this.scoresService.rooms;
@@ -24,6 +28,32 @@ export class RoomsComponent {
     this.scoresService.roomsUpdated.subscribe(
       (rooms) => this.rooms = rooms
     );
+  }
+
+  changeProfileImage(file: File) {
+    this.fileUploadService.upload(file).subscribe(() => {
+      this.snackBar.open('File Upload successful', 'Hide', {
+        duration: 2000,
+      });
+    }, err => {
+      console.log(err);
+      this.snackBar.open('Failed to upload file. Please try again!', 'Hide', {
+        duration: 2000,
+      });
+    });
+  }
+
+  changeBackgroundImage(file: File) {
+    this.fileUploadService.upload(file).subscribe(() => {
+      this.snackBar.open('File Upload successful', 'Hide', {
+        duration: 2000,
+      });
+    }, err => {
+      console.log(err);
+      this.snackBar.open('Failed to upload file. Please try again!', 'Hide', {
+        duration: 2000,
+      });
+    });
   }
 
   addRoom(): void {

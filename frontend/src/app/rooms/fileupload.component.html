@@ -1,0 +1,22 @@
+<div>
+  <mat-form-field>
+    <input
+      matInput
+      title="fileInput"
+      [placeholder]="label"
+      [ngModel]="filename"
+      [readonly]="true"
+      (click)="fileInput.click()">
+  </mat-form-field>
+  <button mat-raised-button
+          type="button"
+          color="primary"
+          (click)="fileInput.click()">
+    <mat-icon>attach_file</mat-icon>
+    Upload
+  </button>
+  <input hidden
+         type="file"
+         #fileInput
+         (change)="onChange($event)" />
+</div>
