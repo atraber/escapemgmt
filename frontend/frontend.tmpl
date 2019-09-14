@@ -8,13 +8,13 @@ server {
 
     # Force all paths to load either itself (js files) or go through index.html.
     location / {
-        try_files $uri /index.html;
+        try_files ${DOLLAR}uri /index.html;
     }
 
     # Pass through /api to backend
     location /api {
         rewrite ^/api/(.*) /$1 break;
-        proxy_pass http://escape-backend:8080;
+        proxy_pass ${API_ADDR};
         proxy_http_version 1.1;
         proxy_set_header Connection "";
         proxy_buffering off;

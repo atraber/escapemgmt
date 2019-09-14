@@ -1,2 +1,5 @@
 /dist
+/Dockerfile
+/README.md
+/*.sh
 node_modules

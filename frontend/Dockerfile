@@ -15,7 +15,13 @@ RUN npm run ng build -- --configuration=docker --prod
 
 ### Stage 2: Setup
 FROM nginx:stable-alpine
-RUN apk add --no-cache curl
+RUN apk add --no-cache bash curl
+
+ENV API_ADDR http://escape-backend:8080
+# Hack around env replacement
+ENV DOLLAR $
 
 COPY --from=node /ng-app/dist/ /var/www
-COPY ./nginx.conf /etc/nginx/conf.d/default.conf
+COPY ./frontend.tmpl /etc/nginx/conf.d/frontend.tmpl
+
+CMD /bin/bash -c "envsubst < /etc/nginx/conf.d/frontend.tmpl > /etc/nginx/conf.d/default.conf && exec nginx -g 'daemon off;'"
