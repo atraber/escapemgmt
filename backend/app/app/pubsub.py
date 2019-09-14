@@ -1,15 +1,35 @@
 # Copyright 2019 Andreas Traber
 # Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
 import asyncio
-from quart import Blueprint, make_response, Response
 import uuid
+from quart import Blueprint, make_response, Response
+from threading import Lock
 
 from app.app import pulsar_client
 from app.logger import logger
 
 
 pubsub = Blueprint('pubsub', __name__)
-producer = pulsar_client.create_producer('pubsub')
+producer_lock = Lock()
+producer = None
+
+
+def _createProducer():
+    global producer
+    producer_lock.acquire()
+    if producer == None:
+        try:
+            producer = pulsar_client.create_producer('pubsub')
+        except:
+            logger.info('Could not create producer')
+            pass
+    producer_lock.release()
+
+
+def _getProducer():
+    if producer == None:
+        _createProducer()
+    return producer
 
 
 @pubsub.route('/subscribe')
@@ -48,4 +68,8 @@ def publish(event: str, msg=''):
     # TODO: msg is currently ignored. The message sent here needs to be encoded
     # somehow.
     logger.info('Sent event to pubsub: {}'.format(event))
-    producer.send(event.encode('utf-8'))
+    local_producer = _getProducer()
+    if local_producer is not None:
+        local_producer.send(event.encode('utf-8'))
+
+_createProducer()

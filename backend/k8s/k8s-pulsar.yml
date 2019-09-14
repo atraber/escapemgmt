@@ -1,18 +1,32 @@
 ---
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: escape-pulsar
-  labels:
-    app: escape-pulsar
 spec:
-  containers:
-  - name: escape-pulsar
-    image: apachepulsar/pulsar
-    ports:
-    - containerPort: 6650
-    - containerPort: 8080
-    command: ["bin/pulsar", "standalone"]
+  selector:
+    matchLabels:
+      app: escape-pulsar
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: escape-pulsar
+    spec:
+      containers:
+      - name: escape-pulsar
+        image: apachepulsar/pulsar
+        ports:
+        - containerPort: 6650
+        - containerPort: 8080
+        command: ["bin/pulsar", "standalone"]
+        resources:
+          limits:
+            cpu: 500m
+            memory: 500Mi
+          requests:
+            cpu: 200m
+            memory: 200Mi
 ---
 apiVersion: v1
 kind: Service

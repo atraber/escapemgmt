@@ -10,12 +10,18 @@ spec:
     spec:
       containers:
       - name: escape-backend-init-db
-        image: localhost:5000/escape_backend:2019-03-24
+        image: registry.houdini.traber-web.ch:5000/escape_backend:2019-09-10
         env:
         - name: SQLALCHEMY_DATABASE_URI
           value: 'mysql+pymysql://raspimgmt:raspberrypi@escape-mariadb/raspimgmt?charset=utf8'
         - name: PULSAR_URL
           value: 'pulsar://escape-pulsar:6650'
+        - name: MINIO_URL
+          value: 'localhost:9000'
+        - name: MINIO_ACCESS_KEY
+          value: 'L8Adf/ADnAglARAvA015'
+        - name: MINIO_SECRET_KEY
+          value: 'fA9hJAKFmnwsd/SDMASFA/Ljlkdfg239563ADSGA'
         - name: FLASK_APP
           value: app.initdb:initdb
         command: ["python3", "./app/initdb.py"]

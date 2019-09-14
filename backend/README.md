@@ -60,9 +60,10 @@ well:
 
 ## First time setup: Creating tables in DB
 
+    source ./venv/bin/activate
     export QUART_CONFIG=development
     export QUART_APP=app.initdb:initdb
-    cd app && python3 ./app/init.db.py
+    cd app && python3 ./app/initdb.py
 
 ## Creating DB migrations
 

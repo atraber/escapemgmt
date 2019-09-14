@@ -10,12 +10,11 @@ app_path = os.path.abspath(
         os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 sys.path.insert(0, app_path)
 
-from app import Migrate
+from app import InitDB
 
 
 logging.basicConfig(stream=sys.stderr)
 
-migrate = Migrate()
 
 if __name__ == '__main__':
-    migrate.run()
+    InitDB()

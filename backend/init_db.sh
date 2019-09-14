@@ -1,5 +1,5 @@
 #!/bin/bash
-source ./bin/activate
-export FLASK_APP=app.py
-export FLASK_ENV=development
-./initdb.py
+source ./venv/bin/activate
+export QUART_CONFIG=development
+export QUART_APP=app.initdb:initdb
+cd app && python3 ./app/initdb.py

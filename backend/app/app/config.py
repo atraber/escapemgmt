@@ -6,6 +6,9 @@ class ConfigCommon:
     Common configurations
     """
 
+    MINIO_URL = 'localhost:9000'
+    MINIO_ACCESS_KEY = 'THIS_IS_NOT_AN_ACCESS_KEY'
+    MINIO_SECRET_KEY = 'THIS_IS_NOT_A_SECRET_KEY'
     PULSAR_URL = 'pulsar://localhost:6650'
     # well, this is not very safe obviously as it is also inside version control
     # However, this is an isolated system that is not exposed online and the
@@ -27,7 +30,14 @@ app_config = ProductionConfig
 
 def app_envs() -> dict:
     d = {}
-    env_names = ['DEBUG', 'SQLALCHEMY_DATABASE_URI', 'PULSAR_URL']
+    env_names = [
+        'DEBUG',
+        'MINIO_URL',
+        'MINIO_ACCESS_KEY',
+        'MINIO_SECRET_KEY',
+        'PULSAR_URL',
+        'SQLALCHEMY_DATABASE_URI',
+    ]
     for env_name in env_names:
         env = os.getenv(env_name)
         if env is not None:

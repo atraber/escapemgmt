@@ -3,6 +3,7 @@
 from alembic.config import Config as alembic_Config
 from alembic import command as alembic_command
 import asyncio
+from minio import Minio
 from quart import Quart
 from quart_cors import cors
 from quart_sqlalchemy import SQLAlchemy
@@ -15,12 +16,13 @@ from app.logger import logger
 
 app = None
 pulsar_client = None # type: pulsar.Client
+minio_client = None # type: Minio
 db = SQLAlchemy()
 metrics = None
 
 
 def App() -> Quart:
-    global pulsar_client
+    global pulsar_client, minio_client
     app = Quart(__name__)
     logger.info('Applying config')
     app.config.from_object(app_config)
@@ -36,12 +38,21 @@ def App() -> Quart:
     logger.info('Initializing pulsar_client')
     pulsar_client = pulsar.Client(app.config['PULSAR_URL'])
 
+    logger.info('Initializing minio_client')
+    minio_client = Minio(app.config['MINIO_URL'],
+        access_key=app.config['MINIO_ACCESS_KEY'],
+        secret_key=app.config['MINIO_SECRET_KEY'],
+        secure=False)
+
     logger.info('Registering blueprints')
     from app.bookings import bp as bookings_blueprint
     app.register_blueprint(bookings_blueprint)
 
     from app.devices import devices as devices_blueprint
     app.register_blueprint(devices_blueprint)
+
+    from app.files import files as files_bp
+    app.register_blueprint(files_bp)
 
     from app.presets import presets as presets_blueprint
     app.register_blueprint(presets_blueprint)
@@ -81,9 +92,7 @@ async def PerformInitDB(app: Quart):
         alembic_command.stamp(alembic_cfg, "head")
 
 
-def InitDB():
+def InitDB() -> None:
     app = App()
 
     asyncio.run(PerformInitDB(app))
-
-    return app
