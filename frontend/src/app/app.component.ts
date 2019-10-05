@@ -2,7 +2,7 @@
  * Copyright 2018 Andreas Traber
  * Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
  */
-import {Component, HostListener, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, HostListener, ViewChild} from '@angular/core';
 import {MatDrawer} from '@angular/material';
 import {Router} from '@angular/router';
 
@@ -13,10 +13,11 @@ import {NavService} from './nav.service';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent {
+export class AppComponent implements AfterViewInit {
   _router: any;
   snavOpened: boolean = false;
   snavMode: string = 'side';
+  @ViewChild('snav') snav: MatDrawer;
 
   constructor(
       private navService: NavService,
@@ -26,6 +27,14 @@ export class AppComponent {
     this.snavOpened = this.navService.isOpened;
     this.onResize(null);
   }
+
+  ngAfterViewInit(): void {
+    this.snav.openedChange.subscribe((opened) => {
+      this.navService.setOpen(opened);
+      this.snavOpened = this.navService.isOpened;
+    });
+  }
+
 
   snavToggle(): void {
     this.navService.toggle();

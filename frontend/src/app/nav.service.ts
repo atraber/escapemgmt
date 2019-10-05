@@ -17,4 +17,8 @@ export class NavService {
   toggle(): void {
     this.isOpened = !this.isOpened;
   }
+
+  setOpen(opened: boolean): void {
+    this.isOpened = opened;
+  }
 }
