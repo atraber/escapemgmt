@@ -269,3 +269,36 @@ class Score(db.Model):  # type: ignore
             'time': self.time,
             'created_at': self.created_at
         }
+
+
+class File(db.Model):  # type: ignore
+    __tablename__ = 'files'
+
+    id = sa.Column(sa.Integer, primary_key=True)
+    name = sa.Column(sa.String(100))
+    content_type = sa.Column(sa.String(100))
+    created_at = sa.Column(sa.Integer)
+
+    def __init__(self, id=None, name=None, content_type=None, created_at=None):
+        self.id = id
+
+        if name is None:
+            raise Exception("name cannot be empty")
+        self.name = name
+
+        if content_type is None:
+            raise Exception("content_type cannot be empty")
+        self.content_type = content_type
+
+        if created_at is None:
+            self.created_at = int(datetime.now().timestamp())
+        else:
+            self.created_at = created_at
+
+    def serialize(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'content_type': self.content_type,
+            'created_at': self.created_at
+        }
