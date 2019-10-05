@@ -170,10 +170,17 @@ class Room(db.Model):  # type: ignore
     profile_image = sa.Column(sa.String(255))
     bg_image = sa.Column(sa.String(255))
     scores = orm.relationship("Score", order_by="Score.time")
+    tags = sa.Column(sa.String(255), nullable=False)
 
     def __init__(self, id=None, name=None):
         self.id = id
         self.name = name
+
+    def _get_tags(self):
+        if len(self.tags) == 0:
+            return []
+        else:
+            return self.tags.split(';')
 
     def serialize(self):
         return {
@@ -183,6 +190,7 @@ class Room(db.Model):  # type: ignore
             'profile_image': self.profile_image,
             'bg_image': self.bg_image,
             'scores': [s.serialize() for s in self.scores],
+            'tags': self._get_tags(),
         }
 
 

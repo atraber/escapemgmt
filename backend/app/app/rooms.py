@@ -37,8 +37,15 @@ async def apiRoomUpdate(roomid: int):
             db_room = db.session.query(Room).filter_by(id=roomid).first()
             db_room.name = data_json['name']
             db_room.description = data_json['description']
-            db_room.profile_image = data_json['profile_image']
             db_room.bg_image = data_json['bg_image']
+            db_room.profile_image = data_json['profile_image']
+
+            # Using ; in tags is not allowed.
+            for tag in data_json['tags']:
+                if ';' in tag:
+                    abort(400)
+            # tags get joined together with ; as their delimiter.
+            db_room.tags = ';'.join(data_json['tags'])
             db.session.commit()
             return jsonify(db_room.serialize())
         abort(400)
