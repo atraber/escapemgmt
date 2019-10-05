@@ -22,11 +22,11 @@
         <input matInput [(ngModel)]="room.description" placeholder="Description">
       </mat-form-field>
 
-      <img src="{{room.profile_image}}">
-      <file-upload (onLoad)="changeProfileImage($event)" label="Profile Image"></file-upload>
+      <img src="{{imagePath(room.profile_image)}}">
+      <file-upload (onLoad)="changeProfileImage(room, $event)" label="Profile Image"></file-upload>
 
-      <img src="{{room.profile_image}}">
-      <file-upload (onLoad)="changeBackgroundImage($event)" label="Background Image"></file-upload>
+      <img src="{{imagePath(room.bg_image)}}">
+      <file-upload (onLoad)="changeBackgroundImage(room, $event)" label="Background Image"></file-upload>
 
       <div class="buttons">
         <button mat-raised-button color="warn" (click)="deleteRoomDialog(room)">Delete</button>

@@ -2,10 +2,11 @@
  * Copyright 2019 Andreas Traber
  * Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
  */
-import { Component } from '@angular/core';
+import {Component} from '@angular/core';
 
-import { Room } from '../room';
-import { RoomsService } from './rooms.service';
+import {environment} from '../../environments/environment';
+import {Room} from '../room';
+import {RoomsService} from './rooms.service';
 
 @Component({
   selector: 'carousel-highscore',
@@ -30,5 +31,9 @@ export class HighscoreComponent {
     }
 
     return rooms;
+  }
+
+  imagePath(path): string {
+    return environment.apiEndpoint + '/file/' + path;
   }
 }

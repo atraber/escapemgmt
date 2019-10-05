@@ -30,7 +30,7 @@
             <div class="card-title">{{room.name}}</div>
             <div class="card-subtitle">{{room.description}}</div>
           </div>
-          <img src="{{room.bg_image ? room.bg_image : 'http://www.houdinis.ch/wp-content/uploads/2018/01/houdinis_quest_logo_2018_neu_300_weiss.png'}}">
+          <img src="{{room.bg_image ? imagePath(room.bg_image) : 'http://www.houdinis.ch/wp-content/uploads/2018/01/houdinis_quest_logo_2018_neu_300_weiss.png'}}">
           <div class="card-row">
             <div class="card-row-element">
               <mat-icon>timer</mat-icon>

@@ -34,7 +34,7 @@ export class FileUploadService {
   }
 
 
-  upload(file: File): Observable<number> {
+  upload(file: File): Observable<string> {
     return Observable.create(observer => {
       const formData: FormData = new FormData();
       formData.append('file', file);

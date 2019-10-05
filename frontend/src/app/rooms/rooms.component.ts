@@ -5,6 +5,7 @@
 import {Component, Inject} from '@angular/core';
 import {MatDialog, MatDialogRef, MAT_DIALOG_DATA, MatSnackBar} from '@angular/material';
 
+import {environment} from '../../environments/environment';
 import {FileBuffer} from './filebuffer';
 import {FileUploadService} from './fileupload.service';
 import {RoomCreateDialog} from './create.dialog';
@@ -30,8 +31,9 @@ export class RoomsComponent {
     );
   }
 
-  changeProfileImage(file: File) {
-    this.fileUploadService.upload(file).subscribe(() => {
+  changeProfileImage(room: Room, file: File) {
+    this.fileUploadService.upload(file).subscribe((resp) => {
+      room.profile_image = resp;
       this.snackBar.open('File Upload successful', 'Hide', {
         duration: 2000,
       });
@@ -43,8 +45,9 @@ export class RoomsComponent {
     });
   }
 
-  changeBackgroundImage(file: File) {
-    this.fileUploadService.upload(file).subscribe(() => {
+  changeBackgroundImage(room: Room, file: File) {
+    this.fileUploadService.upload(file).subscribe((resp) => {
+      room.bg_image = resp;
       this.snackBar.open('File Upload successful', 'Hide', {
         duration: 2000,
       });
@@ -98,6 +101,10 @@ export class RoomsComponent {
         this.deleteRoom(result);
       }
     });
+  }
+
+  imagePath(path): string {
+    return environment.apiEndpoint + '/file/' + path;
   }
 }
 

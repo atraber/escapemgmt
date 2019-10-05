@@ -6,6 +6,7 @@ import {ChangeDetectorRef, Component} from '@angular/core';
 import {MatCarousel, MatCarouselComponent} from '@ngmodule/material-carousel';
 import {timer} from 'rxjs/observable/timer';
 
+import {environment} from '../../environments/environment';
 import {Room} from '../room';
 import {RoomsService} from './rooms.service';
 
@@ -30,5 +31,9 @@ export class FrontscreenComponent {
 
   ngAfterViewInit(): void {
     this.cdr.detectChanges();
+  }
+
+  imagePath(path): string {
+    return environment.apiEndpoint + '/file/' + path;
   }
 }
