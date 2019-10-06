@@ -21,9 +21,9 @@
           </thead>
           <tbody>
             <tr *ngFor="let score of room.scores; index as i">
-              <th scope="row">{{i + 1}}</th>
-              <td>{{score.name}} <small>{{score.created_at}}</small></td>
-              <td>{{score.time}}</td>
+              <th scope="row">{{score.rank}}</th>
+              <td>{{score.name}} <small>{{formatDate(score.created_at)}}</small></td>
+              <td>{{formatTime(score.time)}}</td>
             </tr>
           </tbody>
         </table>
