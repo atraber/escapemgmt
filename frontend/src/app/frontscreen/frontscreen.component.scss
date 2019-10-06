@@ -1,5 +1,5 @@
 .container {
-  background-color: #909090;
+  background-color: black;
 }
 
 /deep/ .carousel-slide {
@@ -36,7 +36,14 @@
   margin-bottom: 16px;
 }
 
-.card > img {
+.card > .img-container > img {
+  max-width: calc(100vw);
+  max-height: calc(70vh);
+  object-position: center;
+  object-fit: cover;
+}
+
+.card > .img-container {
   width: calc(100vw);
   height: calc(70vh);
   object-position: center;

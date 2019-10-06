@@ -1,9 +1,8 @@
-<!-- TODO: THIS SHOULD BE 15000 -->
 <div class="container">
   <mat-carousel
        timings="250ms ease-in"
-       [autoplay]="false"
-       interval="1500"
+       [autoplay]="true"
+       interval="15000"
        [loop]="true"
        [hideArrows]="true"
        [hideIndicators]="true"
@@ -30,7 +29,9 @@
             <div class="card-title">{{room.name}}</div>
             <div class="card-subtitle">{{room.description}}</div>
           </div>
-          <img src="{{room.bg_image ? imagePath(room.bg_image) : 'http://www.houdinis.ch/wp-content/uploads/2018/01/houdinis_quest_logo_2018_neu_300_weiss.png'}}">
+          <div class="img-container">
+            <img src="{{room.bg_image ? imagePath(room.bg_image) : 'http://www.houdinis.ch/wp-content/uploads/2018/01/houdinis_quest_logo_2018_neu_300_weiss.png'}}">
+          </div>
           <div class="card-row">
             <div class="card-row-element">
               <mat-icon>timer</mat-icon>

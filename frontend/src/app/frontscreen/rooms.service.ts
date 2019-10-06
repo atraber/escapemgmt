@@ -26,11 +26,10 @@ export class RoomsService {
 
   constructor(private http: HttpClient) {
     this.updateRooms();
-    // TODO
-    //let t = timer(0, 15 * 1000);
-    //t.subscribe(t => {
-    //  this.updateRooms();
-    //});
+    let t = timer(0, 15 * 1000);
+    t.subscribe(t => {
+      this.updateRooms();
+    });
   }
 
   private sortRooms(rooms: Room[]): Room[] {
