@@ -22,6 +22,22 @@
         <input matInput [(ngModel)]="room.description" placeholder="Description">
       </mat-form-field>
 
+      <mat-form-field>
+        <mat-chip-list #tags>
+          <mat-chip *ngFor="let tag of room.tags"
+                    [selectable]="true"
+                    [removable]="true" (removed)="removeRoomTag(room, tag)">
+            {{tag}}
+            <mat-icon matChipRemove>cancel</mat-icon>
+          </mat-chip>
+          <input placeholder="Tags"
+                 [matChipInputFor]="tags"
+                 [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+                 [matChipInputAddOnBlur]="true"
+                 (matChipInputTokenEnd)="addRoomTag(room, $event)">
+        </mat-chip-list>
+      </mat-form-field>
+
       <img src="{{imagePath(room.profile_image)}}">
       <file-upload (onLoad)="changeProfileImage(room, $event)" label="Profile Image"></file-upload>
 

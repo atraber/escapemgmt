@@ -4,6 +4,8 @@
  */
 import {Component, Inject} from '@angular/core';
 import {MatDialog, MatDialogRef, MAT_DIALOG_DATA, MatSnackBar} from '@angular/material';
+import {MatChipInputEvent} from '@angular/material/chips';
+import {COMMA, ENTER} from '@angular/cdk/keycodes';
 
 import {environment} from '../../environments/environment';
 import {FileBuffer} from './filebuffer';
@@ -18,6 +20,7 @@ import {Room} from '../room';
 })
 export class RoomsComponent {
   rooms: Room[];
+  readonly separatorKeysCodes: number[] = [ENTER, COMMA];
 
   constructor(
     private scoresService: ScoresService,
@@ -26,9 +29,10 @@ export class RoomsComponent {
     private snackBar: MatSnackBar) {
     this.rooms = this.scoresService.rooms;
 
-    this.scoresService.roomsUpdated.subscribe(
-      (rooms) => this.rooms = rooms
-    );
+    this.scoresService.roomsUpdated.subscribe((rooms) => {
+      this.rooms = rooms;
+      console.log(this.rooms);
+    });
   }
 
   changeProfileImage(room: Room, file: File) {
@@ -96,7 +100,7 @@ export class RoomsComponent {
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      if (result != "") {
+      if (result != '') {
         console.log('The dialog was closed. Deleting the room.');
         this.deleteRoom(result);
       }
@@ -105,6 +109,28 @@ export class RoomsComponent {
 
   imagePath(path): string {
     return environment.apiEndpoint + '/file/' + path;
+  }
+
+  addRoomTag(room: Room, event: MatChipInputEvent): void {
+    const input = event.input;
+    const value = event.value;
+
+    if ((value || '').trim()) {
+      room.tags.push(value.trim());
+    }
+
+    // Reset the input value
+    if (input) {
+      input.value = '';
+    }
+  }
+
+  removeRoomTag(room: Room, tag: string): void {
+    const index = room.tags.indexOf(tag);
+
+    if (index >= 0) {
+      room.tags.splice(index, 1);
+    }
   }
 }
 

@@ -11,6 +11,7 @@ export class Room {
   profile_image: string;
   bg_image: string;
   scores: Score[];
+  tags: string[];
 
   constructor () {
     this.name = "";
@@ -18,5 +19,6 @@ export class Room {
     this.profile_image = "";
     this.bg_image = "";
     this.scores = [];
+    this.tags = [];
   }
 }
