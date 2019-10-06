@@ -50,3 +50,41 @@ class Booking:
             ' room_id: {};'.format(self.room_id),
             ' slot_from: {}; slot_to: {}'.format(self.slot_from, self.slot_to)
         ])
+
+
+class Room:
+    def __init__(self, id, name, description, profile_image, bg_image, tags):
+        self.id = id
+        self.name = name
+        self.description = description
+        self.profile_image = profile_image
+        self.bg_image = bg_image
+        self.tags = tags
+
+    def serialize(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'description': self.description,
+            'profile_image': self.profile_image,
+            'bg_image': self.bg_image,
+            'tags': self.tags,
+        }
+
+    @staticmethod
+    def deserialize(obj):
+        return Room(
+            id=obj['id'],
+            name=obj['name'],
+            description=obj['description'],
+            profile_image=obj['profile_image'],
+            bg_image=obj['bg_image'],
+            tags=obj['tags'],
+        )
+
+    def __repr__(self):
+        return ''.join([
+            'Room id: {};'.format(self.id),
+            ' name: {}'.format(self.name),
+            ' tags: {}'.format(self.tags),
+        ])

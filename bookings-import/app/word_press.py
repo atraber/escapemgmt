@@ -15,11 +15,6 @@ flags.DEFINE_string('wp_auth_token', '',
 
 # Flags
 remapping = {
-    'houdini2': 'Houdini',
-    'gefaengnis-neu': 'Gefaengnis',
-    'gefaengnis': 'Gefaengnis',
-    'test': 'Bibliothek',
-    'labor': 'Labor',
 }
 
 ignore = ['']
