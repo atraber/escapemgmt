@@ -4,7 +4,7 @@ import io
 import uuid
 from quart import abort, Blueprint, request, jsonify, make_response, send_file
 from minio.error import (ResponseError, BucketAlreadyOwnedByYou,
-                         BucketAlreadyExists)
+                         BucketAlreadyExists, InvalidAccessKeyId)
 from urllib3.exceptions import MaxRetryError
 
 from app import db
@@ -23,13 +23,12 @@ def minioInit():
         minio_client.make_bucket(_BUCKET)
     except BucketAlreadyOwnedByYou as err:
         logger.error('minio_client was unable to create bucket: {}'.format(err))
-        pass
     except BucketAlreadyExists as err:
         logger.error('minio_client was unable to create bucket: {}'.format(err))
-        pass
     except MaxRetryError as err:
         logger.error('minio_client was unable to create bucket: {}'.format(err))
-        pass
+    except InvalidAccessKeyId as err:
+        logger.error('minio_client was unable to create bucket: {}'.format(err))
     except ResponseError as err:
         logger.error('minio_client was unable to create bucket: {}'.format(err))
         raise
