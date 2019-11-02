@@ -7,23 +7,26 @@
     <mat-card *ngFor="let room of rooms">
       <mat-card-header>
         <mat-card-title>{{room.name}}</mat-card-title>
-        <mat-card-subtitle>Bestzeiten</mat-card-subtitle>
       </mat-card-header>
       <img mat-card-image src="{{imagePath(room.profile_image)}}">
       <mat-card-content>
+        <div class="subtitle">Bestzeiten</div>
         <table class="table">
           <thead>
             <tr>
-              <th scope="col" style="width: 15%">#</th>
+              <th scope="col" class="rank">#</th>
               <th scope="col">Name</th>
-              <th scope="col" style="width: 20%">Zeit</th>
+              <th scope="col" class="time">Zeit</th>
             </tr>
           </thead>
           <tbody>
             <tr *ngFor="let score of room.scores; index as i">
-              <th scope="row">{{score.rank}}</th>
-              <td>{{score.name}} <small>{{formatDate(score.created_at)}}</small></td>
-              <td>{{formatTime(score.time)}}</td>
+              <th scope="row" class="rank">{{score.rank}}</th>
+              <td>
+                <div style="float:left;width:50%;">{{score.name}}</div>
+                <div style="float:right;width:20%;" class="small">{{formatDate(score.created_at)}}</div>
+              </td>
+              <td class="time">{{formatTime(score.time)}}</td>
             </tr>
           </tbody>
         </table>

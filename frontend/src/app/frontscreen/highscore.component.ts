@@ -82,7 +82,7 @@ export class HighscoreComponent {
   }
 
   formatTime(time: number): string {
-    return moment.utc(time * 1000).format('H:mm')
+    return Math.floor(time/60) + ' min';
   }
 
   formatDate(time: number): string {

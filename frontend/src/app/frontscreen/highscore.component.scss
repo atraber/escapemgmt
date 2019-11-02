@@ -17,6 +17,19 @@
   max-height: calc(25vh);
 }
 
+ .mat-card-content {
+  margin: 0px 16px;
+}
+
+.mat-card-title {
+  font-size: 30pt;
+}
+
+.subtitle {
+  color: rgba(0,0,0,.80);
+  font-size: 24pt;
+}
+
 .top-bar {
   display: flex;
   flex-direction: row;
@@ -47,8 +60,26 @@
 
 .table {
   width: 100%;
+  color: rgba(0,0,0,.80);
 }
 
-.table small {
-  color:  var(--gray);
+div.small {
+  color: rgba(0,0,0,.60);
+  text-align: right;
+  padding-right: 20px;
+}
+
+th.time {
+  padding-right: 20px;
+  text-align: right;
+  width: 20%;
+}
+
+td.time {
+  text-align: right;
+}
+
+th.rank {
+  padding-right: 10px;
+  padding-left: 10px;
 }

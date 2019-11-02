@@ -4,7 +4,6 @@
  */
 import {ChangeDetectorRef, Component} from '@angular/core';
 import {MatCarousel, MatCarouselComponent} from '@ngmodule/material-carousel';
-import {timer} from 'rxjs/observable/timer';
 
 import {environment} from '../../environments/environment';
 import {Room} from '../room';
