@@ -1,29 +1,18 @@
 <div class="container">
-  <mat-carousel
-       timings="250ms ease-in"
-       [autoplay]="true"
-       interval="15000"
-       [loop]="true"
-       [hideArrows]="true"
-       [hideIndicators]="true"
-       [useKeyboard]="true"
-       [useMouseWheel]="false"
-       [proportion]="25"
-       orientation="ltr">
-
-    <mat-carousel-slide>
+  <slide-container>
+    <slide>
       <carousel-highscore></carousel-highscore>
-    </mat-carousel-slide>
-    <mat-carousel-slide>
+    </slide>
+    <slide>
       <img class="logo-background" src="http://www.houdinis.ch/wp-content/uploads/2018/01/houdinis_quest_logo_2018_neu_300_weiss.png">
-    </mat-carousel-slide>
+    </slide>
 
     <ng-container *ngFor="let room of rooms; let idx = index">
-      <mat-carousel-slide>
+      <slide>
         <carousel-highscore></carousel-highscore>
-      </mat-carousel-slide>
+      </slide>
 
-      <mat-carousel-slide>
+      <slide>
         <div class="card">
           <div class="card-header">
             <div class="card-title">{{room.name}}</div>
@@ -56,7 +45,7 @@
             </div>
           </div>
         </div>
-      </mat-carousel-slide>
+      </slide>
     </ng-container>
-  </mat-carousel>
+  </slide-container>
 </div>

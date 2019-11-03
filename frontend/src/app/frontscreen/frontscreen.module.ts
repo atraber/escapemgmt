@@ -5,10 +5,13 @@
 import {NgModule} from '@angular/core';
 import {RouterModule, Routes} from '@angular/router';
 import {CommonModule} from '../common.module';
-import {MatCarouselModule} from '@ngmodule/material-carousel';
+import {BrowserModule} from '@angular/platform-browser';
+import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 
 import {FrontscreenComponent} from './frontscreen.component';
 import {HighscoreComponent} from './highscore.component';
+import {SlideComponent} from './slide.component';
+import {SlideContainerComponent} from './slidecontainer.component';
 
 const routes: Routes = [
   {
@@ -21,12 +24,15 @@ const routes: Routes = [
   declarations: [
     FrontscreenComponent,
     HighscoreComponent,
+    SlideComponent,
+    SlideContainerComponent,
   ],
   entryComponents: [
   ],
   imports: [
     CommonModule,
-    MatCarouselModule,
+    BrowserModule,
+    BrowserAnimationsModule,
     RouterModule.forChild(routes),
   ],
   exports: [

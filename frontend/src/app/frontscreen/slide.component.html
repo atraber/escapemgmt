@@ -1,0 +1,6 @@
+<div
+  [@showHide]="animationState"
+  (@showHide.done)="onAnimationEvent($event)"
+  >
+  <ng-content></ng-content>
+</div>

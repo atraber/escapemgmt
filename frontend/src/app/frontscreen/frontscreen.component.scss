@@ -1,5 +1,7 @@
 .container {
   background-color: black;
+  height: calc(100vh);
+  width: calc(100vw);
 }
 
 /deep/ .carousel-slide {
