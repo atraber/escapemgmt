@@ -26,7 +26,9 @@
         group: root
         content: |
           {
-            "insecure-registries" : ["192.168.0.150:5000"]
+            "insecure-registries" : ["192.168.0.150:5000"],
+            "log-driver": "json-file",
+            "log-opts": {"max-size": "10m", "max-file": "3"}
           }
 
     - name: Restart docker daemon
