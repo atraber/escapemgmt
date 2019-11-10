@@ -20,6 +20,7 @@
       command: /bin/sh /home/pi/get-docker.sh
 
     - name: Create repository entry
+      become: true
       copy:
         dest: "/etc/docker/daemon.json"
         owner: root

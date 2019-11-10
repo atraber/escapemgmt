@@ -4,13 +4,13 @@
   become_method: sudo
   tasks:
     - name: Run XFCE update playbook
-      include_tasks: raspi-xfce.yaml
+      include_tasks: raspi-xfce.yml
 
     - name: Run docker install playbook
-      include_tasks: raspi-docker-install.yaml
+      include_tasks: raspi-docker-install.yml
 
     - name: Run docker update playbook
-      include_tasks: raspi-docker-update.yaml
+      include_tasks: raspi-docker-update.yml
 
     - name: Restart server
       become: true
