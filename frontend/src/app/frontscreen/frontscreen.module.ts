@@ -10,6 +10,7 @@ import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 
 import {FrontscreenComponent} from './frontscreen.component';
 import {HighscoreComponent} from './highscore.component';
+import {RoomSlideComponent} from './roomslide.component';
 import {SlideComponent} from './slide.component';
 import {SlideContainerComponent} from './slidecontainer.component';
 
@@ -24,6 +25,7 @@ const routes: Routes = [
   declarations: [
     FrontscreenComponent,
     HighscoreComponent,
+    RoomSlideComponent,
     SlideComponent,
     SlideContainerComponent,
   ],

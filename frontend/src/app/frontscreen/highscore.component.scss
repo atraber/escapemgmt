@@ -4,6 +4,7 @@
   min-height: calc(50vh);
   margin-left: 5px;
   margin-right: 5px;
+  width: calc(100vw);
 }
 
 .card-container > mat-card {
@@ -13,8 +14,9 @@
 
 .card-container > mat-card > img {
   width: unset;
-  max-width: calc(100% + 32px);
-  max-height: calc(25vh);
+  max-width: calc(100% + 32px - 2px);
+  max-height: calc(25vh - 2px);
+  padding: 1px;
 }
 
  .mat-card-content {
@@ -61,25 +63,51 @@
 .table {
   width: 100%;
   color: rgba(0,0,0,.80);
-}
-
-div.small {
-  color: rgba(0,0,0,.60);
-  text-align: right;
-  padding-right: 20px;
-}
-
-th.time {
-  padding-right: 20px;
-  text-align: right;
-  width: 20%;
-}
-
-td.time {
-  text-align: right;
+  font-size: 16pt;
 }
 
 th.rank {
+  padding-right: 5px;
+  padding-left: 0px;
+}
+
+td.rank {
+  padding-right: 5x;
+  padding-left: 0px;
+}
+
+th.name {
+  text-align: left;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+td.name {
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+td.name > div.name {
+  float: left;
+  padding-left: 0px;
+}
+
+td.name > div.date {
+  float: right;
+  color: rgba(0,0,0,.60);
+  text-align: right;
+  padding-right: 0px;
+}
+
+
+th.time {
   padding-right: 10px;
-  padding-left: 10px;
+  text-align: right;
+  width: 15%;
+}
+
+td.time {
+  padding-left: 5px;
+  padding-right: 0px;
+  text-align: right;
 }

@@ -82,7 +82,18 @@ export class HighscoreComponent {
   }
 
   formatTime(time: number): string {
-    return Math.floor(time/60) + ' min';
+    let m = moment.duration(time * 1000);
+    let hours = m.hours();
+    let minutes =  m.minutes();
+
+    let hours_str: string = hours.toString();
+    if (hours < 10)
+      hours_str = '0' + hours_str;
+
+    let minutes_str: string = minutes.toString();
+    if (minutes < 10)
+      minutes_str = '0' + minutes_str;
+    return hours_str + ':' + minutes_str;
   }
 
   formatDate(time: number): string {

@@ -1,0 +1,32 @@
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">{{room.name}}</div>
+    <div class="card-subtitle">{{room.description}}</div>
+  </div>
+  <div class="img-container">
+    <img src="{{room.bg_image ? imagePath(room.bg_image) : 'http://www.houdinis.ch/wp-content/uploads/2018/01/houdinis_quest_logo_2018_neu_300_weiss.png'}}">
+  </div>
+  <div class="card-row">
+    <div class="card-row-element">
+      <mat-icon>timer</mat-icon>
+      <p>Dauer</p>
+      <p>1:00</p>
+    </div>
+    <div class="card-row-element">
+      <mat-icon>update</mat-icon>
+      <p>Rekord</p>
+      <p *ngIf="room.scores.length > 0">{{room.scores[0].time}}</p>
+      <p *ngIf="room.scores.length == 0">N/A</p>
+    </div>
+    <div class="card-row-element">
+      <mat-icon>people</mat-icon>
+      <p>Anzahl Spieler</p>
+      <p>2 - 5</p>
+    </div>
+    <div class="card-row-element">
+      <mat-icon>done</mat-icon>
+      <p>Erfolgsquote</p>
+      <p>50%</p>
+    </div>
+  </div>
+</div>
