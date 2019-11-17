@@ -9,70 +9,48 @@
 
 .card-header {
   margin-left: 30px;
-  height: calc(10vh);
 }
 
 .card-title {
   font-size: 44px;
   margin-top: 16px;
-  margin-bottom: 8px;
+  margin-bottom: 16px;
+}
+
+.description {
+  position: absolute;
+  margin-top: calc(50vh);
 }
 
 .card-subtitle {
-  font-size: 35px;
-  color: rgba(243, 146, 0, 0.8);
-  margin-top: 4px;
-  margin-bottom: 16px;
+  color: rgba(255, 255, 255, 1);
+  background-color: rgba(243, 146, 0, 1);
+  font-size: 27pt;
+  font-weight: 600;
+  width: fit-content;
+  margin-bottom: 25px;
+  margin-left: 15px;
+  margin-right: 5px;
+  margin-top: 25px;
+  padding-bottom: 2px;
+  padding-left: 10px;
+  padding-right: 10px;
+  padding-top: 2px;
 }
 
 .card > .img-container > img {
   max-width: calc(100vw);
-  max-height: calc(70vh);
+  max-height: calc(90vh);
   object-position: center;
   object-fit: cover;
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
 }
 
 .card > .img-container {
   width: calc(100vw);
-  height: calc(70vh);
+  height: calc(90vh);
   object-position: center;
   object-fit: cover;
-}
-
-.card-row {
-  margin-top: 10px;
-  height: calc(20vh);
-  display: flex;
-  flex-direction: row;
-}
-
-.card-row-element {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  text-align: center;
-}
-
-.card-row-element > .mat-icon {
-  margin-left: auto;
-  margin-right: auto;
-  font-size: 60px;
-  height: 60px;
-  width: 60px;
-}
-
-.card-row-element > p {
-  font-size: 35px;
-  margin-top: 2px;
-  margin-bottom: 2px;
-}
-
-.card-row-element > p:first-child {
-  font-weight: 600;
-  color: rgba(243, 146, 0, 0.8);
-}
-
-.card-row-element > p:last-child {
-  margin-top: 4px;
-  font-weight: 800;
 }

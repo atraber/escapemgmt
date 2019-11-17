@@ -13,9 +13,20 @@ import {Room} from '../room';
   selector: 'room-slide',
 })
 export class RoomSlideComponent {
-  @Input() room: Room;
+  descs: string[] = [];
+  room_: Room = null;
 
   imagePath(path): string {
     return environment.apiEndpoint + '/file/' + path;
+  }
+
+  @Input()
+  set room(room: Room) {
+    this.room_ = room;
+    this.descs = this.room_.description.split('\n');
+  }
+
+  get room(): Room|null {
+    return this.room_;
   }
 }
