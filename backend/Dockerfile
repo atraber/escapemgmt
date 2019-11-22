@@ -6,7 +6,7 @@ EXPOSE 8080
 RUN groupadd -r -g 666 backend && useradd -r -u 666 -g backend backend
 
 # Install Supervisord
-RUN apt-get update && apt-get install -y supervisor \
+RUN apt-get update && apt-get install -y supervisor postgresql-client postgresql-server-dev-all \
         && rm -rf /var/lib/apt/lists/*
 
 # Custom Supervisord config
