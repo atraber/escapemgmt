@@ -13,7 +13,6 @@ devices = Blueprint('devices', __name__)
 
 @devices.route('/devices', methods = ['GET'])
 async def apiDevices():
-    #devices = db.session.query(Device).order_by(Device.name).filter(Device.streams.preset.any(active=True)).all()
     devices = db.session.query(Device).order_by(Device.name).all()
     return jsonify([d.serialize() for d in devices])
 
@@ -88,7 +87,7 @@ def _PresetStreamsCompare(new: List[Preset], old: List[Preset]):
 
             a, r = _StreamsCompare(
                 [stream.id for stream in np.streams],
-                [stream.id for stream in op.streams])
+                [stream.id for stream in op.streams_bar])
 
             for stream_added in a:
                 added.append((n, stream_added))
@@ -104,7 +103,7 @@ def _PresetStreamsCompare(new: List[Preset], old: List[Preset]):
         if o not in new_dict.keys():
             op = old_dict[o]
             # Preset is no longer there, but used to be, remove all of them.
-            for stream in op.streams:
+            for stream in op.streams_bar:
                 removed.append((n, stream.id))
 
     return (added, removed)
@@ -135,7 +134,7 @@ async def apiDeviceUpdate(deviceid: int):
 
             (streams_added, streams_removed) = _PresetStreamsCompare(
                     _JsonToPresets(data_json['presets_used']),
-                    db_device.presets_used)
+                    db_device.presets_used())
 
             for preset_id, stream_id in streams_removed:
                 logger.info('Removing DeviceStream for device_id {}, preset_id {}, stream_id {}'.format(db_device.id, preset_id, stream_id))

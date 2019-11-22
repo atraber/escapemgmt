@@ -8,11 +8,13 @@ import sqlalchemy.orm as orm
 
 class DeviceStream(db.Model):  # type: ignore
     __tablename__ = 'device_streams'
+    device_id = sa.Column(sa.Integer, sa.ForeignKey('devices.id'), primary_key=True)
+    preset_id = sa.Column(sa.Integer, sa.ForeignKey('presets.id'), primary_key=True)
+    stream_id = sa.Column(sa.Integer, sa.ForeignKey('streams.id'), primary_key=True)
 
-    device_id = sa.Column(sa.Integer, sa.ForeignKey('devices.id'), primary_key=True, nullable=True)
-    stream_id = sa.Column(sa.Integer, sa.ForeignKey('streams.id'), primary_key=True, nullable=True)
-    preset_id = sa.Column(sa.Integer, sa.ForeignKey('presets.id'), primary_key=True, nullable=True)
-    preset = orm.relationship('Preset')
+    device = orm.relationship('Device', backref='device_streams')
+    preset = orm.relationship('Preset', backref='device_streams')
+    stream = orm.relationship('Stream', backref='device_streams')
 
     def __init__(self, device=None, device_id=None, stream=None,
             stream_id=None, preset=None, preset_id=None):
@@ -37,6 +39,9 @@ class DeviceStream(db.Model):  # type: ignore
         else:
             raise Exception('Need to specify either preset or preset_id')
 
+    def __repr__(self):
+        return "<DeviceStream: device_id: {}, preset_id: {}, stream_id: {}>".format(self.device_id, self.preset_id, self.stream_id)
+
 
 class Device(db.Model):  # type: ignore
     __tablename__ = 'devices'
@@ -47,15 +52,10 @@ class Device(db.Model):  # type: ignore
     screen_enable = sa.Column(sa.Boolean, default=True, nullable=False)
     last_seen = sa.Column(sa.Integer)
     streams = orm.relationship('Stream',
-            primaryjoin='and_(Device.id == device_streams.c.device_id, Preset.active == 1)',
+            primaryjoin='and_(Device.id == device_streams.c.device_id, Preset.active == True)',
             secondary='join(device_streams, Stream, device_streams.c.stream_id == Stream.id)'
                       '.join(Preset, device_streams.c.preset_id == Preset.id)',
             backref='devices',
-            viewonly=True)
-
-    presets_used = orm.relationship('Preset',
-            primaryjoin='Device.id == device_streams.c.device_id',
-            secondary='join(device_streams, Preset, device_streams.c.preset_id == Preset.id)',
             viewonly=True)
 
     def __init__(self, id=None, name=None, mac=None, screen_enable=True):
@@ -64,7 +64,20 @@ class Device(db.Model):  # type: ignore
         self.mac = mac
         self.screen_enable = screen_enable
 
+    def presets_used(self):
+        presets = {}
+        for ds in self.device_streams:
+            if ds.preset_id not in presets:
+                presets[ds.preset_id] = ds.preset
+
+            if not hasattr(presets[ds.preset_id], 'streams_bar'):
+                presets[ds.preset_id].streams_bar = []
+            presets[ds.preset_id].streams_bar.append(ds.stream)
+
+        return presets.values()
+
     def serialize(self):
+
         return {
             'id': self.id,
             'name': self.name,
@@ -73,7 +86,7 @@ class Device(db.Model):  # type: ignore
             'last_seen': self.last_seen,
             'streams': [s.serialize() for s in self.streams],
             'presets_used': [s.serialize(load_streams=True)
-                for s in self.presets_used],
+                for s in self.presets_used()],
         }
 
 
@@ -138,6 +151,7 @@ class Preset(db.Model):  # type: ignore
     name = sa.Column(sa.String(100))
     active = sa.Column(sa.Boolean, default=False, nullable=False)
 
+    # TODO: Figure out if this is still necessary. We renamed our own field to streams_bar for now.
     streams = orm.relationship('Stream',
             primaryjoin='Preset.id == device_streams.c.preset_id',
             secondary='join(device_streams, Stream, device_streams.c.stream_id == Stream.id)',
@@ -156,7 +170,7 @@ class Preset(db.Model):  # type: ignore
         }
 
         if load_streams:
-            out['streams'] = [s.serialize() for s in self.streams]
+            out['streams'] = [s.serialize() for s in self.streams_bar]
 
         return out
 
@@ -204,7 +218,7 @@ class Booking(db.Model):  # type: ignore
     # TODO: I'm not exactly sure what gets loaded here. If it is only Room
     # without the scores, this is fine. However, it seems it doubles the
     # query time for Bookings.
-    room = orm.relationship('Room')
+    room = orm.relationship('Room', cascade='delete')
     slot_from = sa.Column(sa.Integer)
     slot_to = sa.Column(sa.Integer)
     created_at = sa.Column(sa.Integer)
