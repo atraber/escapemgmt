@@ -3,7 +3,7 @@
  * Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
  */
 import {AfterViewInit, Component, QueryList, ContentChildren} from '@angular/core';
-import {timer} from 'rxjs/observable/timer';
+import {timer} from 'rxjs';
 
 import {SlideComponent} from './slide.component';
 

@@ -21,6 +21,9 @@
           }
         },
         "serve": {
+          "styles": [
+            "src/styles.scss"
+          ],
           "builder": "@angular/bazel:build",
           "options": {
             "targetLabel": "//src:devserver",

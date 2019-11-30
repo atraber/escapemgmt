@@ -17,7 +17,7 @@ export class AppComponent implements AfterViewInit {
   _router: any;
   snavOpened: boolean = false;
   snavMode: string = 'side';
-  @ViewChild('snav') snav: MatDrawer;
+  @ViewChild('snav', {static: false}) snav: MatDrawer;
 
   constructor(
       private navService: NavService,

@@ -7,12 +7,12 @@
 }
 
 .score-add-field {
-  @include button-add-field
+  @include button-add-field;
   margin: 10px;
 }
 
 .room-drawer-list {
-  @include drawer-button-list
+  @include drawer-button-list;
 }
 
 table {

@@ -21,7 +21,7 @@
 }
 
 .rooms-create-field {
-  @include button-add-field
+  @include button-add-field;
   margin: 10px;
 }
 

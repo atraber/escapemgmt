@@ -7,7 +7,7 @@ import {EventEmitter, Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
 import {catchError, retryWhen} from 'rxjs/operators';
 import {genericRetryStrategy} from '../rxjs-utils';
-import {timer} from 'rxjs/observable/timer';
+import {timer} from 'rxjs';
 import {environment} from '../../environments/environment';
 
 import * as moment from 'moment';
@@ -26,10 +26,10 @@ export class RoomsService {
 
   constructor(private http: HttpClient) {
     this.updateRooms();
-    //let t = timer(0, 15 * 1000);
-    //t.subscribe(t => {
-    //  this.updateRooms();
-    //});
+    let t = timer(0, 15 * 1000);
+    t.subscribe(t => {
+      this.updateRooms();
+    });
   }
 
   private sortRooms(rooms: Room[]): Room[] {

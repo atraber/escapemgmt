@@ -1,16 +1,16 @@
 @import 'styles.scss';
 
 .device-add-field {
-  @include button-add-field
+  @include button-add-field;
   margin-top: 10px;
 }
 
 .stream-add-field {
-  @include button-add-field
+  @include button-add-field;
 }
 
 .devices-drawer-list {
-  @include drawer-button-list
+  @include drawer-button-list;
 }
 
 .button-text {

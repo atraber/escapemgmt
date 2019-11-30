@@ -15,7 +15,7 @@ import {StreamView} from '../streamview';
 })
 export class StreamEditDialog {
   orientation: string;
-  @ViewChild('orientationInput') orientationInput: MatSelect;
+  @ViewChild('orientationInput', {static: false}) orientationInput: MatSelect;
   newStreamViews: StreamView[] = [];
   deletedStreamViews: StreamView[] = [];
 

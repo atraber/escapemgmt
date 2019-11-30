@@ -4,7 +4,7 @@
  */
 import {Injectable, EventEmitter} from '@angular/core';
 import {HttpClient, HttpHeaders, HttpErrorResponse} from '@angular/common/http';
-import {Observable} from 'rxjs/Observable';
+import {Observable} from 'rxjs';
 import {catchError, retryWhen} from 'rxjs/operators';
 import {genericRetryStrategy} from './rxjs-utils';
 
