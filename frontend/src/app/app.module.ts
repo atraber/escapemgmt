@@ -24,15 +24,15 @@ import {RoomsModule} from './rooms/rooms.module';
 const appRoutes: Routes = [
   {
     path: 'bookings',
-    loadChildren: './bookings/bookings.module#BookingsModule',
+    loadChildren: () => import('./bookings/bookings.module').then(m => m.BookingsModule),
   },
   {
     path: 'devices',
-    loadChildren: './devices/devices.module#DevicesModule',
+    loadChildren: () => import('./devices/devices.module').then(m => m.DevicesModule),
   },
   {
     path: 'rooms',
-    loadChildren: './rooms/rooms.module#RoomsModule',
+    loadChildren: () => import('./rooms/rooms.module').then(m => m.RoomsModule),
   },
   { path: '',
     redirectTo: '/bookings/dash',
