@@ -8,9 +8,6 @@
       <mat-panel-title>
         {{room.name}}
       </mat-panel-title>
-      <mat-panel-description>
-        {{room.description}}
-      </mat-panel-description>
     </mat-expansion-panel-header>
 
     <div class="room-form-container">
@@ -19,7 +16,7 @@
       </mat-form-field>
 
       <mat-form-field>
-        <input matInput [(ngModel)]="room.description" placeholder="Description">
+        <textarea matInput [(ngModel)]="room.description" placeholder="Description"></textarea>
       </mat-form-field>
 
       <mat-form-field>
