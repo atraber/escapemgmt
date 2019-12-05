@@ -4,7 +4,9 @@
  */
 import {Component, Inject, Input} from '@angular/core';
 import {MatTableDataSource} from '@angular/material';
-import * as moment from 'moment';
+import * as moment_ from 'moment';
+
+const moment = moment_;
 
 import {Booking} from '../booking';
 

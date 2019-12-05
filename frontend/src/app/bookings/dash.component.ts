@@ -4,7 +4,9 @@
  */
 import {Component, Inject} from '@angular/core';
 import {MatDialog, MatDialogRef, MAT_DIALOG_DATA, MatSnackBar} from '@angular/material';
-import * as moment from 'moment';
+import * as moment_ from 'moment';
+
+const moment = moment_;
 
 import {Booking} from '../booking';
 import {BookingsService} from '../bookings.service';
