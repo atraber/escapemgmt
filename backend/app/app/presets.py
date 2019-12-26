@@ -3,9 +3,9 @@
 from quart import abort, Blueprint, request, jsonify
 
 from app import db
-from app.logger import logger
-from app.models import Device, Preset
-from app.pubsub import publish
+from logger import logger
+from models import Device, Preset
+from pubsub import publish
 
 
 presets = Blueprint('presets', __name__)

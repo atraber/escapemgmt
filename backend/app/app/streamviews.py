@@ -3,7 +3,7 @@
 from quart import abort, Blueprint, request, Response, jsonify
 
 from app import db
-from app.models import Stream, StreamView
+from models import Stream, StreamView
 
 
 streamviews = Blueprint('streamviews', __name__)

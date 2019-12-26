@@ -8,9 +8,9 @@ from minio.error import (ResponseError, BucketAlreadyOwnedByYou,
 from urllib3.exceptions import MaxRetryError
 
 from app import db
-from app.app import minio_client
-from app.logger import logger
-from app.models import File
+from app import minio_client
+from logger import logger
+from models import File
 
 
 files = Blueprint('files', __name__)

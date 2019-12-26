@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-/app/prestart.sh
+# TODO: This needs to be re-enabled.
+#/app/prestart.sh
 
 exec /usr/bin/supervisord

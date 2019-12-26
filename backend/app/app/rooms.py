@@ -4,7 +4,7 @@ from datetime import datetime
 from quart import abort, Blueprint, request, jsonify
 
 from app import db
-from app.models import Room, Score
+from models import Room, Score
 
 
 rooms = Blueprint('rooms', __name__)

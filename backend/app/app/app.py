@@ -6,12 +6,14 @@ import asyncio
 from minio import Minio
 from quart import Quart
 from quart_cors import cors
-from quart_sqlalchemy import SQLAlchemy
 #from prometheus_flask_exporter import PrometheusMetrics
 import pulsar
 
-from app.config import app_config, app_envs
-from app.logger import logger
+import app
+
+from quart_sqlalchemy import SQLAlchemy
+from config import app_config, app_envs
+from logger import logger
 
 
 app = None
@@ -45,28 +47,28 @@ def App() -> Quart:
         secure=False)
 
     logger.info('Registering blueprints')
-    from app.bookings import bp as bookings_blueprint
+    from bookings import bp as bookings_blueprint
     app.register_blueprint(bookings_blueprint)
 
-    from app.devices import devices as devices_blueprint
+    from devices import devices as devices_blueprint
     app.register_blueprint(devices_blueprint)
 
-    from app.files import files as files_bp
+    from files import files as files_bp
     app.register_blueprint(files_bp)
 
-    from app.presets import presets as presets_blueprint
+    from presets import presets as presets_blueprint
     app.register_blueprint(presets_blueprint)
 
-    from app.pubsub import pubsub as pubsub_blueprint
+    from pubsub import pubsub as pubsub_blueprint
     app.register_blueprint(pubsub_blueprint)
 
-    from app.rooms import rooms as rooms_blueprint
+    from rooms import rooms as rooms_blueprint
     app.register_blueprint(rooms_blueprint)
 
-    from app.streams import streams as streams_blueprint
+    from streams import streams as streams_blueprint
     app.register_blueprint(streams_blueprint)
 
-    from app.streamviews import streamviews as streamviews_blueprint
+    from streamviews import streamviews as streamviews_blueprint
     app.register_blueprint(streamviews_blueprint)
 
     return app
@@ -76,7 +78,7 @@ def Init(app: Quart):
     # enable cross-origin access
     app = cors(app)
 
-    from app import models
+    import models
 
     return app
 

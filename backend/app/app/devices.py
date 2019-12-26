@@ -5,8 +5,8 @@ from quart import abort, Blueprint, request, jsonify
 from typing import List
 
 from app import db
-from app.logger import logger
-from app.models import Device, DeviceStream, Preset, Stream
+from logger import logger
+from models import Device, DeviceStream, Preset, Stream
 
 devices = Blueprint('devices', __name__)
 

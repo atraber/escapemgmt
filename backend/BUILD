@@ -1,0 +1,47 @@
+load(
+    "@io_bazel_rules_docker//container:container.bzl",
+    "container_image",
+    "container_push",
+)
+load("@bazel_tools//tools/build_defs/pkg:pkg.bzl", "pkg_tar")
+
+package(default_visibility = ["//visibility:public"])
+
+container_image(
+    name = "backend",
+    base = "@backend_base//image",
+    cmd = [
+        "/hypercorn",
+        "-b",
+        ":8080",
+        "-w",
+        "10",
+        "app.main:application",
+    ],
+    files = [
+        "//app/app:main.zip",
+    ],
+)
+
+container_push(
+    name = "backend_push",
+    format = "Docker",
+    image = ":backend",
+    registry = "192.168.29.232:5000",
+    repository = "escape_backend",
+    tag = "latest",
+)
+#
+#genrule(
+#    name = "main_tar",
+#    srcs = ["//app/app:main.zip"],
+#    outs = ["main.tar"],
+#    cmd = "unzip -q $(location //app/app:main.zip) -d app && tar -cf $@ ./app",
+#)
+#
+#genrule(
+#    name = "hypercorn_tar",
+#    srcs = ["//app:hypercorn.zip"],
+#    outs = ["hypercorn.tar"],
+#    cmd = "unzip -q $(location //app:hypercorn.zip) -d hypercorn && tar -cf $@ ./hypercorn",
+#)

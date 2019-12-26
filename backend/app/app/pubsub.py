@@ -5,8 +5,8 @@ import uuid
 from quart import Blueprint, make_response, Response
 from threading import Lock
 
-from app.app import pulsar_client
-from app.logger import logger
+from app import pulsar_client
+from logger import logger
 
 
 pubsub = Blueprint('pubsub', __name__)

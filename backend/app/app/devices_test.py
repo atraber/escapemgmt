@@ -5,7 +5,7 @@ import json
 import pytest
 from quart.testing import QuartClient
 
-from app.main_test import client, createDevice, postJson
+from main_test import client, createDevice, postJson
 
 
 @pytest.mark.asyncio
