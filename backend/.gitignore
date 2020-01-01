@@ -6,3 +6,7 @@ __pycache__
 /venv
 pip-selfcheck.json
 .mypy_cache
+/bazel-backend
+/bazel-bin
+/bazel-out
+/bazel-testlogs

@@ -10,7 +10,4 @@ py_library(
         "_compat.py",
         "model.py",
     ],
-    deps = [
-        "//app",
-    ],
 )

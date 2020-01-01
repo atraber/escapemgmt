@@ -1,3 +1,4 @@
+load("@rules_python//python:defs.bzl", "py_library")
 load(
     "@io_bazel_rules_docker//container:container.bzl",
     "container_image",
@@ -11,15 +12,16 @@ container_image(
     name = "backend",
     base = "@backend_base//image",
     cmd = [
-        "/hypercorn",
+        "python3",
+        "/hypercorn_bin.zip",
         "-b",
-        ":8080",
+        ":8000",
         "-w",
         "10",
         "app.main:application",
     ],
     files = [
-        "//app/app:main.zip",
+        "//app:hypercorn_bin.zip",
     ],
 )
 
