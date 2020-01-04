@@ -8,16 +8,27 @@ import sqlalchemy.orm as orm
 
 class DeviceStream(db.Model):  # type: ignore
     __tablename__ = 'device_streams'
-    device_id = sa.Column(sa.Integer, sa.ForeignKey('devices.id'), primary_key=True)
-    preset_id = sa.Column(sa.Integer, sa.ForeignKey('presets.id'), primary_key=True)
-    stream_id = sa.Column(sa.Integer, sa.ForeignKey('streams.id'), primary_key=True)
+    device_id = sa.Column(sa.Integer,
+                          sa.ForeignKey('devices.id'),
+                          primary_key=True)
+    preset_id = sa.Column(sa.Integer,
+                          sa.ForeignKey('presets.id'),
+                          primary_key=True)
+    stream_id = sa.Column(sa.Integer,
+                          sa.ForeignKey('streams.id'),
+                          primary_key=True)
 
     device = orm.relationship('Device', backref='device_streams')
     preset = orm.relationship('Preset', backref='device_streams')
     stream = orm.relationship('Stream', backref='device_streams')
 
-    def __init__(self, device=None, device_id=None, stream=None,
-            stream_id=None, preset=None, preset_id=None):
+    def __init__(self,
+                 device=None,
+                 device_id=None,
+                 stream=None,
+                 stream_id=None,
+                 preset=None,
+                 preset_id=None):
         if device is not None:
             self.device_id = device.id
         elif device_id is not None:
@@ -40,7 +51,8 @@ class DeviceStream(db.Model):  # type: ignore
             raise Exception('Need to specify either preset or preset_id')
 
     def __repr__(self):
-        return "<DeviceStream: device_id: {}, preset_id: {}, stream_id: {}>".format(self.device_id, self.preset_id, self.stream_id)
+        return "<DeviceStream: device_id: {}, preset_id: {}, stream_id: {}>".format(
+            self.device_id, self.preset_id, self.stream_id)
 
 
 class Device(db.Model):  # type: ignore
@@ -51,12 +63,15 @@ class Device(db.Model):  # type: ignore
     mac = sa.Column(sa.String(17), unique=True)
     screen_enable = sa.Column(sa.Boolean, default=True, nullable=False)
     last_seen = sa.Column(sa.Integer)
-    streams = orm.relationship('Stream',
-            primaryjoin='and_(Device.id == device_streams.c.device_id, Preset.active == True)',
-            secondary='join(device_streams, Stream, device_streams.c.stream_id == Stream.id)'
-                      '.join(Preset, device_streams.c.preset_id == Preset.id)',
-            backref='devices',
-            viewonly=True)
+    streams = orm.relationship(
+        'Stream',
+        primaryjoin=
+        'and_(Device.id == device_streams.c.device_id, Preset.active == True)',
+        secondary=
+        'join(device_streams, Stream, device_streams.c.stream_id == Stream.id)'
+        '.join(Preset, device_streams.c.preset_id == Preset.id)',
+        backref='devices',
+        viewonly=True)
 
     def __init__(self, id=None, name=None, mac=None, screen_enable=True):
         self.id = id
@@ -79,14 +94,19 @@ class Device(db.Model):  # type: ignore
     def serialize(self):
 
         return {
-            'id': self.id,
-            'name': self.name,
-            'mac': self.mac,
-            'screen_enable': self.screen_enable,
-            'last_seen': self.last_seen,
+            'id':
+            self.id,
+            'name':
+            self.name,
+            'mac':
+            self.mac,
+            'screen_enable':
+            self.screen_enable,
+            'last_seen':
+            self.last_seen,
             'streams': [s.serialize() for s in self.streams],
-            'presets_used': [s.serialize(load_streams=True)
-                for s in self.presets_used()],
+            'presets_used':
+            [s.serialize(load_streams=True) for s in self.presets_used()],
         }
 
 
@@ -123,7 +143,14 @@ class StreamView(db.Model):  # type: ignore
     crop_y1 = sa.Column(sa.Integer, nullable=False)
     crop_y2 = sa.Column(sa.Integer, nullable=False)
 
-    def __init__(self, stream, id=None, url=None, crop_x1=0, crop_y1=0, crop_x2=1080, crop_y2=720):
+    def __init__(self,
+                 stream,
+                 id=None,
+                 url=None,
+                 crop_x1=0,
+                 crop_y1=0,
+                 crop_x2=1080,
+                 crop_y2=720):
         self.id = id
         self.stream_id = stream.id
         self.url = url
@@ -152,10 +179,13 @@ class Preset(db.Model):  # type: ignore
     active = sa.Column(sa.Boolean, default=False, nullable=False)
 
     # TODO: Figure out if this is still necessary. We renamed our own field to streams_bar for now.
-    streams = orm.relationship('Stream',
-            primaryjoin='Preset.id == device_streams.c.preset_id',
-            secondary='join(device_streams, Stream, device_streams.c.stream_id == Stream.id)',
-            viewonly=True, lazy='select')
+    streams = orm.relationship(
+        'Stream',
+        primaryjoin='Preset.id == device_streams.c.preset_id',
+        secondary=
+        'join(device_streams, Stream, device_streams.c.stream_id == Stream.id)',
+        viewonly=True,
+        lazy='select')
 
     def __init__(self, id=None, name=None, active=False):
         self.id = id
@@ -189,6 +219,7 @@ class Room(db.Model):  # type: ignore
     def __init__(self, id=None, name=None):
         self.id = id
         self.name = name
+        self.tags = ""
 
     def _get_tags(self):
         if len(self.tags) == 0:
@@ -223,8 +254,14 @@ class Booking(db.Model):  # type: ignore
     slot_to = sa.Column(sa.Integer)
     created_at = sa.Column(sa.Integer)
 
-    def __init__(self, id=None, first_name=None, name=None, room=None,
-            slot_from=None, slot_to=None, created_at=None):
+    def __init__(self,
+                 id=None,
+                 first_name=None,
+                 name=None,
+                 room=None,
+                 slot_from=None,
+                 slot_to=None,
+                 created_at=None):
         self.id = id
         self.name = name
 
@@ -269,7 +306,12 @@ class Score(db.Model):  # type: ignore
     time = sa.Column(sa.Integer)
     created_at = sa.Column(sa.Integer)
 
-    def __init__(self, id=None, name=None, time=None, room=None, created_at=None):
+    def __init__(self,
+                 id=None,
+                 name=None,
+                 time=None,
+                 room=None,
+                 created_at=None):
         self.id = id
         self.name = name
 

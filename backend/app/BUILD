@@ -1,5 +1,5 @@
 load("@rules_python//python:defs.bzl", "py_binary")
-load("@py_deps//:requirements.bzl", "requirement")
+load("@py_deps//:requirements.bzl", "all_requirements", "requirement")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -70,7 +70,7 @@ py_binary(
     ],
     deps = [
         ":main",
-    ],
+    ] + all_requirements,
 )
 
 filegroup(

@@ -5,9 +5,8 @@ import uuid
 from quart import Blueprint, make_response, Response
 from threading import Lock
 
-from app.app import pulsar_client
+from app import pulsar_client
 from logger import logger
-
 
 pubsub = Blueprint('pubsub', __name__)
 producer_lock = Lock()
@@ -42,14 +41,14 @@ async def apiStreamUpdate():
 
         while True:
             # Wait for source data to be available, then push it.
-            msg = await loop.run_in_executor(
-                None, consumer.receive)
+            msg = await loop.run_in_executor(None, consumer.receive)
 
             event = bytes(msg.data()).decode('utf-8')
 
             logger.info('Received event from pubsub: {}'.format(event))
 
-            yield 'event: {}\ndata: {}\r\n\r\n'.format(event, 'hallo').encode('utf-8')
+            yield 'event: {}\ndata: {}\r\n\r\n'.format(event,
+                                                       'hallo').encode('utf-8')
             consumer.acknowledge(msg)
 
     response = await make_response(
@@ -71,5 +70,6 @@ def publish(event: str, msg=''):
     local_producer = _getProducer()
     if local_producer is not None:
         local_producer.send(event.encode('utf-8'))
+
 
 _createProducer()

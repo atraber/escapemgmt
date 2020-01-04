@@ -7,11 +7,10 @@ from minio.error import (ResponseError, BucketAlreadyOwnedByYou,
                          BucketAlreadyExists, InvalidAccessKeyId)
 from urllib3.exceptions import MaxRetryError
 
-from app.app import db
-from app.app import minio_client
+from app import db
+from app import minio_client
 from logger import logger
 from models import File
-
 
 files = Blueprint('files', __name__)
 
@@ -22,25 +21,31 @@ def minioInit():
     try:
         minio_client.make_bucket(_BUCKET)
     except BucketAlreadyOwnedByYou as err:
-        logger.error('minio_client was unable to create bucket: {}'.format(err))
+        logger.error(
+            'minio_client was unable to create bucket: {}'.format(err))
     except BucketAlreadyExists as err:
-        logger.error('minio_client was unable to create bucket: {}'.format(err))
+        logger.error(
+            'minio_client was unable to create bucket: {}'.format(err))
     except MaxRetryError as err:
-        logger.error('minio_client was unable to create bucket: {}'.format(err))
+        logger.error(
+            'minio_client was unable to create bucket: {}'.format(err))
     except InvalidAccessKeyId as err:
-        logger.error('minio_client was unable to create bucket: {}'.format(err))
+        logger.error(
+            'minio_client was unable to create bucket: {}'.format(err))
     except ResponseError as err:
-        logger.error('minio_client was unable to create bucket: {}'.format(err))
+        logger.error(
+            'minio_client was unable to create bucket: {}'.format(err))
         raise
 
 
-@files.route('/file/upload', methods = ['POST'])
+@files.route('/file/upload', methods=['POST'])
 async def fileUpload():
     if 'multipart/form-data' in request.headers['Content-Type']:
         files = await request.files
         object_id = uuid.uuid1().hex
         data = files['file'].read()
-        minio_client.put_object(_BUCKET, object_id, io.BytesIO(data), len(data))
+        minio_client.put_object(_BUCKET, object_id, io.BytesIO(data),
+                                len(data))
         logger.info('Uploading object with id: {}'.format(object_id))
 
         file_asset = File(
@@ -54,7 +59,7 @@ async def fileUpload():
     abort(400)
 
 
-@files.route('/file/<string:object_name>', methods = ['GET'])
+@files.route('/file/<string:object_name>', methods=['GET'])
 async def fileView(object_name: str):
     file_asset = db.session.query(File).filter_by(name=object_name).first()
 
