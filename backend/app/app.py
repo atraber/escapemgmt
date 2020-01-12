@@ -15,10 +15,9 @@ from quart_sqlalchemy import SQLAlchemy
 from config import app_config, app_envs
 from logger import logger
 
-
 app = None
-pulsar_client = None # type: pulsar.Client
-minio_client = None # type: Minio
+pulsar_client = None  # type: pulsar.Client
+minio_client = None  # type: Minio
 db = SQLAlchemy()
 metrics = None
 
@@ -42,9 +41,9 @@ def App() -> Quart:
 
     logger.info('Initializing minio_client')
     minio_client = Minio(app.config['MINIO_URL'],
-        access_key=app.config['MINIO_ACCESS_KEY'],
-        secret_key=app.config['MINIO_SECRET_KEY'],
-        secure=False)
+                         access_key=app.config['MINIO_ACCESS_KEY'],
+                         secret_key=app.config['MINIO_SECRET_KEY'],
+                         secure=False)
 
     logger.info('Registering blueprints')
     from bookings import bp as bookings_blueprint
@@ -91,7 +90,7 @@ async def PerformInitDB(app: Quart):
 
         logger.info('Stamp most recent alembic version')
         alembic_cfg = alembic_Config('./app/migrations/alembic.ini')
-        alembic_command.stamp(alembic_cfg, "head")
+        alembic_command.stamp(alembic_cfg, 'head')
 
 
 def InitDB() -> None:

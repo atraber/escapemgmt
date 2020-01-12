@@ -77,14 +77,10 @@ async def createStream(client: QuartClient, name: str) -> None:
     assert response.status_code == 200
     assert (await response.get_json())['name'] == name
 
-async def createStreamView(
-        client: QuartClient,
-        stream_id: int,
-        url: str,
-        crop_x1: int,
-        crop_x2: int,
-        crop_y1: int,
-        crop_y2: int) -> None:
+
+async def createStreamView(client: QuartClient, stream_id: int, url: str,
+                           crop_x1: int, crop_x2: int, crop_y1: int,
+                           crop_y2: int) -> None:
     data = {
         'url': url,
         'crop_x1': crop_x1,
@@ -111,7 +107,8 @@ async def createRoom(client: QuartClient, name: str) -> None:
     assert (await response.get_json())['name'] == name
 
 
-async def createRoomScore(client: QuartClient, room_id: int, name: str, time: int) -> None:
+async def createRoomScore(client: QuartClient, room_id: int, name: str,
+                          time: int) -> None:
     data = {'name': name, 'time': time}
 
     response = await postJson(client, '/rooms/{}/score'.format(room_id), data)

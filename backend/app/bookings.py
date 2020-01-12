@@ -6,16 +6,16 @@ from quart import abort, Blueprint, request, jsonify
 from app import db
 from models import Booking, Room
 
-
 bp = Blueprint('booking', __name__)
 
 
-@bp.route('/bookings', methods = ['GET'])
+@bp.route('/bookings', methods=['GET'])
 async def apiBookings():
     bookings = db.session.query(Booking).all()
     return jsonify([s.serialize() for s in bookings])
 
-@bp.route('/booking', methods = ['POST'])
+
+@bp.route('/booking', methods=['POST'])
 async def apiBookingAdd():
     if request.headers['Content-Type'] == 'application/json':
         json = await request.json
@@ -33,13 +33,16 @@ async def apiBookingAdd():
         return jsonify(booking.serialize())
     abort(400)
 
-@bp.route('/bookings/<int:bookingid>', methods = ['POST'])
+
+@bp.route('/bookings/<int:bookingid>', methods=['POST'])
 async def apiBookingUpdate(bookingid: int):
     if request.method == 'POST':
         if request.headers['Content-Type'] == 'application/json':
             data_json = await request.json
-            db_room = db.session.query(Room).filter_by(id=data_json['room_id']).first()
-            db_booking = db.session.query(Booking).filter_by(id=data_json['id']).first()
+            db_room = db.session.query(Room).filter_by(
+                id=data_json['room_id']).first()
+            db_booking = db.session.query(Booking).filter_by(
+                id=data_json['id']).first()
             db_booking.first_name = data_json['first_name']
             db_booking.name = data_json['name']
             db_booking.room = db_room

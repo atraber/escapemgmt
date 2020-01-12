@@ -82,7 +82,9 @@ async def testPresetActivate(client: QuartClient) -> None:
     data_json = (await response.get_json())
     assert len(data_json) == 2
 
-    response = await postJson(client, '/preset/activate/{}'.format(data_json[0]['id']), {})
+    response = await postJson(client,
+                              '/preset/activate/{}'.format(data_json[0]['id']),
+                              {})
     assert response.status_code == 200
 
     # Check that there is only one active preset.

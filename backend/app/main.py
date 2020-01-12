@@ -7,7 +7,6 @@ import sys
 
 from app import App, Init
 
-
 logging.basicConfig(stream=sys.stderr)
 
 application = App()

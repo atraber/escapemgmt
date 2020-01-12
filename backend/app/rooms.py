@@ -6,22 +6,19 @@ from quart import abort, Blueprint, request, jsonify
 from app import db
 from models import Room, Score
 
-
 rooms = Blueprint('rooms', __name__)
 
 
-@rooms.route('/rooms', methods = ['GET'])
+@rooms.route('/rooms', methods=['GET'])
 async def apiRooms():
     rooms = db.session.query(Room).all()
     return jsonify([s.serialize() for s in rooms])
 
 
-@rooms.route('/room', methods = ['POST'])
+@rooms.route('/room', methods=['POST'])
 async def apiRoomAdd():
     if request.headers['Content-Type'] == 'application/json':
-        room = Room(
-            name = (await request.json)['name'],
-        )
+        room = Room(name=(await request.json)['name'], )
         db.session.add(room)
         db.session.commit()
     else:
@@ -29,7 +26,7 @@ async def apiRoomAdd():
     return jsonify(room.serialize())
 
 
-@rooms.route('/rooms/<int:roomid>', methods = ['POST', 'DELETE'])
+@rooms.route('/rooms/<int:roomid>', methods=['POST', 'DELETE'])
 async def apiRoomUpdate(roomid: int):
     if request.method == 'POST':
         if request.headers['Content-Type'] == 'application/json':
@@ -55,7 +52,7 @@ async def apiRoomUpdate(roomid: int):
         return jsonify('ok')
 
 
-@rooms.route('/rooms/<int:roomid>/score', methods = ['POST'])
+@rooms.route('/rooms/<int:roomid>/score', methods=['POST'])
 async def apiRoomAddScore(roomid: int):
     if request.headers['Content-Type'] == 'application/json':
         data_json = await request.json
@@ -71,11 +68,12 @@ async def apiRoomAddScore(roomid: int):
     abort(400)
 
 
-@rooms.route('/rooms/<int:roomid>/scores/<int:scoreid>', methods = ['DELETE'])
+@rooms.route('/rooms/<int:roomid>/scores/<int:scoreid>', methods=['DELETE'])
 async def apiRoomDeleteScore(roomid: int, scoreid: int):
     if request.method == 'DELETE':
         db_room = db.session.query(Room).filter_by(id=roomid).first()
-        db.session.query(Score).filter_by(id=scoreid, room_id=db_room.id).delete()
+        db.session.query(Score).filter_by(id=scoreid,
+                                          room_id=db_room.id).delete()
         db.session.commit()
         return jsonify('ok')
     abort(400)

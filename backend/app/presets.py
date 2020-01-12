@@ -7,29 +7,26 @@ from logger import logger
 from models import Device, Preset
 from pubsub import publish
 
-
 presets = Blueprint('presets', __name__)
 
 
-@presets.route('/presets', methods = ['GET'])
+@presets.route('/presets', methods=['GET'])
 async def apiPresets():
     presets = db.session.query(Preset).order_by(Preset.name).all()
     return jsonify([s.serialize() for s in presets])
 
 
-@presets.route('/preset', methods = ['POST'])
+@presets.route('/preset', methods=['POST'])
 async def apiPresetAdd():
     if request.headers['Content-Type'] == 'application/json':
-        preset = Preset(
-            name=(await request.json)['name']
-        )
+        preset = Preset(name=(await request.json)['name'])
         db.session.add(preset)
         db.session.commit()
         return jsonify(preset.serialize())
     abort(400)
 
 
-@presets.route('/presets/<int:presetid>', methods = ['POST', 'DELETE'])
+@presets.route('/presets/<int:presetid>', methods=['POST', 'DELETE'])
 async def apiPresetUpdate(presetid: int):
     if request.method == 'POST':
         if request.headers['Content-Type'] == 'application/json':
@@ -44,7 +41,7 @@ async def apiPresetUpdate(presetid: int):
     abort(400)
 
 
-@presets.route('/preset/activate/<int:presetid>', methods = ['POST'])
+@presets.route('/preset/activate/<int:presetid>', methods=['POST'])
 async def apiPresetActivate(presetid: int):
     if request.headers['Content-Type'] == 'application/json':
         preset_old = db.session.query(Preset).filter_by(active=True).first()

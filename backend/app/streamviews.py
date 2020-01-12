@@ -5,7 +5,6 @@ from quart import abort, Blueprint, request, Response, jsonify
 from app import db
 from models import Stream, StreamView
 
-
 streamviews = Blueprint('streamviews', __name__)
 
 
@@ -36,7 +35,8 @@ async def apiStreamViewAdd(stream_id: int):
         abort(400)
 
 
-@streamviews.route('/streamviews/<int:streamview_id>', methods=['POST', 'DELETE'])
+@streamviews.route('/streamviews/<int:streamview_id>',
+                   methods=['POST', 'DELETE'])
 async def apiStreamViewUpdate(streamview_id: int):
     """Update or delete existing stream view.
 
@@ -48,7 +48,8 @@ async def apiStreamViewUpdate(streamview_id: int):
     if request.method == 'POST':
         if request.headers['Content-Type'] == 'application/json':
             data_json = await request.json
-            db_streamview = db.session.query(StreamView).filter_by(id=streamview_id).first()
+            db_streamview = db.session.query(StreamView).filter_by(
+                id=streamview_id).first()
             db_streamview.url = data_json['url']
             db_streamview.crop_x1 = data_json['crop_x1']
             db_streamview.crop_x2 = data_json['crop_x2']

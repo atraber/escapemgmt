@@ -11,18 +11,16 @@ from models import Device, DeviceStream, Preset, Stream
 devices = Blueprint('devices', __name__)
 
 
-@devices.route('/devices', methods = ['GET'])
+@devices.route('/devices', methods=['GET'])
 async def apiDevices():
     devices = db.session.query(Device).order_by(Device.name).all()
     return jsonify([d.serialize() for d in devices])
 
 
-@devices.route('/device', methods = ['POST'])
+@devices.route('/device', methods=['POST'])
 async def apiDeviceAdd():
     if request.headers['Content-Type'] == 'application/json':
-        device = Device(
-            name = (await request.json)['name']
-        )
+        device = Device(name=(await request.json)['name'])
         db.session.add(device)
         db.session.commit()
     else:
@@ -85,9 +83,8 @@ def _PresetStreamsCompare(new: List[Preset], old: List[Preset]):
         if n in old_dict.keys():
             op = old_dict[n]
 
-            a, r = _StreamsCompare(
-                [stream.id for stream in np.streams],
-                [stream.id for stream in op.streams_bar])
+            a, r = _StreamsCompare([stream.id for stream in np.streams],
+                                   [stream.id for stream in op.streams_bar])
 
             for stream_added in a:
                 added.append((n, stream_added))
@@ -121,7 +118,7 @@ def _JsonToPresets(data) -> List[Preset]:
     return presets
 
 
-@devices.route('/devices/<int:deviceid>', methods = ['POST', 'DELETE'])
+@devices.route('/devices/<int:deviceid>', methods=['POST', 'DELETE'])
 async def apiDeviceUpdate(deviceid: int):
     if request.method == 'POST':
         if request.headers['Content-Type'] == 'application/json':
@@ -133,22 +130,25 @@ async def apiDeviceUpdate(deviceid: int):
             db_device.screen_enable = data_json['screen_enable']
 
             (streams_added, streams_removed) = _PresetStreamsCompare(
-                    _JsonToPresets(data_json['presets_used']),
-                    db_device.presets_used())
+                _JsonToPresets(data_json['presets_used']),
+                db_device.presets_used())
 
             for preset_id, stream_id in streams_removed:
-                logger.info('Removing DeviceStream for device_id {}, preset_id {}, stream_id {}'.format(db_device.id, preset_id, stream_id))
+                logger.info(
+                    'Removing DeviceStream for device_id {}, preset_id {}, stream_id {}'
+                    .format(db_device.id, preset_id, stream_id))
                 db.session.query(DeviceStream).filter_by(
-                        device_id=db_device.id,
-                        preset_id=preset_id,
-                        stream_id=stream_id).delete()
+                    device_id=db_device.id,
+                    preset_id=preset_id,
+                    stream_id=stream_id).delete()
 
             for preset_id, stream_id in streams_added:
-                logger.info('Adding DeviceStream for device_id {}, preset_id {}, stream_id {}'.format(db_device.id, preset_id, stream_id))
-                device_stream = DeviceStream(
-                        device=db_device,
-                        preset_id=preset_id,
-                        stream_id=stream_id)
+                logger.info(
+                    'Adding DeviceStream for device_id {}, preset_id {}, stream_id {}'
+                    .format(db_device.id, preset_id, stream_id))
+                device_stream = DeviceStream(device=db_device,
+                                             preset_id=preset_id,
+                                             stream_id=stream_id)
                 db.session.add(device_stream)
 
             db.session.commit()
@@ -160,7 +160,7 @@ async def apiDeviceUpdate(deviceid: int):
         return jsonify('ok')
 
 
-@devices.route('/devices/screen_on', methods = ['GET'])
+@devices.route('/devices/screen_on', methods=['GET'])
 def apiDevicesScreenOn():
     devices = db.session.query(Device).all()
 
@@ -171,7 +171,7 @@ def apiDevicesScreenOn():
     return jsonify("ok")
 
 
-@devices.route('/devices/screen_off', methods = ['GET'])
+@devices.route('/devices/screen_off', methods=['GET'])
 def apiDevicesScreenOff():
     devices = db.session.query(Device).all()
 
@@ -190,7 +190,7 @@ def number_to_mac(n: int) -> str:
     return '-'.join(arr)
 
 
-@devices.route('/raspi/<int:mac>', methods = ['GET'])
+@devices.route('/raspi/<int:mac>', methods=['GET'])
 def apiRaspi(mac: int):
     mac_str = number_to_mac(mac)
     device = db.session.query(Device).filter_by(mac=mac_str).first()

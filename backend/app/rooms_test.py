@@ -109,7 +109,8 @@ async def testRoomScoreDelete(client: QuartClient) -> None:
     assert response.status_code == 200
     room = (await response.get_json())[0]
 
-    await client.delete('/rooms/{}/scores/{}'.format(d['id'], room['scores'][0]['id']))
+    await client.delete('/rooms/{}/scores/{}'.format(d['id'],
+                                                     room['scores'][0]['id']))
 
     # Check that there are no scores left.
     rooms = await client.get('/rooms')

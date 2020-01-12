@@ -17,14 +17,13 @@ async def testStreamViews(client: QuartClient) -> None:
     d = (await response.get_json())[0]
     assert len(d['streamviews']) == 0
 
-    await createStreamView(
-            client,
-            stream_id=d['id'],
-            url='rtsp://url',
-            crop_x1=0,
-            crop_x2=1,
-            crop_y1=2,
-            crop_y2=3)
+    await createStreamView(client,
+                           stream_id=d['id'],
+                           url='rtsp://url',
+                           crop_x1=0,
+                           crop_x2=1,
+                           crop_y1=2,
+                           crop_y2=3)
 
     response = await client.get('/streams')
     assert response.status_code == 200
@@ -45,14 +44,13 @@ async def testStreamViewsUpdate(client: QuartClient) -> None:
     assert response.status_code == 200
     d = (await response.get_json())[0]
 
-    await createStreamView(
-            client,
-            stream_id=d['id'],
-            url='rtsp://url',
-            crop_x1=0,
-            crop_x2=1,
-            crop_y1=2,
-            crop_y2=3)
+    await createStreamView(client,
+                           stream_id=d['id'],
+                           url='rtsp://url',
+                           crop_x1=0,
+                           crop_x2=1,
+                           crop_y1=2,
+                           crop_y2=3)
 
     response = await client.get('/streams')
     assert response.status_code == 200
@@ -62,7 +60,8 @@ async def testStreamViewsUpdate(client: QuartClient) -> None:
     streamview = d['streamviews'][0]
     streamview['url'] = 'rtsp://my-happy-url.ch/sdf?sdf=sdf'
 
-    await postJson(client, '/streamviews/{}'.format(streamview['id']), streamview)
+    await postJson(client, '/streamviews/{}'.format(streamview['id']),
+                   streamview)
 
     response = await client.get('/streams')
     assert response.status_code == 200
@@ -79,14 +78,13 @@ async def testStreamViewsDelete(client: QuartClient) -> None:
     assert response.status_code == 200
     d = (await response.get_json())[0]
 
-    await createStreamView(
-            client,
-            stream_id=d['id'],
-            url='rtsp://url',
-            crop_x1=0,
-            crop_x2=1,
-            crop_y1=2,
-            crop_y2=3)
+    await createStreamView(client,
+                           stream_id=d['id'],
+                           url='rtsp://url',
+                           crop_x1=0,
+                           crop_x2=1,
+                           crop_y1=2,
+                           crop_y2=3)
 
     response = await client.get('/streams')
     assert response.status_code == 200
