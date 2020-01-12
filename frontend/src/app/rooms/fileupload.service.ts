@@ -2,20 +2,20 @@
  * Copyright 2019 Andreas Traber
  * Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
  */
-import {Injectable, EventEmitter} from '@angular/core';
-import {HttpClient, HttpHeaders, HttpErrorResponse} from '@angular/common/http';
+import {HttpClient, HttpErrorResponse, HttpHeaders} from '@angular/common/http';
+import {EventEmitter, Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
 import {catchError, retryWhen} from 'rxjs/operators';
+
+import {environment} from '../../environment';
 import {genericRetryStrategy} from '../rxjs-utils';
 
-import {environment} from '../../environments/environment';
 import {FileBuffer} from './filebuffer';
 
-@Injectable()
+@Injectable({providedIn : 'root'})
 export class FileUploadService {
 
-  constructor(private http: HttpClient) {
-  }
+  constructor(private http: HttpClient) {}
 
   private handleError(error: HttpErrorResponse) {
     if (error.error instanceof ErrorEvent) {
@@ -24,28 +24,28 @@ export class FileUploadService {
     } else {
       // The backend returned an unsuccessful response code.
       // The response body may contain clues as to what went wrong,
-      console.error(
-        `Backend returned code ${error.status}, ` +
-        `body was: ${error.error}`);
+      console.error(`Backend returned code ${error.status}, ` +
+                    `body was: ${error.error}`);
     }
     // TODO: Use the snackbar or something to deliver this in a user friendly
     // manner.
     return Observable.throw('Something bad happened; please try again later.');
   }
 
-
   upload(file: File): Observable<string> {
     return Observable.create(observer => {
       const formData: FormData = new FormData();
       formData.append('file', file);
-      this.http.post<FormData>(environment.apiEndpoint + '/file/upload', formData, {})
-        .pipe(catchError(this.handleError))
-        .subscribe(data => {
-          observer.next(data);
-          observer.complete();
-        }, err => {
-          observer.error(err);
-        });
+      this.http
+          .post<FormData>(environment.apiEndpoint + '/file/upload', formData,
+                          {})
+          .pipe(catchError(this.handleError))
+          .subscribe(
+              data => {
+                observer.next(data);
+                observer.complete();
+              },
+              err => { observer.error(err); });
     });
   }
 }

@@ -1,53 +1,53 @@
-@import 'styles.scss';
+@import 'src/styles.scss';
 
 .device-add-field {
-  @include button-add-field;
-  margin-top: 10px;
+    @include button-add-field;
+    margin-top: 10px;
 }
 
 .stream-add-field {
-  @include button-add-field;
+    @include button-add-field;
 }
 
 .devices-drawer-list {
-  @include drawer-button-list;
+    @include drawer-button-list;
 }
 
 .button-text {
-  line-height: normal;
+    line-height: normal;
 }
 
 .text-muted {
-  font-size: x-small;
-  color: rgba(80, 80, 80, 1.0);
+    font-size: x-small;
+    color: rgba(80, 80, 80, 1.0);
 }
 
 .form-container {
-  margin: 10px;
-  display: flex;
-  flex-direction: column;
+    margin: 10px;
+    display: flex;
+    flex-direction: column;
 }
 
-.form-container > .buttons {
-  margin-top: 10px;
-  flex-direction: row;
+.form-container>.buttons {
+    margin-top: 10px;
+    flex-direction: row;
 }
 
-.form-container > .buttons button {
-  margin-left: 4px;
-  margin-right: 4px;
+.form-container>.buttons button {
+    margin-left: 4px;
+    margin-right: 4px;
 }
 
 table {
-  width: 100%;
-  margin-top: 10px;
-  margin-bottom: 10px;
+    width: 100%;
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 
 td:not(.mat-column-controls) {
-  width: 100%;
+    width: 100%;
 }
 
 .preset-form-field {
-  min-width: 200px;
+    min-width: 200px;
 }

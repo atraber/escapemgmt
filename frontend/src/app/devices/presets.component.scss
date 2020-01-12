@@ -1,22 +1,22 @@
-@import 'styles.scss';
+@import 'src/styles.scss';
 
 .mat-accordion {
-  display: flex;
-  flex-direction: column;
-  margin: 10px;
+    display: flex;
+    flex-direction: column;
+    margin: 10px;
 }
 
 .preset-create-field {
-  @include button-add-field;
-  margin: 10px;
+    @include button-add-field;
+    margin: 10px;
 }
 
 .form-container {
-  display: flex;
-  flex-direction: column;
+    display: flex;
+    flex-direction: column;
 }
 
-mat-action-row > button {
-  margin-left: 4px;
-  margin-right: 4px;
+mat-action-row>button {
+    margin-left: 4px;
+    margin-right: 4px;
 }

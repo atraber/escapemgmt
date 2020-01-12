@@ -1,0 +1,43 @@
+package(default_visibility = ["//src/app:__subpackages__"])
+
+load("@io_bazel_rules_sass//:defs.bzl", "sass_binary")
+load("@npm_angular_bazel//:index.bzl", "ng_module")
+
+SCSS_ASSETS = [
+    "bookings-card.component.scss",
+    "bookings.component.scss",
+    "dash.component.scss",
+]
+
+[
+    sass_binary(
+        name = asset[:-5],
+        src = asset,
+        sourcemap = False,
+        deps = ["//src:styles_lib"],
+    )
+    for asset in SCSS_ASSETS
+]
+
+CSS_ASSETS = [asset[:-5] for asset in SCSS_ASSETS]
+
+ng_module(
+    name = "bookings",
+    srcs = [
+        "bookings.component.ts",
+        "bookings.module.ts",
+        "bookings-card.component.ts",
+        "dash.component.ts",
+    ],
+    assets = [
+        ":bookings-card.component.html",
+        ":bookings.component.html",
+        ":dash.component.html",
+    ] + CSS_ASSETS,
+    tsconfig = "//src:tsconfig.json",
+    deps = [
+        "//src/app:common_lib",
+        "//src/app:common_module",
+        "@npm//moment",
+    ],
+)

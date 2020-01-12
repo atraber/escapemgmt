@@ -1,92 +1,172 @@
-package(default_visibility = ["//visibility:public"])
+package(default_visibility = ["//:__subpackages__"])
 
+load("@build_bazel_rules_nodejs//:index.bzl", "pkg_web")
+load("@io_bazel_rules_docker//container:container.bzl", "container_image")
+load("@io_bazel_rules_docker//nodejs:image.bzl", "nodejs_image")
+load("@io_bazel_rules_sass//:defs.bzl", "multi_sass_binary", "sass_binary", "sass_library")
+load("@npm//@babel/cli:index.bzl", "babel")
+load("@npm//history-server:index.bzl", "history_server")
+load("@npm//html-insert-assets:index.bzl", "html_insert_assets")
 load("@npm_angular_bazel//:index.bzl", "ng_module")
-load("@npm_bazel_karma//:index.bzl", "ts_web_test_suite")
-load("@build_bazel_rules_nodejs//:defs.bzl", "history_server", "rollup_bundle")
-load("@build_bazel_rules_nodejs//internal/web_package:web_package.bzl", "web_package")
-load("@npm_bazel_typescript//:index.bzl", "ts_devserver", "ts_library")
-load("@io_bazel_rules_sass//:defs.bzl", "multi_sass_binary", "sass_binary")
+load("@npm_bazel_rollup//:index.bzl", "rollup_bundle")
+load("@npm_bazel_terser//:index.bzl", "terser_minified")
+load("@npm_bazel_typescript//:index.bzl", "ts_config", "ts_devserver", "ts_library")
 
 sass_binary(
-    name = "global_stylesheet",
-    src = glob([
-        "styles.css",
-        "styles.scss",
-    ])[0],
-    output_name = "global_stylesheet.css",
+    name = "styles",
+    src = "styles.scss",
 )
 
-multi_sass_binary(
-    name = "styles",
-    srcs = glob(
-        include = ["**/*.scss"],
-        #exclude = ["styles.scss"],
-    ),
+sass_library(
+    name = "styles_lib",
+    srcs = ["styles.scss"],
 )
+
+ts_config(
+    name = "tsconfig-test",
+    src = "tsconfig-test.json",
+    deps = [":tsconfig.json"],
+)
+
+exports_files(["tsconfig.json"])
+
+# Files that we serve in both development and production
+_ASSETS = [
+    "styles.css",
+]
+
+_ASSETS_PROD = _ASSETS + [
+    # We load zone.js outside the bundle. That's because it's a "pollyfill"
+    # which speculates that such features might be available in a browser.
+    # Also it's tricky to configure dead code elimination to understand that
+    # zone.js is used, given that we don't have any import statement that
+    # imports from it.
+    "@npm//:node_modules/zone.js/dist/zone.min.js",
+]
+
+DEP_ASSETS = [
+    "@npm//:node_modules/@angular/material/prebuilt-themes/indigo-pink.css",
+    "@npm//:node_modules/@fortawesome/fontawesome-free-webfonts/css/fa-brands.css",
+    "@npm//:node_modules/@fortawesome/fontawesome-free-webfonts/css/fa-regular.css",
+    "@npm//:node_modules/@fortawesome/fontawesome-free-webfonts/css/fa-solid.css",
+    "@npm//:node_modules/@fortawesome/fontawesome-free-webfonts/css/fontawesome.css",
+    "@npm//:node_modules/material-design-icons-iconfont/dist/fonts/MaterialIcons-Regular.ttf",
+    "@npm//:node_modules/material-design-icons-iconfont/dist/fonts/MaterialIcons-Regular.woff",
+    "@npm//:node_modules/material-design-icons-iconfont/dist/fonts/MaterialIcons-Regular.woff2",
+    "@npm//:node_modules/material-design-icons-iconfont/dist/material-design-icons.css",
+    "@npm//:node_modules/roboto-fontface/css/roboto/roboto-fontface.css",
+    "@npm//:node_modules/roboto-fontface/fonts/roboto/Roboto-Bold.woff",
+    "@npm//:node_modules/roboto-fontface/fonts/roboto/Roboto-Bold.woff2",
+    "@npm//:node_modules/roboto-fontface/fonts/roboto/Roboto-Medium.woff",
+    "@npm//:node_modules/roboto-fontface/fonts/roboto/Roboto-Medium.woff2",
+    "@npm//:node_modules/roboto-fontface/fonts/roboto/Roboto-Regular.woff",
+    "@npm//:node_modules/roboto-fontface/fonts/roboto/Roboto-Regular.woff2",
+]
 
 ng_module(
     name = "src",
-    srcs = glob(
-        include = ["**/*.ts"],
-        exclude = [
-            "**/*.spec.ts",
-            "main.ts",
-            "test.ts",
-            "initialize_testbed.ts",
-        ],
-    ),
-    assets = glob([
-        "**/*.css",
-        "**/*.html",
-    ]) + ([":styles"] if len(glob(["**/*.scss"])) else []),
-    data = [
-        "//:tsconfig.json",
+    srcs = [
+        "main.dev.ts",
+        "main.prod.ts",
     ],
-    tsconfig = ":tsconfig.app.json",
+    tsconfig = ":tsconfig.json",
     deps = [
+        ":environment_lib",
+        "//src/app",
         "@npm//@angular/core",
-        "@npm//@angular/material",
         "@npm//@angular/platform-browser",
-        "@npm//@angular/router",
-        "@npm//@types",
-        "@npm//moment",
-        "@npm//rxjs",
+        "@npm//@angular/platform-browser-dynamic",
     ],
 )
 
 rollup_bundle(
-    name = "bundle",
-    entry_point = ":main.prod.ts",
+    name = "bundle-es2015",
+    config_file = "rollup.config.js",
+    entry_points = {
+        ":main.prod.ts": "index",
+    },
+    output_dir = True,
     deps = [
-        ":src",
-        "@npm//@angular/core",
-        "@npm//@angular/material",
-        "@npm//@angular/platform-browser",
-        "@npm//@angular/router",
-        "@npm//@types",
-        "@npm//moment",
-        "@npm//rxjs",
+        "//src",
+        "@npm//rollup-plugin-commonjs",
+        "@npm//rollup-plugin-node-resolve",
     ],
 )
 
-web_package(
-    name = "prodapp",
-    assets = [
-        # do not sort
-        "@npm//:node_modules/zone.js/dist/zone.min.js",
-        ":bundle.min.js",
-        ":global_stylesheet",
+babel(
+    name = "bundle-es5",
+    args = [
+        "$(location :bundle-es2015)",
+        "--no-babelrc",
+        "--source-maps",
+        "--presets=@babel/preset-env",
+        "--out-dir",
+        "$(@D)",
     ],
     data = [
-        "favicon.ico",
+        ":bundle-es2015",
+        "@npm//@babel/preset-env",
     ],
-    index_html = "index.html",
+    output_dir = True,
+)
+
+terser_minified(
+    name = "bundle-es2015.min",
+    src = ":bundle-es2015",
+)
+
+terser_minified(
+    name = "bundle-es5.min",
+    src = ":bundle-es5",
+)
+
+pkg_web(
+    name = "prodapp",
+    srcs = [
+        ":bundle-es2015.min",
+        ":bundle-es5.min",
+        ":inject_scripts_for_prod",
+        "@npm//:node_modules/core-js/client/core.min.js",
+        "@npm//:node_modules/moment/min/moment.min.js",
+        "@npm//:node_modules/systemjs/dist/system.js",
+    ] + _ASSETS_PROD + DEP_ASSETS,
+    # In production mode we serve some polyfills with script tags that have hard-coded paths in the index.html
+    # so we must serve them at that path, by stripping a prefix
+    additional_root_paths = [
+        "npm/node_modules/core-js/client",
+        "npm/node_modules/systemjs/dist",
+        "npm/node_modules/moment/min",
+    ],
+)
+
+html_insert_assets(
+    name = "inject_scripts_for_prod",
+    # we can't output "src/index.html" since that collides with the devmode
+    # file. pkg_web rule will re-root paths that start with _{name} by default
+    # so we output "_prodapp/src/index.html" so that it is mapped to
+    # `index.html` in the web package.
+    outs = ["_prodapp/src/index.html"],
+    args = [
+        "--html=$(location //src:index.prod.html)",
+        "--out=$@",
+        "--roots=. $(RULEDIR)",
+        "--assets",
+    ] + ["$(location %s)" % s for s in _ASSETS_PROD],
+    data = ["//src:index.prod.html"] + _ASSETS_PROD,
 )
 
 history_server(
     name = "prodserver",
     data = [":prodapp"],
-    templated_args = ["src/prodapp"],
+    # '-a src/prodapp' will ask history-server to scan for all apps under the
+    # given folder this will result in the following auto-configuration:
+    #   /        => src/prodapp
+    templated_args = [
+        "-a",
+        "src/prodapp",
+        "-p",
+        "4200",
+    ],
 )
 
 filegroup(
@@ -98,65 +178,36 @@ filegroup(
     ],
 )
 
+html_insert_assets(
+    name = "inject_scripts_for_dev",
+    outs = ["index.html"],
+    args = [
+        "--html=$(location //src:index.dev.html)",
+        "--out=$@",
+        "--roots=. $(RULEDIR)",
+        "--assets",
+    ] + ["$(location %s)" % s for s in _ASSETS],
+    data = ["//src:index.dev.html"] + _ASSETS,
+)
+
 ts_devserver(
     name = "devserver",
-    data = [
-        "favicon.ico",
-        "@npm//:node_modules/@angular/material/prebuilt-themes/indigo-pink.css",
-        "@npm//:node_modules/moment/min/moment.min.js",
-    ],
+    additional_root_paths = ["src"],
     entry_module = "project/src/main.dev",
-    index_html = "index.html",
     port = 4200,
     scripts = [
+        ":require.config.js",
         "@npm//:node_modules/tslib/tslib.js",
         ":rxjs_umd_modules",
     ],
     serving_path = "/bundle.min.js",
     static_files = [
-        "@npm//:node_modules/zone.js/dist/zone.min.js",
-        ":global_stylesheet",
-    ],
+        "@npm//:node_modules/moment/min/moment.min.js",
+        "@npm//:node_modules/@angular/compiler/bundles/compiler.umd.min.js",
+        ":inject_scripts_for_dev",
+    ] + _ASSETS + DEP_ASSETS,
     deps = [
-        ":fontawesome",
-        ":material_icons",
-        ":require.config.js",
-        ":roboto_fontface",
-        ":src",
-    ],
-)
-
-ts_library(
-    name = "fontawesome",
-    srcs = [],
-    data = [
-        "@npm//:node_modules/@fortawesome/fontawesome-free-webfonts/css/fa-brands.css",
-        "@npm//:node_modules/@fortawesome/fontawesome-free-webfonts/css/fa-regular.css",
-        "@npm//:node_modules/@fortawesome/fontawesome-free-webfonts/css/fa-solid.css",
-        "@npm//:node_modules/@fortawesome/fontawesome-free-webfonts/css/fontawesome.css",
-    ],
-)
-
-ts_library(
-    name = "material_icons",
-    srcs = [],
-    data = [
-        "@npm//:node_modules/material-design-icons-iconfont/dist/fonts/MaterialIcons-Regular.ttf",
-        "@npm//:node_modules/material-design-icons-iconfont/dist/fonts/MaterialIcons-Regular.woff",
-        "@npm//:node_modules/material-design-icons-iconfont/dist/fonts/MaterialIcons-Regular.woff2",
-        "@npm//:node_modules/material-design-icons-iconfont/dist/material-design-icons.css",
-    ],
-)
-
-ts_library(
-    name = "roboto_fontface",
-    srcs = [],
-    data = [
-        "@npm//:node_modules/roboto-fontface/css/roboto/roboto-fontface.css",
-        "@npm//:node_modules/roboto-fontface/fonts/roboto/Roboto-Medium.woff",
-        "@npm//:node_modules/roboto-fontface/fonts/roboto/Roboto-Medium.woff2",
-        "@npm//:node_modules/roboto-fontface/fonts/roboto/Roboto-Regular.woff",
-        "@npm//:node_modules/roboto-fontface/fonts/roboto/Roboto-Regular.woff2",
+        "//src",
     ],
 )
 
@@ -165,7 +216,7 @@ ts_library(
     testonly = 1,
     srcs = glob(["**/*.spec.ts"]),
     deps = [
-        ":src",
+        "//src/app",
         "@npm//@angular/core",
         "@npm//@angular/router",
         "@npm//@types",
@@ -180,30 +231,13 @@ ts_library(
     ],
     deps = [
         "@npm//@angular/core",
-        "@npm//@angular/platform-browser-dynamic",
         "@npm//@types",
     ],
 )
 
-ts_web_test_suite(
-    name = "test",
+ts_library(
+    name = "environment_lib",
     srcs = [
-        "@npm//:node_modules/tslib/tslib.js",
-    ],
-    # do not sort
-    bootstrap = [
-        "@npm//:node_modules/zone.js/dist/zone-testing-bundle.js",
-        "@npm//:node_modules/reflect-metadata/Reflect.js",
-    ],
-    browsers = [
-        "@io_bazel_rules_webtesting//browsers:chromium-local",
-    ],
-    runtime_deps = [
-        ":initialize_testbed",
-    ],
-    deps = [
-        ":rxjs_umd_modules",
-        ":test_lib",
-        "@npm//karma-jasmine",
+        "environment.ts",
     ],
 )

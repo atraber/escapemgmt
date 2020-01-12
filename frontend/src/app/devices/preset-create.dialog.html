@@ -1,12 +1,12 @@
 <h1 mat-dialog-title>Create new Preset</h1>
 <div mat-dialog-content>
-  <div class="form-container">
-    <mat-form-field>
-      <input matInput [(ngModel)]="preset.name" placeholder="Name" required>
-    </mat-form-field>
-  </div>
+    <div class="form-container">
+        <mat-form-field>
+            <input matInput [(ngModel)]="preset.name" placeholder="Name" [required]=true>
+        </mat-form-field>
+    </div>
 </div>
 <div mat-dialog-actions>
-  <button mat-raised-button mat-dialog-close>Close</button>
-  <button mat-raised-button cdkFocusInitial color="primary" (click)="addPreset(preset)">Create</button>
+    <button mat-raised-button mat-dialog-close>Close</button>
+    <button mat-raised-button cdkFocusInitial color="primary" (click)="addPreset(preset)">Create</button>
 </div>

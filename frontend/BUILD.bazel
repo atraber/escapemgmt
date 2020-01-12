@@ -1,7 +1,44 @@
+load(
+    "@io_bazel_rules_docker//container:container.bzl",
+    "container_image",
+    "container_push",
+)
+
 package(default_visibility = ["//visibility:public"])
 
-# This export allows targets in other packages to reference files that live
-# in this package.
-exports_files([
-    "tsconfig.json",
-])
+# ts_library and ng_module use the `//:tsconfig.json` target
+# by default. This alias allows omitting explicit tsconfig
+# attribute.
+alias(
+    name = "tsconfig.json",
+    actual = "//src:tsconfig.json",
+)
+
+container_image(
+    name = "frontend",
+    base = "@frontend_base//image",
+    cmd = [
+        "nginx",
+        "-g",
+        "daemon off;",
+    ],
+    env = {
+        "API_ADDR": "http://escape-backend:8080",
+    },
+    files = [
+        ":default.conf",
+        "//src:prodapp",
+    ],
+    symlinks = {
+        "/etc/nginx/conf.d/default.conf": "/default.conf",
+    },
+)
+
+container_push(
+    name = "frontend_push",
+    format = "Docker",
+    image = ":frontend",
+    registry = "192.168.0.80:5000",
+    repository = "escape_frontend",
+    tag = "prod",
+)

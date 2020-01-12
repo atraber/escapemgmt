@@ -4,22 +4,22 @@
  */
 import {HttpClient, HttpErrorResponse, HttpHeaders} from '@angular/common/http';
 import {EventEmitter, Injectable} from '@angular/core';
-import {Observable} from 'rxjs';
-import {catchError, retryWhen} from 'rxjs/operators';
-import {genericRetryStrategy} from '../rxjs-utils';
-import {timer} from 'rxjs';
-import {environment} from '../../environments/environment';
-
 import * as moment from 'moment';
+import {Observable} from 'rxjs';
+import {timer} from 'rxjs';
+import {catchError, retryWhen} from 'rxjs/operators';
+
+import {environment} from '../../environment';
 import {Room} from '../room';
+import {genericRetryStrategy} from '../rxjs-utils';
 
 const jsonOptions = {
-  headers: new HttpHeaders({
-    'Content-Type': 'application/json',
+  headers : new HttpHeaders({
+    'Content-Type' : 'application/json',
   })
 };
 
-@Injectable()
+@Injectable({providedIn : 'root'})
 export class RoomsService {
   rooms: Room[] = [];
   roomsUpdated: EventEmitter<Room[]> = new EventEmitter();
@@ -27,9 +27,7 @@ export class RoomsService {
   constructor(private http: HttpClient) {
     this.updateRooms();
     let t = timer(0, 15 * 1000);
-    t.subscribe(t => {
-      this.updateRooms();
-    });
+    t.subscribe(t => { this.updateRooms(); });
   }
 
   private sortRooms(rooms: Room[]): Room[] {
@@ -52,16 +50,15 @@ export class RoomsService {
 
   private updateRooms(): void {
     this.http.get<Room[]>(environment.apiEndpoint + '/rooms')
-      .pipe(
-        retryWhen(genericRetryStrategy({
-          maxRetryAttempts: 3,
-          scalingDuration: 2000,
-          excludedStatusCodes: [500]
+        .pipe(retryWhen(genericRetryStrategy({
+          maxRetryAttempts : 3,
+          scalingDuration : 2000,
+          excludedStatusCodes : [ 500 ]
         })))
-      .subscribe(rooms => {
-        this.rooms = this.sortRooms(rooms);
-        this.roomsUpdated.emit(rooms)
-      });
+        .subscribe(rooms => {
+          this.rooms = this.sortRooms(rooms);
+          this.roomsUpdated.emit(rooms)
+        });
   }
 
   private handleError(error: HttpErrorResponse) {
@@ -71,9 +68,8 @@ export class RoomsService {
     } else {
       // The backend returned an unsuccessful response code.
       // The response body may contain clues as to what went wrong,
-      console.error(
-        `Backend returned code ${error.status}, ` +
-        `body was: ${error.error}`);
+      console.error(`Backend returned code ${error.status}, ` +
+                    `body was: ${error.error}`);
     }
     // TODO: Use the snackbar or something to deliver this in a user friendly
     // manner.

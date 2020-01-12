@@ -1,77 +1,77 @@
 <mat-list>
-  <a mat-list-item>Devices</a>
+    <a mat-list-item>Devices</a>
 </mat-list>
 <mat-divider></mat-divider>
-<mat-drawer-container autosize class="devices-drawer-list">
-  <mat-drawer opened="true" disableClose mode="side">
-    <mat-form-field class="form-full-width">
-      <input matInput placeholder="Filter" (keyup)="applyDeviceFilter($event.target.value)">
-    </mat-form-field>
+<mat-drawer-container [autosize]=true class="devices-drawer-list">
+    <mat-drawer [opened]=true [disableClose]=true mode="side">
+        <mat-form-field class="form-full-width">
+            <input matInput placeholder="Filter" (keyup)="applyDeviceFilter($event.target.value)">
+        </mat-form-field>
 
-    <mat-button-toggle-group vertical="true">
-       <mat-button-toggle *ngFor="let device of filteredDevices" value="device" (click)="selectDevice(device)" [checked]="deviceSelected == device">
-         <div class="button-text">
-           <div>{{device.name}}</div>
-           <div class="text-muted">{{device.mac}}</div>
-           <div class="text-muted">Last seen {{deviceLastSeen(device.last_seen)}}</div>
-         </div>
-       </mat-button-toggle>
-    </mat-button-toggle-group>
+        <mat-button-toggle-group [vertical]=true>
+            <mat-button-toggle *ngFor="let device of filteredDevices" value="device" (click)="selectDevice(device)" [checked]="deviceSelected == device">
+                <div class="button-text">
+                    <div>{{device.name}}</div>
+                    <div class="text-muted">{{device.mac}}</div>
+                    <div class="text-muted">Last seen {{deviceLastSeen(device.last_seen)}}</div>
+                </div>
+            </mat-button-toggle>
+        </mat-button-toggle-group>
 
-    <div class="device-add-field">
-      <button mat-button color="primary" (click)="addDeviceDialog()">Add new Device</button>
-    </div>
-  </mat-drawer>
-  <mat-drawer-content>
-    <div *ngIf="deviceSelected != null" class="form-container">
-      <mat-form-field>
-        <input matInput [(ngModel)]="deviceSelected.name" placeholder="Name" required>
-      </mat-form-field>
+        <div class="device-add-field">
+            <button mat-button color="primary" (click)="addDeviceDialog()">Add new Device</button>
+        </div>
+    </mat-drawer>
+    <mat-drawer-content>
+        <div *ngIf="deviceSelected != null" class="form-container">
+            <mat-form-field>
+                <input matInput [(ngModel)]="deviceSelected.name" placeholder="Name" [required]=true>
+            </mat-form-field>
 
-      <mat-form-field>
-        <input matInput [(ngModel)]="deviceSelected.mac" placeholder="MAC Address" required>
-      </mat-form-field>
+            <mat-form-field>
+                <input matInput [(ngModel)]="deviceSelected.mac" placeholder="MAC Address" [required]=true>
+            </mat-form-field>
 
-      <mat-form-field class="preset-form-field">
-        <mat-label>Preset</mat-label>
-        <mat-select [(value)]="active_preset" (selectionChange)="deviceSelectPreset($event.value)">
-          <mat-option *ngFor="let preset of presets" [value]="preset">
-            {{preset.name}} {{preset.active ? "*": ""}}
-          </mat-option>
-        </mat-select>
-        <mat-hint align="start"><strong>Only streams for the selected preset are shown below.</strong></mat-hint>
-      </mat-form-field>
+            <mat-form-field class="preset-form-field">
+                <mat-label>Preset</mat-label>
+                <mat-select [(value)]="active_preset" (selectionChange)="deviceSelectPreset($event.value)">
+                    <mat-option *ngFor="let preset of presets" [value]="preset">
+                        {{preset.name}} {{preset.active ? "*": ""}}
+                    </mat-option>
+                </mat-select>
+                <mat-hint align="start"><strong>Only streams for the selected preset are shown below.</strong></mat-hint>
+            </mat-form-field>
 
-      <div>
-        <table mat-table [dataSource]="deviceSelectedStreamsDataSource">
+            <div>
+                <table mat-table [dataSource]="deviceSelectedStreamsDataSource">
 
-          <ng-container matColumnDef="name">
-            <th mat-header-cell *matHeaderCellDef>Name</th>
-            <td mat-cell *matCellDef="let element">{{element.name}}</td>
-          </ng-container>
+                    <ng-container matColumnDef="name">
+                        <th mat-header-cell *matHeaderCellDef>Name</th>
+                        <td mat-cell *matCellDef="let element">{{element.name}}</td>
+                    </ng-container>
 
-          <ng-container matColumnDef="controls">
-            <th mat-header-cell *matHeaderCellDef></th>
-            <td mat-cell *matCellDef="let element">
-              <button mat-icon-button (click)="removeStreamFromDevicePreset(deviceSelected, active_preset, element)">
-                <mat-icon>delete</mat-icon>
-              </button>
-            </td>
-          </ng-container>
+                    <ng-container matColumnDef="controls">
+                        <th mat-header-cell *matHeaderCellDef></th>
+                        <td mat-cell *matCellDef="let element">
+                            <button mat-icon-button (click)="removeStreamFromDevicePreset(deviceSelected, active_preset, element)">
+                                <mat-icon>delete</mat-icon>
+                            </button>
+                        </td>
+                    </ng-container>
 
-          <tr mat-header-row *matHeaderRowDef="['name', 'controls']"></tr>
-          <tr mat-row *matRowDef="let row; columns: ['name', 'controls']"></tr>
-        </table>
-      </div>
+                    <tr mat-header-row *matHeaderRowDef="['name', 'controls']"></tr>
+                    <tr mat-row *matRowDef="let row; columns: ['name', 'controls']"></tr>
+                </table>
+            </div>
 
-      <div class="stream-add-field">
-        <button mat-button color="primary" (click)="addPresetStreamDialog(deviceSelected, active_preset)">Add additional Stream</button>
-      </div>
+            <div class="stream-add-field">
+                <button mat-button color="primary" (click)="addPresetStreamDialog(deviceSelected, active_preset)">Add additional Stream</button>
+            </div>
 
-      <div class="buttons">
-        <button mat-raised-button color="warn" (click)="deleteDeviceDialog(deviceSelected)">Delete</button>
-        <button mat-raised-button color="primary" (click)="updateDevice(deviceSelected)">Save</button>
-      </div>
-    </div>
-  </mat-drawer-content>
+            <div class="buttons">
+                <button mat-raised-button color="warn" (click)="deleteDeviceDialog(deviceSelected)">Delete</button>
+                <button mat-raised-button color="primary" (click)="updateDevice(deviceSelected)">Save</button>
+            </div>
+        </div>
+    </mat-drawer-content>
 </mat-drawer-container>

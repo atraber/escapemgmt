@@ -27,8 +27,7 @@ build --incompatible_bzl_disallow_load_after_statement=false
 
 test --test_output=errors
 
-# Use the Angular 6 compiler
-build --define=compile=legacy
+build --define=angular_ivy_enabled=True
 
 # Turn on managed directories feature in Bazel
 # This allows us to avoid installing a second copy of node_modules

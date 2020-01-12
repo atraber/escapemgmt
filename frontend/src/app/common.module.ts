@@ -1,26 +1,25 @@
-import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
-import {BrowserModule} from '@angular/platform-browser';
-import {FormsModule, ReactiveFormsModule} from '@angular/forms';
+import {CommonModule as NgCommonModule} from '@angular/common';
 import {HttpClientModule} from '@angular/common/http';
 import {NgModule} from '@angular/core';
-import {MaterialModule} from '../material.module';
+import {FormsModule, ReactiveFormsModule} from '@angular/forms';
+
+import {MaterialModule} from './material.module';
 
 @NgModule({
-  imports: [
-    BrowserAnimationsModule,
-    BrowserModule,
+  imports : [
+    NgCommonModule,
     FormsModule,
     HttpClientModule,
     MaterialModule,
     ReactiveFormsModule,
   ],
-  exports: [
-    BrowserAnimationsModule,
-    BrowserModule,
+  exports : [
+    NgCommonModule,
     FormsModule,
     HttpClientModule,
     MaterialModule,
     ReactiveFormsModule,
-  ]
+  ],
 })
-export class CommonModule { }
+export class CommonModule {
+}

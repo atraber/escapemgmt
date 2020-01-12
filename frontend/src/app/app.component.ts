@@ -3,25 +3,23 @@
  * Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
  */
 import {AfterViewInit, Component, HostListener, ViewChild} from '@angular/core';
-import {MatDrawer} from '@angular/material';
+import {MatDrawer} from '@angular/material/sidenav';
 import {Router} from '@angular/router';
 
 import {NavService} from './nav.service';
 
 @Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+  selector : 'app-root',
+  templateUrl : './app.component.html',
+  styleUrls : [ './app.component.scss' ]
 })
 export class AppComponent implements AfterViewInit {
   _router: any;
   snavOpened: boolean = false;
-  snavMode: string = 'side';
-  @ViewChild('snav', {static: false}) snav: MatDrawer;
+  snavMode: "over"|"push"|"side" = 'side';
+  @ViewChild('snav', {static : false}) snav: MatDrawer;
 
-  constructor(
-      private navService: NavService,
-      private router: Router) {
+  constructor(private navService: NavService, private router: Router) {
     this._router = router;
 
     this.snavOpened = this.navService.isOpened;
@@ -35,13 +33,12 @@ export class AppComponent implements AfterViewInit {
     });
   }
 
-
   snavToggle(): void {
     this.navService.toggle();
     this.snavOpened = this.navService.isOpened;
   }
 
-  @HostListener('window:resize', ['$event'])
+  @HostListener('window:resize', [ '$event' ])
   onResize(event: Event): void {
     if (window.innerWidth < 700) {
       this.snavMode = 'over';

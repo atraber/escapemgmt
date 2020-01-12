@@ -1,0 +1,65 @@
+package(default_visibility = ["//src/app:__subpackages__"])
+
+load("@io_bazel_rules_sass//:defs.bzl", "sass_binary")
+load("@npm_angular_bazel//:index.bzl", "ng_module")
+
+SCSS_ASSETS = [
+    "device-add-stream.dialog.scss",
+    "device-create.dialog.scss",
+    "devices.component.scss",
+    "preset-create.dialog.scss",
+    "presets.component.scss",
+    "screens.component.scss",
+    "stream-create.dialog.scss",
+    "stream-edit.dialog.scss",
+    "streams.component.scss",
+]
+
+[
+    sass_binary(
+        name = asset[:-5],
+        src = asset,
+        sourcemap = False,
+        deps = ["//src:styles_lib"],
+    )
+    for asset in SCSS_ASSETS
+]
+
+CSS_ASSETS = [asset[:-5] for asset in SCSS_ASSETS]
+
+ng_module(
+    name = "devices",
+    srcs = [
+        "device-add-stream.dialog.ts",
+        "device-create.dialog.ts",
+        "devices.component.ts",
+        "devices.module.ts",
+        "preset-create.dialog.ts",
+        "preset-delete.dialog.ts",
+        "presets.component.ts",
+        "screens.component.ts",
+        "stream-create.dialog.ts",
+        "stream-edit.dialog.ts",
+        "streams.component.ts",
+    ],
+    assets = [
+        "device-add-stream.dialog.html",
+        "device-create.dialog.html",
+        "device-delete-dialog.html",
+        "devices.component.html",
+        "preset-create.dialog.html",
+        "preset-delete.dialog.html",
+        "presets.component.html",
+        "screens.component.html",
+        "stream-create.dialog.html",
+        "stream-delete.dialog.html",
+        "stream-edit.dialog.html",
+        "streams.component.html",
+    ] + CSS_ASSETS,
+    tsconfig = "//src:tsconfig.json",
+    deps = [
+        "//src/app:common_lib",
+        "//src/app:common_module",
+        "@npm//moment",
+    ],
+)

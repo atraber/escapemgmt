@@ -3,28 +3,30 @@
  * Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
  */
 import {Component, Inject} from '@angular/core';
-import {MatDialog, MatDialogRef, MAT_DIALOG_DATA, MatSnackBar, MatTableDataSource} from '@angular/material';
-import * as moment_ from 'moment';
+import {
+  MAT_DIALOG_DATA,
+  MatDialog,
+  MatDialogRef
+} from '@angular/material/dialog';
+import {MatSnackBar} from '@angular/material/snack-bar';
+import {MatTableDataSource} from '@angular/material/table';
+import moment from 'moment';
 
-const moment = moment_;
-
-import {ScoresService} from '../scores.service';
 import {Room} from '../room';
 import {Score} from '../score';
+import {ScoresService} from '../scores.service';
 
 @Component({
-  templateUrl: './scores.component.html',
-  styleUrls: ['./scores.component.scss']
+  templateUrl : './scores.component.html',
+  styleUrls : [ './scores.component.scss' ]
 })
 export class ScoresComponent {
   rooms: Room[] = [];
   roomSelected: Room = null;
   roomSelectedScoresDataSource = new MatTableDataSource<Score>();
 
-  constructor(
-    private scoresService: ScoresService,
-    private dialog: MatDialog,
-    private snackBar: MatSnackBar) {
+  constructor(private scoresService: ScoresService, private dialog: MatDialog,
+              private snackBar: MatSnackBar) {
     this.rooms = this.scoresService.rooms;
     this.selectRoom(null);
 
@@ -34,7 +36,7 @@ export class ScoresComponent {
     });
   }
 
-  selectRoom(room: Room | null): void {
+  selectRoom(room: Room|null): void {
     if (room == null) {
       if (this.roomSelected == null && this.rooms.length > 0) {
         this.roomSelected = this.rooms[0];
@@ -73,10 +75,8 @@ export class ScoresComponent {
   }
 
   addScoreDialog(room: Room): void {
-    const dialogRef = this.dialog.open(ScoreAddDialog, {
-      width: '350px',
-      data: room
-    });
+    const dialogRef =
+        this.dialog.open(ScoreAddDialog, {width : '350px', data : room});
 
     dialogRef.afterClosed().subscribe(score => {
       if (score != undefined && score != "") {
@@ -87,10 +87,8 @@ export class ScoresComponent {
   }
 
   editScoreDialog(room: Room, score: Score): void {
-    const dialogRef = this.dialog.open(ScoreEditDialog, {
-      width: '350px',
-      data: score
-    });
+    const dialogRef =
+        this.dialog.open(ScoreEditDialog, {width : '350px', data : score});
 
     dialogRef.afterClosed().subscribe(score => {
       if (score != undefined && score != "") {
@@ -101,10 +99,8 @@ export class ScoresComponent {
   }
 
   deleteScoreDialog(room: Room, score: Score): void {
-    const dialogRef = this.dialog.open(ScoreDeleteDialog, {
-      width: '350px',
-      data: score
-    });
+    const dialogRef =
+        this.dialog.open(ScoreDeleteDialog, {width : '350px', data : score});
 
     dialogRef.afterClosed().subscribe(score => {
       if (score != undefined && score != "") {
@@ -115,30 +111,38 @@ export class ScoresComponent {
   }
 
   addScoreToRoom(room: Room, score: Score): void {
-    this.scoresService.addScoreToRoom(room, score).subscribe(() => {
-      this.snackBar.open('Score was added', 'Hide', {
-        duration: 2000,
-      });
-    }, err => {
-      this.snackBar.open('Failed to add score. Please try again!', 'Hide', {
-        duration: 2000,
-      });
-    });
+    this.scoresService.addScoreToRoom(room, score)
+        .subscribe(
+            () => {
+              this.snackBar.open('Score was added', 'Hide', {
+                duration : 2000,
+              });
+            },
+            err => {
+              this.snackBar.open('Failed to add score. Please try again!',
+                                 'Hide', {
+                                   duration : 2000,
+                                 });
+            });
 
     // Update table since it does not detect changes automatically
     this.roomSelectedScoresDataSource.data = this.roomSelected.scores;
   }
 
   deleteScoreFromRoom(room: Room, score: Score): void {
-    this.scoresService.deleteScoreFromRoom(room, score).subscribe(() => {
-      this.snackBar.open('Score was deleted', 'Hide', {
-        duration: 2000,
-      });
-    }, err => {
-      this.snackBar.open('Failed to delete score. Please try again!', 'Hide', {
-        duration: 2000,
-      });
-    });
+    this.scoresService.deleteScoreFromRoom(room, score)
+        .subscribe(
+            () => {
+              this.snackBar.open('Score was deleted', 'Hide', {
+                duration : 2000,
+              });
+            },
+            err => {
+              this.snackBar.open('Failed to delete score. Please try again!',
+                                 'Hide', {
+                                   duration : 2000,
+                                 });
+            });
 
     // Update table since it does not detect changes automatically
     this.roomSelectedScoresDataSource.data = this.roomSelected.scores;
@@ -146,46 +150,43 @@ export class ScoresComponent {
 }
 
 @Component({
-  selector: 'score-add-dialog',
-  templateUrl: 'score-add-dialog.html',
-  styles: [`
+  selector : 'score-add-dialog',
+  templateUrl : 'score-add-dialog.html',
+  styles : [ `
     .score-form-container {
       display: flex;
       flex-direction: column;
       margin-right: 180px;
     }
-  `],
+  ` ],
 })
 export class ScoreAddDialog {
   room: Room;
   score: Score;
 
-  constructor(
-      public dialogRef: MatDialogRef<ScoreAddDialog>,
-      @Inject(MAT_DIALOG_DATA) public data: Room) {
+  constructor(public dialogRef: MatDialogRef<ScoreAddDialog>,
+              @Inject(MAT_DIALOG_DATA) public data: Room) {
     this.room = data;
     this.score = new Score();
   }
 }
 
 @Component({
-  selector: 'score-edit-dialog',
-  templateUrl: 'score-edit-dialog.html',
+  selector : 'score-edit-dialog',
+  templateUrl : 'score-edit-dialog.html',
 })
 export class ScoreEditDialog {
   score: Score;
 
-  constructor(
-      public dialogRef: MatDialogRef<ScoreEditDialog>,
-      @Inject(MAT_DIALOG_DATA) public data: Score) {}
+  constructor(public dialogRef: MatDialogRef<ScoreEditDialog>,
+              @Inject(MAT_DIALOG_DATA) public data: Score) {}
 }
 
 @Component({
-  selector: 'score-delete-dialog',
-  templateUrl: 'score-delete-dialog.html',
+  selector : 'score-delete-dialog',
+  templateUrl : 'score-delete-dialog.html',
 })
 export class ScoreDeleteDialog {
-  constructor(
-      public dialogRef: MatDialogRef<ScoreDeleteDialog>,
-      @Inject(MAT_DIALOG_DATA) public data: Score) {}
+  constructor(public dialogRef: MatDialogRef<ScoreDeleteDialog>,
+              @Inject(MAT_DIALOG_DATA) public data: Score) {}
 }

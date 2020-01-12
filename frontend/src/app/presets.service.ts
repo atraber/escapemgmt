@@ -2,19 +2,20 @@
  * Copyright 2018 Andreas Traber
  * Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
  */
-import {Injectable, EventEmitter} from '@angular/core';
-import {HttpClient, HttpHeaders, HttpErrorResponse} from '@angular/common/http';
+import {HttpClient, HttpErrorResponse, HttpHeaders} from '@angular/common/http';
+import {EventEmitter, Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
 import {catchError, retryWhen} from 'rxjs/operators';
-import {genericRetryStrategy} from './rxjs-utils';
 
-import {environment} from '../environments/environment';
+import {environment} from '../environment';
+
 import {DevicesService} from './devices.service';
 import {Preset} from './preset';
+import {genericRetryStrategy} from './rxjs-utils';
 
 const jsonOptions = {
-  headers: new HttpHeaders({
-    'Content-Type':  'application/json',
+  headers : new HttpHeaders({
+    'Content-Type' : 'application/json',
   })
 };
 
@@ -24,18 +25,19 @@ export class PresetsService {
 
   presetsUpdated: EventEmitter<Preset[]> = new EventEmitter();
 
-  constructor(private devicesService: DevicesService, private http: HttpClient) {
+  constructor(private devicesService: DevicesService,
+              private http: HttpClient) {}
+  onInit() {
     this.http.get<Preset[]>(environment.apiEndpoint + '/presets')
-      .pipe(
-        retryWhen(genericRetryStrategy({
-          maxRetryAttempts: 0,
-          scalingDuration: 2000,
-          excludedStatusCodes: [500]
+        .pipe(retryWhen(genericRetryStrategy({
+          maxRetryAttempts : 0,
+          scalingDuration : 2000,
+          excludedStatusCodes : [ 500 ]
         })))
-      .subscribe(presets => {
-        this.presets = presets;
-        this.presetsUpdated.emit(presets);
-      });
+        .subscribe(presets => {
+          this.presets = presets;
+          this.presetsUpdated.emit(presets);
+        });
   }
 
   private handleError(error: HttpErrorResponse) {
@@ -45,9 +47,8 @@ export class PresetsService {
     } else {
       // The backend returned an unsuccessful response code.
       // The response body may contain clues as to what went wrong,
-      console.error(
-        `Backend returned code ${error.status}, ` +
-        `body was: ${error.error}`);
+      console.error(`Backend returned code ${error.status}, ` +
+                    `body was: ${error.error}`);
     }
     // TODO: Use the snackbar or something to deliver this in a user friendly
     // manner.
@@ -56,64 +57,79 @@ export class PresetsService {
 
   activatePreset(preset: Preset): Observable<{}> {
     return Observable.create(observer => {
-      this.http.post(environment.apiEndpoint + '/preset/activate/' + preset.id, preset, jsonOptions)
-        .pipe(catchError(this.handleError))
-        .subscribe(data => {
-          for (let preset of this.presets) {
-            preset.active = false;
-          }
-          preset.active = true;
-          this.presetsUpdated.emit(this.presets)
-          observer.next(data);
-          observer.complete();
-        }, err => {
-          observer.error(err);
-        });
+      this.http
+          .post(environment.apiEndpoint + '/preset/activate/' + preset.id,
+                preset, jsonOptions)
+          .pipe(catchError(this.handleError))
+          .subscribe(
+              data => {
+                for (let preset of this.presets) {
+                  preset.active = false;
+                }
+                preset.active = true;
+                this.presetsUpdated.emit(this.presets)
+                observer.next(data);
+                observer.complete();
+              },
+              err => { observer.error(err); });
     });
   }
 
   addPreset(preset: Preset): Observable<Preset> {
     return Observable.create(observer => {
-      this.http.post<Preset>(environment.apiEndpoint + '/preset', preset, jsonOptions)
-        .pipe(catchError(this.handleError))
-        .subscribe(data => {
-          this.presets.push(data);
-          this.presetsUpdated.emit(this.presets)
-          observer.next(data);
-          observer.complete();
-        }, err => {
-          observer.error(err);
-        });
+      this.http
+          .post<Preset>(environment.apiEndpoint + '/preset', preset,
+                        jsonOptions)
+          .pipe(catchError(this.handleError))
+          .subscribe(
+              data => {
+                this.presets.push(data);
+                this.presetsUpdated.emit(this.presets)
+                observer.next(data);
+                observer.complete();
+              },
+              err => { observer.error(err); });
     });
   }
 
   updatePreset(preset: Preset): Observable<Preset> {
     return Observable.create(observer => {
-      this.http.post<Preset>(environment.apiEndpoint + '/presets/' + preset.id, preset, jsonOptions)
-        .pipe(catchError(this.handleError))
-        .subscribe(preset => {
-          this.presetsUpdated.emit(this.presets)
-          observer.next(preset);
-          observer.complete();
-        }, err => {
-          observer.error(err);
-        });
+      this.http
+          .post<Preset>(environment.apiEndpoint + '/presets/' + preset.id,
+                        preset, jsonOptions)
+          .pipe(catchError(this.handleError))
+          .subscribe(
+              preset => {
+                this.presetsUpdated.emit(this.presets)
+                observer.next(preset);
+                observer.complete();
+              },
+              err => { observer.error(err); });
     });
   }
 
   deletePreset(preset: Preset): Observable<{}> {
     return Observable.create(observer => {
-      this.http.delete(environment.apiEndpoint + '/presets/' + preset.id, jsonOptions)
-        .pipe(catchError(this.handleError))
-        .subscribe(data => {
-          let index = this.presets.indexOf(preset);
-          this.presets.splice(index, 1);
-          this.presetsUpdated.emit(this.presets)
-          observer.next(null);
-          observer.complete();
-        }, err => {
-          observer.error(err);
-        });
+      this.http
+          .delete(environment.apiEndpoint + '/presets/' + preset.id,
+                  jsonOptions)
+          .pipe(catchError(this.handleError))
+          .subscribe(
+              data => {
+                let index = this.presets.indexOf(preset);
+                this.presets.splice(index, 1);
+                this.presetsUpdated.emit(this.presets)
+                observer.next(null);
+                observer.complete();
+              },
+              err => { observer.error(err); });
     });
   }
 }
+
+export let presetsServiceProvider = {
+  provide : PresetsService,
+  useFactory : (ds: DevicesService,
+                http: HttpClient) => { return new PresetsService(ds, http)},
+  deps : [ DevicesService, HttpClient ]
+};

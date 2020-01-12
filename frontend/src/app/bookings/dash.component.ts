@@ -3,32 +3,32 @@
  * Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
  */
 import {Component, Inject} from '@angular/core';
-import {MatDialog, MatDialogRef, MAT_DIALOG_DATA, MatSnackBar} from '@angular/material';
-import * as moment_ from 'moment';
-
-const moment = moment_;
+import {
+  MAT_DIALOG_DATA,
+  MatDialog,
+  MatDialogRef
+} from '@angular/material/dialog';
+import {MatSnackBar} from '@angular/material/snack-bar';
+import moment from 'moment';
 
 import {Booking} from '../booking';
 import {BookingsService} from '../bookings.service';
 
 @Component({
-  templateUrl: './dash.component.html',
-  styleUrls: ['./dash.component.scss']
+  templateUrl : './dash.component.html',
+  styleUrls : [ './dash.component.scss' ]
 })
 export class BookingsDashComponent {
   recentBookings: Booking[] = [];
   currentBookings: Booking[] = [];
   upcomingBookings: Booking[] = [];
 
-  constructor(
-    private bookingsService: BookingsService,
-    private dialog: MatDialog,
-    private snackBar: MatSnackBar) {
+  constructor(private bookingsService: BookingsService,
+              private dialog: MatDialog, private snackBar: MatSnackBar) {
     this.filterAndSortBookings(this.bookingsService.bookings);
 
-    this.bookingsService.bookingsUpdated.subscribe((bookings) => {
-      this.filterAndSortBookings(bookings);
-    });
+    this.bookingsService.bookingsUpdated.subscribe(
+        (bookings) => { this.filterAndSortBookings(bookings); });
   }
 
   private filterAndSortBookings(bookings: Booking[]) {
@@ -51,9 +51,8 @@ export class BookingsDashComponent {
     });
 
     // Sort them by time
-    let sorted = filtered.sort((b1, b2) => {
-      return b1.slot_from - b2.slot_from;
-    });
+    let sorted =
+        filtered.sort((b1, b2) => { return b1.slot_from - b2.slot_from; });
 
     // Perform bining, aka. push bookings into recent, current or upcoming
     // bookings bins.

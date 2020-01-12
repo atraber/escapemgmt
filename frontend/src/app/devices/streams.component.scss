@@ -1,24 +1,24 @@
-@import 'styles.scss';
+@import 'src/styles.scss';
 
 .table-container {
-  display: flex;
-  flex-direction: column;
-  margin: 10px;
+    display: flex;
+    flex-direction: column;
+    margin: 10px;
 }
 
 .stream-add-field {
-  @include button-add-field;
-  margin: 10px;
+    @include button-add-field;
+    margin: 10px;
 }
 
 table {
-  width: 100%;
+    width: 100%;
 }
 
 td:not(.mat-column-controls) {
-  width: 100%;
+    width: 100%;
 }
 
 td.mat-column-controls {
-  white-space: nowrap;
+    white-space: nowrap;
 }

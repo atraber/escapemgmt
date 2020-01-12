@@ -1,31 +1,31 @@
-@import 'styles.scss';
+@import 'src/styles.scss';
 
 .mat-accordion {
-  display: flex;
-  flex-direction: column;
-  margin: 10px;
+    display: flex;
+    flex-direction: column;
+    margin: 10px;
 }
 
 .room-form-container {
-  display: flex;
-  flex-direction: column;
+    display: flex;
+    flex-direction: column;
 }
 
-.room-form-container > .buttons {
-  flex-direction: row;
+.room-form-container>.buttons {
+    flex-direction: row;
 }
 
-.room-form-container > .buttons button {
-  margin-left: 4px;
-  margin-right: 4px;
+.room-form-container>.buttons button {
+    margin-left: 4px;
+    margin-right: 4px;
 }
 
 .rooms-create-field {
-  @include button-add-field;
-  margin: 10px;
+    @include button-add-field;
+    margin: 10px;
 }
 
 img {
-  max-width: 256px;
-  max-height: 256px;
+    max-width: 256px;
+    max-height: 256px;
 }

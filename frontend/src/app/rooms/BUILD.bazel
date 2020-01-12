@@ -1,0 +1,53 @@
+package(default_visibility = ["//src/app:__subpackages__"])
+
+load("@io_bazel_rules_sass//:defs.bzl", "sass_binary")
+load("@npm_angular_bazel//:index.bzl", "ng_module")
+
+SCSS_ASSETS = [
+    "create.dialog.scss",
+    "fileupload.component.scss",
+    "rooms.component.scss",
+    "scores.component.scss",
+]
+
+[
+    sass_binary(
+        name = asset[:-5],
+        src = asset,
+        sourcemap = False,
+        deps = ["//src:styles_lib"],
+    )
+    for asset in SCSS_ASSETS
+]
+
+CSS_ASSETS = [asset[:-5] for asset in SCSS_ASSETS]
+
+ng_module(
+    name = "rooms",
+    srcs = [
+        "create.dialog.ts",
+        "filebuffer.ts",
+        "fileupload.component.ts",
+        "fileupload.service.ts",
+        "rooms.component.ts",
+        "rooms.module.ts",
+        "scores.component.ts",
+        "timeinput.component.ts",
+    ],
+    assets = [
+        "create.dialog.html",
+        "fileupload.component.html",
+        "rooms.component.html",
+        "rooms-delete-dialog.html",
+        "score-add-dialog.html",
+        "score-delete-dialog.html",
+        "score-edit-dialog.html",
+        "scores.component.html",
+    ] + CSS_ASSETS,
+    tsconfig = "//src:tsconfig.json",
+    deps = [
+        "//src/app:common_lib",
+        "//src/app:common_module",
+        "@npm//moment",
+    ],
+)

@@ -5,7 +5,7 @@
 import {Component} from '@angular/core';
 import * as moment from 'moment';
 
-import {environment} from '../../environments/environment';
+import {environment} from '../../environment';
 import {Room} from '../room';
 import {RoomsService} from './rooms.service';
 import {Score} from '../score';

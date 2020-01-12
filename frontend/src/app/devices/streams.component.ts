@@ -3,26 +3,32 @@
  * Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
  */
 import {Component, Inject} from '@angular/core';
-import {MatDialog, MatDialogRef, MAT_DIALOG_DATA, MatSnackBar, MatTableDataSource} from '@angular/material';
+import {
+  MAT_DIALOG_DATA,
+  MatDialog,
+  MatDialogRef
+} from '@angular/material/dialog';
+import {MatSelect} from '@angular/material/select';
+import {MatSnackBar} from '@angular/material/snack-bar';
+import {MatTableDataSource} from '@angular/material/table';
 
-import {StreamCreateDialog} from './stream-create.dialog';
-import {StreamEditDialog} from './stream-edit.dialog';
 import {DevicesService} from '../devices.service';
 import {Stream} from '../stream';
 import {StreamView} from '../streamview';
 
+import {StreamCreateDialog} from './stream-create.dialog';
+import {StreamEditDialog} from './stream-edit.dialog';
+
 @Component({
-  templateUrl: './streams.component.html',
-  styleUrls: ['./streams.component.scss']
+  templateUrl : './streams.component.html',
+  styleUrls : [ './streams.component.scss' ]
 })
 export class StreamsComponent {
   streams: Stream[] = [];
   streamsDataSource = new MatTableDataSource<Stream>();
 
-  constructor(
-      private devicesService: DevicesService,
-      private dialog: MatDialog,
-      private snackBar: MatSnackBar) {
+  constructor(private devicesService: DevicesService, private dialog: MatDialog,
+              private snackBar: MatSnackBar) {
     this.streams = this.devicesService.streams;
     this.streamsDataSource.data = this.streams;
 
@@ -37,23 +43,17 @@ export class StreamsComponent {
   }
 
   addStreamDialog(): void {
-    const dialogRef = this.dialog.open(StreamCreateDialog, {
-      width: '500px'
-    });
+    const dialogRef = this.dialog.open(StreamCreateDialog, {width : '500px'});
   }
 
   editStreamDialog(stream: Stream): void {
-    const dialogRef = this.dialog.open(StreamEditDialog, {
-      width: '500px',
-      data: stream
-    });
+    const dialogRef =
+        this.dialog.open(StreamEditDialog, {width : '500px', data : stream});
   }
 
   deleteStreamDialog(stream: Stream): void {
-    const dialogRef = this.dialog.open(StreamDeleteDialog, {
-      width: '400px',
-      data: stream
-    });
+    const dialogRef =
+        this.dialog.open(StreamDeleteDialog, {width : '400px', data : stream});
   }
 
   updateStream(stream: Stream) {
@@ -61,9 +61,10 @@ export class StreamsComponent {
   }
 
   submitStreamView() {
-    //if (this.view.id == undefined) {
+    // if (this.view.id == undefined) {
     //  console.log('Creating new streamview because it has no id');
-    //  this.devicesService.addStreamView(this.view, stream_selected.id).subscribe(streamview => {
+    //  this.devicesService.addStreamView(this.view,
+    //  stream_selected.id).subscribe(streamview => {
     //    stream_selected.streamviews.push(streamview);
     //  });
     //} else {
@@ -73,43 +74,46 @@ export class StreamsComponent {
   }
 
   newStreamView() {
-    //this.view = new StreamView();
+    // this.view = new StreamView();
   }
 
   editStreamView(view: StreamView): boolean {
-    //this.view = view;
+    // this.view = view;
 
     return false;
   }
 
   deleteStreamView(view: StreamView) {
-    //this.devicesService.deleteStreamView(this.stream_selected, view).subscribe();
+    // this.devicesService.deleteStreamView(this.stream_selected,
+    // view).subscribe();
 
     return false;
   }
 }
 
 @Component({
-  selector: 'stream-delete-dialog',
-  templateUrl: 'stream-delete.dialog.html',
+  selector : 'stream-delete-dialog',
+  templateUrl : 'stream-delete.dialog.html',
 })
 export class StreamDeleteDialog {
-  constructor(
-      private devicesService: DevicesService,
-      public dialogRef: MatDialogRef<StreamDeleteDialog>,
-      private snackBar: MatSnackBar,
-      @Inject(MAT_DIALOG_DATA) public data: Stream) {}
+  constructor(private devicesService: DevicesService,
+              public dialogRef: MatDialogRef<StreamDeleteDialog>,
+              private snackBar: MatSnackBar,
+              @Inject(MAT_DIALOG_DATA) public data: Stream) {}
 
   deleteStream(stream: Stream) {
-    this.devicesService.deleteStream(stream).subscribe(() => {
-      this.snackBar.open('Stream was deleted.', 'Hide', {
-        duration: 2000,
-      });
-      this.dialogRef.close();
-    }, err => {
-      this.snackBar.open('Failed to delete stream. Please try again!', 'Hide', {
-        duration: 2000,
-      });
-    });
+    this.devicesService.deleteStream(stream).subscribe(
+        () => {
+          this.snackBar.open('Stream was deleted.', 'Hide', {
+            duration : 2000,
+          });
+          this.dialogRef.close();
+        },
+        err => {
+          this.snackBar.open('Failed to delete stream. Please try again!',
+                             'Hide', {
+                               duration : 2000,
+                             });
+        });
   }
 }

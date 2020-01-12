@@ -3,21 +3,28 @@
  * Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
  */
 import {Component, Inject} from '@angular/core';
-import {MatDialog, MatDialogRef, MAT_DIALOG_DATA, MatSnackBar, MatTableDataSource} from '@angular/material';
-import {BehaviorSubject} from 'rxjs';
+import {
+  MAT_DIALOG_DATA,
+  MatDialog,
+  MatDialogRef
+} from '@angular/material/dialog';
+import {MatSnackBar} from '@angular/material/snack-bar';
+import {MatTableDataSource} from '@angular/material/table';
 import * as moment from 'moment';
+import {BehaviorSubject} from 'rxjs';
+
+import {Device} from '../device';
+import {DevicesService} from '../devices.service';
+import {Preset} from '../preset';
+import {PresetsService} from '../presets.service';
+import {Stream} from '../stream';
 
 import {DeviceAddStreamDialog} from './device-add-stream.dialog';
 import {DeviceCreateDialog} from './device-create.dialog';
-import {DevicesService} from '../devices.service';
-import {PresetsService} from '../presets.service';
-import {Device} from '../device';
-import {Preset} from '../preset';
-import {Stream} from '../stream';
 
 @Component({
-  templateUrl: './devices.component.html',
-  styleUrls: ['./devices.component.scss']
+  templateUrl : './devices.component.html',
+  styleUrls : [ './devices.component.scss' ]
 })
 export class DevicesComponent {
   active_preset = null;
@@ -29,11 +36,9 @@ export class DevicesComponent {
   deviceSelectedStreamsDataSource = new MatTableDataSource<Stream>();
   deviceFilter: string = "";
 
-  constructor(
-      private devicesService: DevicesService,
-      private presetsService: PresetsService,
-      private dialog: MatDialog,
-      private snackBar: MatSnackBar) {
+  constructor(private devicesService: DevicesService,
+              private presetsService: PresetsService, private dialog: MatDialog,
+              private snackBar: MatSnackBar) {
     this.presets = this.presetsService.presets;
     this.active_preset = this.findActivePreset();
 
@@ -74,7 +79,7 @@ export class DevicesComponent {
     }
   }
 
-  selectDevice(device: Device | null): void {
+  selectDevice(device: Device|null): void {
     if (device == null) {
       if (this.deviceSelected == null && this.filteredDevices.length > 0) {
         this.deviceSelected = this.filteredDevices[0];
@@ -95,7 +100,7 @@ export class DevicesComponent {
     }
   }
 
-  findActivePreset(): Preset | null {
+  findActivePreset(): Preset|null {
     for (let preset of this.presets) {
       if (preset.active)
         return preset;
@@ -119,9 +124,7 @@ export class DevicesComponent {
   }
 
   addDeviceDialog(): void {
-    const dialogRef = this.dialog.open(DeviceCreateDialog, {
-      width: '500px'
-    });
+    const dialogRef = this.dialog.open(DeviceCreateDialog, {width : '500px'});
 
     dialogRef.afterClosed().subscribe(result => {
       if (result != "") {
@@ -131,10 +134,8 @@ export class DevicesComponent {
   }
 
   deleteDeviceDialog(device: Device): void {
-    const dialogRef = this.dialog.open(DeviceDeleteDialog, {
-      width: '400px',
-      data: device
-    });
+    const dialogRef =
+        this.dialog.open(DeviceDeleteDialog, {width : '400px', data : device});
 
     dialogRef.afterClosed().subscribe(result => {
       if (result != "") {
@@ -144,34 +145,33 @@ export class DevicesComponent {
   }
 
   updateDevice(device: Device) {
-    this.devicesService.updateDevice(device).subscribe(() => {
-      this.snackBar.open('Device was saved.', 'Hide', {
-        duration: 2000,
-      });
-    }, err => {
-      this.snackBar.open('Failed to save device. Please try again!', 'Hide', {
-        duration: 2000,
-      });
-    });
+    this.devicesService.updateDevice(device).subscribe(
+        () => {
+          this.snackBar.open('Device was saved.', 'Hide', {
+            duration : 2000,
+          });
+        },
+        err => {
+          this.snackBar.open('Failed to save device. Please try again!', 'Hide',
+                             {
+                               duration : 2000,
+                             });
+        });
   }
 
   addPresetStreamDialog(device: Device, preset: Preset): void {
     const dialogRef = this.dialog.open(DeviceAddStreamDialog, {
-      width: '500px',
-      data: {
-        'device': device,
-        'preset': preset,
+      width : '500px',
+      data : {
+        'device' : device,
+        'preset' : preset,
       },
     });
   }
 
-  removeStreamFromDevicePreset(
-      device: Device,
-      preset: Preset,
-      stream: Stream): void {
-    let p_used = device.presets_used.find(e => {
-      return e.id == preset.id;
-    });
+  removeStreamFromDevicePreset(device: Device, preset: Preset,
+                               stream: Stream): void {
+    let p_used = device.presets_used.find(e => { return e.id == preset.id; });
 
     if (p_used != undefined) {
       let index = p_used.streams.indexOf(stream);
@@ -190,26 +190,28 @@ export class DevicesComponent {
 }
 
 @Component({
-  selector: 'device-delete-dialog',
-  templateUrl: 'device-delete-dialog.html',
+  selector : 'device-delete-dialog',
+  templateUrl : 'device-delete-dialog.html',
 })
 export class DeviceDeleteDialog {
-  constructor(
-      private devicesService: DevicesService,
-      public dialogRef: MatDialogRef<DeviceDeleteDialog>,
-      private snackBar: MatSnackBar,
-      @Inject(MAT_DIALOG_DATA) public data: Device) {}
+  constructor(private devicesService: DevicesService,
+              public dialogRef: MatDialogRef<DeviceDeleteDialog>,
+              private snackBar: MatSnackBar,
+              @Inject(MAT_DIALOG_DATA) public data: Device) {}
 
   deleteDevice(device: Device) {
-    this.devicesService.deleteDevice(device).subscribe(() => {
-      this.snackBar.open('Device was deleted.', 'Hide', {
-        duration: 2000,
-      });
-      this.dialogRef.close();
-    }, err => {
-      this.snackBar.open('Failed to delete device. Please try again!', 'Hide', {
-        duration: 2000,
-      });
-    });
+    this.devicesService.deleteDevice(device).subscribe(
+        () => {
+          this.snackBar.open('Device was deleted.', 'Hide', {
+            duration : 2000,
+          });
+          this.dialogRef.close();
+        },
+        err => {
+          this.snackBar.open('Failed to delete device. Please try again!',
+                             'Hide', {
+                               duration : 2000,
+                             });
+        });
   }
 }

@@ -1,4 +1,8 @@
 import {platformBrowser} from '@angular/platform-browser';
-import {AppModuleNgFactory} from './app/app.module.ngfactory';
+import {AppModule} from './app/app.module';
+import {environment} from './environment';
 
-platformBrowser().bootstrapModuleFactory(AppModuleNgFactory);
+environment.production = false;
+environment.apiEndpoint = 'http://localhost:5000';
+
+platformBrowser().bootstrapModule(AppModule);

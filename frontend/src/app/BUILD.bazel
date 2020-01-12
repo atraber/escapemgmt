@@ -1,0 +1,116 @@
+package(default_visibility = ["//src:__subpackages__"])
+
+load("@io_bazel_rules_sass//:defs.bzl", "sass_binary")
+load("@npm_angular_bazel//:index.bzl", "ng_module")
+load("@npm_bazel_typescript//:index.bzl", "ts_library")
+load("@npm_bazel_karma//:index.bzl", "karma_web_test_suite")
+
+sass_binary(
+    name = "app-style",
+    src = "app.component.scss",
+)
+
+ng_module(
+    name = "app",
+    srcs = [
+        "app.component.ts",
+        "app.module.ts",
+        "nav.service.ts",
+    ],
+    assets = [
+        ":app-style",
+        ":app.component.html",
+    ],
+    tsconfig = "//src:tsconfig.json",
+    deps = [
+        ":common_module",
+        "//src/app/bookings",
+        "//src/app/devices",
+        "//src/app/frontscreen",
+        "//src/app/rooms",
+    ],
+)
+
+ng_module(
+    name = "common_module",
+    srcs = [
+        "common.module.ts",
+    ],
+    tsconfig = "//src:tsconfig.json",
+    deps = [
+        ":material_module",
+        "@npm//@angular/router",
+    ],
+)
+
+ng_module(
+    name = "material_module",
+    srcs = [
+        "material.module.ts",
+    ],
+    tsconfig = "//src:tsconfig.json",
+    deps = [
+        "@npm//@angular/cdk",
+        "@npm//@angular/core",
+        "@npm//@angular/material",
+    ],
+)
+
+ts_library(
+    name = "common_lib",
+    srcs = [
+        "booking.ts",
+        "bookings.service.ts",
+        "device.ts",
+        "devices.service.ts",
+        "preset.ts",
+        "presets.service.ts",
+        "room.ts",
+        "rxjs-utils.ts",
+        "score.ts",
+        "scores.service.ts",
+        "stream.ts",
+        "streamview.ts",
+    ],
+    tsconfig = "//src:tsconfig.json",
+    deps = [
+        "//src:environment_lib",
+        "@npm//@angular/common",
+        "@npm//@angular/core",
+        "@npm//rxjs",
+    ],
+)
+
+ts_library(
+    name = "scores_service_test",
+    testonly = 1,
+    srcs = ["scores.service.spec.ts"],
+    tsconfig = "//src:tsconfig-test",
+    deps = [
+        ":common_lib",
+        "@npm//@types/jasmine",
+    ],
+)
+
+karma_web_test_suite(
+    name = "test",
+    srcs = [
+    ],
+    # do not sort
+    bootstrap = [
+        "@npm//:node_modules/zone.js/dist/zone-testing-bundle.js",
+        "@npm//:node_modules/reflect-metadata/Reflect.js",
+    ],
+    browsers = [
+        "@io_bazel_rules_webtesting//browsers:chromium-local",
+    ],
+    tags = ["native"],
+    runtime_deps = [
+        "//src:initialize_testbed",
+    ],
+    deps = [
+        ":scores_service_test",
+        # explicit tslib dependency comes from @angular/material
+        "@npm//:node_modules/tslib/tslib.js",
+    ],
+)

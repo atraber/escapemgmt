@@ -3,14 +3,14 @@
  * Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
  */
 import {Component, EventEmitter, Input, Output} from '@angular/core';
-import {MatSnackBar} from '@angular/material';
+import {MatSnackBar} from '@angular/material/snack-bar';
 
 import {FileBuffer} from './filebuffer';
 
 @Component({
-  selector: 'file-upload',
-  templateUrl: 'fileupload.component.html',
-  styleUrls: ['fileupload.component.scss'],
+  selector : 'file-upload',
+  templateUrl : 'fileupload.component.html',
+  styleUrls : [ 'fileupload.component.scss' ],
 })
 export class FileUploadComponent {
   @Input() label: string;

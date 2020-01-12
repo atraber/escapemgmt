@@ -1,0 +1,49 @@
+package(default_visibility = ["//src/app:__subpackages__"])
+
+load("@io_bazel_rules_sass//:defs.bzl", "sass_binary")
+load("@npm_angular_bazel//:index.bzl", "ng_module")
+
+SCSS_ASSETS = [
+    "frontscreen.component.scss",
+    "highscore.component.scss",
+    "roomslide.component.scss",
+    "slide.component.scss",
+    "slidecontainer.component.scss",
+]
+
+[
+    sass_binary(
+        name = asset[:-5],
+        src = asset,
+        deps = ["//src:styles_lib"],
+    )
+    for asset in SCSS_ASSETS
+]
+
+CSS_ASSETS = [asset[:-5] for asset in SCSS_ASSETS]
+
+ng_module(
+    name = "frontscreen",
+    srcs = [
+        "frontscreen.component.ts",
+        "frontscreen.module.ts",
+        "highscore.component.ts",
+        "rooms.service.ts",
+        "roomslide.component.ts",
+        "slide.component.ts",
+        "slidecontainer.component.ts",
+    ],
+    assets = [
+        "frontscreen.component.html",
+        "highscore.component.html",
+        "roomslide.component.html",
+        "slide.component.html",
+        "slidecontainer.component.html",
+    ] + CSS_ASSETS,
+    tsconfig = "//src:tsconfig.json",
+    deps = [
+        "//src/app:common_lib",
+        "//src/app:common_module",
+        "@npm//moment",
+    ],
+)

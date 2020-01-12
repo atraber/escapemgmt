@@ -2,38 +2,41 @@
  * Copyright 2019 Andreas Traber
  * Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
  */
-import {Component, OnInit, ViewChild} from '@angular/core';
-import {MatPaginator, MatSort, MatTableDataSource} from '@angular/material';
-import * as moment_ from 'moment';
-
-const moment = moment_;
+import {
+  AfterViewChecked,
+  AfterViewInit,
+  Component,
+  OnInit,
+  ViewChild
+} from '@angular/core';
+import {MatPaginator} from '@angular/material/paginator';
+import {MatSort} from '@angular/material/sort';
+import {MatTableDataSource} from '@angular/material/table';
+import moment from 'moment';
 
 import {Booking} from '../booking';
 import {BookingsService} from '../bookings.service';
 
 @Component({
-  templateUrl: './bookings.component.html',
-  styleUrls: ['./bookings.component.scss']
+  templateUrl : './bookings.component.html',
+  styleUrls : [ './bookings.component.scss' ]
 })
 export class BookingsComponent implements OnInit {
   dataSource = new MatTableDataSource<Booking>();
-  @ViewChild(MatPaginator, {static: false}) paginator: MatPaginator;
-  @ViewChild(MatSort, {static: false}) sort: MatSort;
+  @ViewChild(MatPaginator, {static : true}) paginator: MatPaginator;
+  @ViewChild(MatSort, {static : true}) sort: MatSort;
 
-  constructor(
-    private bookingsService: BookingsService) {
-    this.dataSource.data = this.bookingsService.bookings;
-
-    this.bookingsService.bookingsUpdated.subscribe((bookings) => {
-      this.dataSource.data = bookings;
-    });
-  }
+  constructor(private bookingsService: BookingsService) {}
 
   ngOnInit() {
+    this.dataSource.data = this.bookingsService.bookings;
+
+    this.bookingsService.bookingsUpdated.subscribe(
+        (bookings) => { this.dataSource.data = bookings; });
     this.dataSource.paginator = this.paginator;
-    this.sort.direction = 'desc';
-    this.sort.active = 'slot_from';
     this.dataSource.sort = this.sort;
+    this.sort.active = 'slot_from';
+    this.sort.direction = 'desc';
   }
 
   applyFilter(filterValue: string) {

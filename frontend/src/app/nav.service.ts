@@ -4,6 +4,9 @@
  */
 import {Injectable} from '@angular/core';
 
+//@Injectable({
+//  providedIn : 'root',
+//})
 @Injectable()
 export class NavService {
   isOpened: boolean = false;
@@ -14,11 +17,7 @@ export class NavService {
     }
   }
 
-  toggle(): void {
-    this.isOpened = !this.isOpened;
-  }
+  toggle(): void { this.isOpened = !this.isOpened; }
 
-  setOpen(opened: boolean): void {
-    this.isOpened = opened;
-  }
+  setOpen(opened: boolean): void { this.isOpened = opened; }
 }

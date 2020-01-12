@@ -1,41 +1,44 @@
-@import 'styles.scss';
+@import 'src/styles.scss';
 
 .scores-table-container {
-  display: flex;
-  flex-direction: column;
-  margin: 10px;
+    display: flex;
+    flex-direction: column;
+    margin: 10px;
 }
 
 .score-add-field {
-  @include button-add-field;
-  margin: 10px;
+    @include button-add-field;
+    margin: 10px;
 }
 
 .room-drawer-list {
-  @include drawer-button-list;
+    @include drawer-button-list;
 }
 
 table {
-  margin-left: 10px;
-  margin-right: 10px;
-  @media only screen and (min-width: 850px) {
-    min-width: 400px;
-  }
+    margin-left: 10px;
+    margin-right: 10px;
+
+    @media only screen and (min-width: 850px) {
+        min-width: 400px;
+    }
 }
 
-td.mat-column-time, td.mat-column-index,
-th.mat-column-time, th.mat-column-index {
-  padding-right: 5px;
+td.mat-column-time,
+td.mat-column-index,
+th.mat-column-time,
+th.mat-column-index {
+    padding-right: 5px;
 }
 
 th.mat-column-name {
-  width: 100%;
+    width: 100%;
 }
 
 th {
-  white-space: nowrap;
+    white-space: nowrap;
 }
 
 td:not(.mat-column-name) {
-  white-space: nowrap;
+    white-space: nowrap;
 }
