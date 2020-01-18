@@ -89,11 +89,27 @@ async def PerformInitDB(app: Quart):
         db.create_all(app=app)
 
         logger.info('Stamp most recent alembic version')
-        alembic_cfg = alembic_Config('./app/migrations/alembic.ini')
-        alembic_command.stamp(alembic_cfg, 'head')
+        alembic_command.stamp(alembic_Config('./app/migrations/alembic.ini'),
+                              'head')
+        logger.info('Creating tables: Done')
 
 
 def InitDB() -> None:
     app = App()
 
     asyncio.run(PerformInitDB(app))
+
+
+async def PerformSchemaMigrate(app: Quart, revision: str):
+    """Create all tables."""
+    async with app.app_context():
+        logger.info('Performing schema migration')
+        alembic_command.upgrade(alembic_Config('./app/migrations/alembic.ini'),
+                                revision)
+        logger.info('Performing schema migration: Done')
+
+
+def SchemaMigrate(revision: str) -> None:
+    app = App()
+
+    asyncio.run(PerformSchemaMigrate(app, revision))

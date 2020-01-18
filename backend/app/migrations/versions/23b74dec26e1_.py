@@ -10,8 +10,8 @@ import sqlalchemy as sa
 from sqlalchemy import orm
 from sqlalchemy.dialects import mysql
 
-from app.models import Stream
-from app.models import StreamView
+from models import Stream
+from models import StreamView
 
 # revision identifiers, used by Alembic.
 revision = '23b74dec26e1'
@@ -21,21 +21,25 @@ depends_on = None
 
 
 def upgrade():
-    op.create_table('streamviews',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('stream_id', sa.Integer(), nullable=True),
-    sa.Column('url', sa.String(length=255), nullable=True),
-    sa.Column('crop_x1', sa.Integer(), nullable=False),
-    sa.Column('crop_x2', sa.Integer(), nullable=False),
-    sa.Column('crop_y1', sa.Integer(), nullable=False),
-    sa.Column('crop_y2', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['stream_id'], ['streams.id'], ),
-    sa.PrimaryKeyConstraint('id')
-    )
-    op.create_foreign_key(None, 'device_streams', 'presets', ['preset_id'], ['id'])
-    op.alter_column('devices', 'screen_enable',
-               existing_type=mysql.TINYINT(display_width=1),
-               nullable=False)
+    op.create_table('streamviews', sa.Column('id',
+                                             sa.Integer(),
+                                             nullable=False),
+                    sa.Column('stream_id', sa.Integer(), nullable=True),
+                    sa.Column('url', sa.String(length=255), nullable=True),
+                    sa.Column('crop_x1', sa.Integer(), nullable=False),
+                    sa.Column('crop_x2', sa.Integer(), nullable=False),
+                    sa.Column('crop_y1', sa.Integer(), nullable=False),
+                    sa.Column('crop_y2', sa.Integer(), nullable=False),
+                    sa.ForeignKeyConstraint(
+                        ['stream_id'],
+                        ['streams.id'],
+                    ), sa.PrimaryKeyConstraint('id'))
+    op.create_foreign_key(None, 'device_streams', 'presets', ['preset_id'],
+                          ['id'])
+    op.alter_column('devices',
+                    'screen_enable',
+                    existing_type=mysql.TINYINT(display_width=1),
+                    nullable=False)
 
     # Data Migration
     bind = op.get_bind()
@@ -63,13 +67,35 @@ def upgrade():
 
 
 def downgrade():
-    op.add_column('streams', sa.Column('crop_y1', mysql.INTEGER(display_width=11), autoincrement=False, nullable=False))
-    op.add_column('streams', sa.Column('crop_x2', mysql.INTEGER(display_width=11), autoincrement=False, nullable=False))
-    op.add_column('streams', sa.Column('crop_y2', mysql.INTEGER(display_width=11), autoincrement=False, nullable=False))
-    op.add_column('streams', sa.Column('url', mysql.VARCHAR(length=255), nullable=True))
-    op.add_column('streams', sa.Column('crop_x1', mysql.INTEGER(display_width=11), autoincrement=False, nullable=False))
-    op.alter_column('devices', 'screen_enable',
-               existing_type=mysql.TINYINT(display_width=1),
-               nullable=True)
+    op.add_column(
+        'streams',
+        sa.Column('crop_y1',
+                  mysql.INTEGER(display_width=11),
+                  autoincrement=False,
+                  nullable=False))
+    op.add_column(
+        'streams',
+        sa.Column('crop_x2',
+                  mysql.INTEGER(display_width=11),
+                  autoincrement=False,
+                  nullable=False))
+    op.add_column(
+        'streams',
+        sa.Column('crop_y2',
+                  mysql.INTEGER(display_width=11),
+                  autoincrement=False,
+                  nullable=False))
+    op.add_column('streams',
+                  sa.Column('url', mysql.VARCHAR(length=255), nullable=True))
+    op.add_column(
+        'streams',
+        sa.Column('crop_x1',
+                  mysql.INTEGER(display_width=11),
+                  autoincrement=False,
+                  nullable=False))
+    op.alter_column('devices',
+                    'screen_enable',
+                    existing_type=mysql.TINYINT(display_width=1),
+                    nullable=True)
     op.drop_constraint(None, 'device_streams', type_='foreignkey')
     op.drop_table('streamviews')

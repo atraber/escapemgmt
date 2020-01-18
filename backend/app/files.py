@@ -7,8 +7,7 @@ from minio.error import (ResponseError, BucketAlreadyOwnedByYou,
                          BucketAlreadyExists, InvalidAccessKeyId)
 from urllib3.exceptions import MaxRetryError
 
-from app import db
-from app import minio_client
+from app import db, minio_client
 from logger import logger
 from models import File
 

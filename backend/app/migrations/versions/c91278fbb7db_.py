@@ -11,8 +11,7 @@ import sqlalchemy as sa
 from sqlalchemy import orm
 from sqlalchemy.dialects import mysql
 
-from app.models import Room
-
+from models import Room
 
 # revision identifiers, used by Alembic.
 revision = 'c91278fbb7db'
@@ -22,7 +21,8 @@ depends_on = None
 
 
 def upgrade():
-    op.add_column('rooms', sa.Column('tags', sa.String(length=255), nullable=True))
+    op.add_column('rooms',
+                  sa.Column('tags', sa.String(length=255), nullable=True))
 
     # Data Migration
     bind = op.get_bind()
@@ -34,7 +34,10 @@ def upgrade():
     session.add_all(rooms)
     session.commit()
 
-    op.alter_column('rooms', 'tags', existing_type=sa.String(length=255), nullable=False)
+    op.alter_column('rooms',
+                    'tags',
+                    existing_type=sa.String(length=255),
+                    nullable=False)
 
 
 def downgrade():

@@ -39,17 +39,45 @@ container_push(
     repository = "escape_backend",
     tag = "latest",
 )
-#
-#genrule(
-#    name = "main_tar",
-#    srcs = ["//app/app:main.zip"],
-#    outs = ["main.tar"],
-#    cmd = "unzip -q $(location //app/app:main.zip) -d app && tar -cf $@ ./app",
-#)
-#
-#genrule(
-#    name = "hypercorn_tar",
-#    srcs = ["//app:hypercorn.zip"],
-#    outs = ["hypercorn.tar"],
-#    cmd = "unzip -q $(location //app:hypercorn.zip) -d hypercorn && tar -cf $@ ./hypercorn",
-#)
+
+container_image(
+    name = "backend_initdb",
+    base = "@backend_base//image",
+    cmd = [
+        "python3",
+        "/initdb.zip",
+    ],
+    files = [
+        "//app:initdb.zip",
+    ],
+)
+
+container_push(
+    name = "backend_initdb_push",
+    format = "Docker",
+    image = ":backend_initdb",
+    registry = "192.168.29.232:5000",
+    repository = "escape_backend_initdb",
+    tag = "latest",
+)
+
+container_image(
+    name = "backend_migrate",
+    base = "@backend_base//image",
+    cmd = [
+        "python3",
+        "/schema_migrate.zip",
+    ],
+    files = [
+        "//app:schema_migrate.zip",
+    ],
+)
+
+container_push(
+    name = "backend_migrate_push",
+    format = "Docker",
+    image = ":backend_migrate",
+    registry = "192.168.29.232:5000",
+    repository = "escape_backend_migrate",
+    tag = "latest",
+)

@@ -12,7 +12,6 @@ py_binary(
         "config.py",
         "devices.py",
         "files.py",
-        "initdb.py",
         "logger.py",
         "main.py",
         "models.py",
@@ -24,35 +23,35 @@ py_binary(
     ],
     deps = [
         requirement("PyMySQL"),
-        requirement("pytz"),
-        requirement("jinja2"),
-        requirement("click"),
-        requirement("itsdangerous"),
         requirement("aiofiles"),
         requirement("alembic"),
         requirement("blinker"),
         requirement("certifi"),
+        requirement("click"),
         requirement("fastavro"),
-        requirement("py-dateutil"),
-        requirement("python-dateutil"),
-        requirement("six"),
         requirement("h11"),
         requirement("h2"),
         requirement("hpack"),
         requirement("hypercorn"),
         requirement("hyperframe"),
+        requirement("itsdangerous"),
+        requirement("jinja2"),
         requirement("mako"),
         requirement("minio"),
         requirement("multidict"),
         requirement("pulsar-client"),
+        requirement("py-dateutil"),
+        requirement("python-dateutil"),
+        requirement("pytz"),
         requirement("quart"),
         requirement("quart_cors"),
+        requirement("six"),
         requirement("sortedcontainers"),
         requirement("sqlalchemy"),
         requirement("toml"),
         requirement("typing_extensions"),
-        requirement("wsproto"),
         requirement("urllib3"),
+        requirement("wsproto"),
         "//quart_sqlalchemy",
     ],
 )
@@ -60,6 +59,44 @@ py_binary(
 filegroup(
     name = "main.zip",
     srcs = [":main"],
+    output_group = "python_zip_file",
+)
+
+py_binary(
+    name = "initdb",
+    srcs = [
+        "initdb.py",
+    ],
+    data = [
+    ],
+    deps = [
+        ":main",
+        "//app/migrations",
+    ],
+)
+
+filegroup(
+    name = "initdb.zip",
+    srcs = [":initdb"],
+    output_group = "python_zip_file",
+)
+
+py_binary(
+    name = "schema_migrate",
+    srcs = [
+        "schema_migrate.py",
+    ],
+    data = [
+    ],
+    deps = [
+        ":main",
+        "//app/migrations",
+    ],
+)
+
+filegroup(
+    name = "schema_migrate.zip",
+    srcs = [":schema_migrate"],
     output_group = "python_zip_file",
 )
 
