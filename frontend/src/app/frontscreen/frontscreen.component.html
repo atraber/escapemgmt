@@ -1,20 +1,20 @@
 <div class="container">
-  <slide-container>
-    <slide>
-      <carousel-highscore></carousel-highscore>
-    </slide>
-    <slide>
-      <img class="logo-background" src="http://www.houdinis.ch/wp-content/uploads/2018/01/houdinis_quest_logo_2018_neu_300_weiss.png">
-    </slide>
+    <slide-container>
+        <slide>
+            <carousel-highscore></carousel-highscore>
+        </slide>
+        <slide>
+            <img class="logo-background" src="http://www.houdinis.ch/wp-content/uploads/2018/01/houdinis_quest_logo_2018_neu_300_weiss.png">
+        </slide>
 
-    <ng-container *ngFor="let room of rooms; let idx = index">
-      <slide>
-        <carousel-highscore></carousel-highscore>
-      </slide>
+        <ng-container *ngFor="let room of rooms; let idx = index">
+            <slide>
+                <carousel-highscore></carousel-highscore>
+            </slide>
 
-      <slide>
-        <room-slide [room]="room"></room-slide>
-      </slide>
-    </ng-container>
-  </slide-container>
+            <slide>
+                <room-slide [room]="room"></room-slide>
+            </slide>
+        </ng-container>
+    </slide-container>
 </div>

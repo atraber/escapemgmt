@@ -21,7 +21,11 @@ export class RoomSlideComponent {
   @Input()
   set room(room: Room) {
     this.room_ = room;
-    this.descs = this.room_.description.split('\n');
+    if (this.room.description) {
+      this.descs = this.room_.description.split('\n');
+    } else {
+      this.descs = [];
+    }
   }
 
   get room(): Room|null { return this.room_; }

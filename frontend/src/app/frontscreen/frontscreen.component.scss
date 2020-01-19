@@ -1,12 +1,12 @@
 .container {
-  background-color: black;
-  height: calc(100vh);
-  width: calc(100vw);
+    background-color: black;
+    height: calc(100vh);
+    width: calc(100vw);
 }
 
 .logo-background {
-  max-width: calc(100vw);
-  max-height: calc(100vh);
-  object-position: center;
-  object-fit: scale-down;
+    max-width: calc(100vw);
+    max-height: calc(100vh);
+    object-fit: scale-down;
+    width: 100%;
 }
