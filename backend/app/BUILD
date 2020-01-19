@@ -91,7 +91,7 @@ py_binary(
     deps = [
         ":main",
         "//app/migrations",
-    ],
+    ] + all_requirements,
 )
 
 filegroup(

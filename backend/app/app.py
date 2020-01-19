@@ -3,6 +3,7 @@
 from alembic.config import Config as alembic_Config
 from alembic import command as alembic_command
 import asyncio
+import os
 from minio import Minio
 from quart import Quart
 from quart_cors import cors
@@ -104,8 +105,9 @@ async def PerformSchemaMigrate(app: Quart, revision: str):
     """Create all tables."""
     async with app.app_context():
         logger.info('Performing schema migration')
-        alembic_command.upgrade(alembic_Config('./app/migrations/alembic.ini'),
-                                revision)
+        this_dir = os.path.dirname(os.path.realpath(__file__))
+        cfg_file = os.path.join(this_dir, 'migrations/alembic.ini')
+        alembic_command.upgrade(alembic_Config(cfg_file), revision)
         logger.info('Performing schema migration: Done')
 
 

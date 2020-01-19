@@ -14,8 +14,13 @@ exports_files([
     "requirements.txt",
 ])
 
+alias(
+    name = "backend_dev",
+    actual = "//app:main",
+)
+
 container_image(
-    name = "backend",
+    name = "backend_image",
     base = "@backend_base//image",
     cmd = [
         "python3",
@@ -34,7 +39,7 @@ container_image(
 container_push(
     name = "backend_push",
     format = "Docker",
-    image = ":backend",
+    image = ":backend_image",
     registry = "192.168.29.232:5000",
     repository = "escape_backend",
     tag = "latest",
