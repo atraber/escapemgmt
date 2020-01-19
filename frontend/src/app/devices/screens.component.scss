@@ -1,5 +1,9 @@
 @import 'src/styles.scss';
 
+.filter {
+    width: 100%;
+}
+
 table {
     width: 400px;
 }
@@ -9,7 +13,6 @@ table {
 }
 
 .table-container {
-    margin-top: 10px;
     margin-left: 10px;
     margin-right: 10px;
 }

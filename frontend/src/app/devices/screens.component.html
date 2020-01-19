@@ -2,10 +2,10 @@
     <a mat-list-item>Screens</a>
 </mat-list>
 <mat-divider></mat-divider>
-<mat-form-field class="form-full-width">
-    <input matInput placeholder="Filter" (keyup)="applyFilter($event.target.value)">
-</mat-form-field>
 <div class="table-container">
+    <mat-form-field class="filter">
+        <input matInput placeholder="Filter" (keyup)="applyFilter($event.target.value)">
+    </mat-form-field>
     <table mat-table [dataSource]="dataSource">
 
         <ng-container matColumnDef="name">
