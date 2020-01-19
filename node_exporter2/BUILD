@@ -1,5 +1,11 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("@io_bazel_rules_docker//go:image.bzl", "go_image")
 load("@bazel_gazelle//:def.bzl", "gazelle")
+
+go_image(
+    name = "node_exporter2_image",
+    embed = [":go_default_library"],
+)
 
 # gazelle:prefix main
 gazelle(name = "gazelle")
@@ -7,7 +13,6 @@ gazelle(name = "gazelle")
 go_binary(
     name = "node_exporter2",
     embed = [":go_default_library"],
-    visibility = ["//visibility:public"],
 )
 
 go_library(
