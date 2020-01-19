@@ -2,13 +2,19 @@
  * Copyright 2019 Andreas Traber
  * Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
  */
-import {Component, Inject} from '@angular/core';
+import {
+  Component,
+  Inject,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import {
   MAT_DIALOG_DATA,
   MatDialog,
-  MatDialogRef
+  MatDialogRef,
 } from '@angular/material/dialog';
 import {MatSnackBar} from '@angular/material/snack-bar';
+import {MatSort} from '@angular/material/sort';
 import {MatTableDataSource} from '@angular/material/table';
 import moment from 'moment';
 
@@ -20,13 +26,16 @@ import {ScoresService} from '../scores.service';
   templateUrl : './scores.component.html',
   styleUrls : [ './scores.component.scss' ]
 })
-export class ScoresComponent {
+export class ScoresComponent implements OnInit {
   rooms: Room[] = [];
   roomSelected: Room = null;
-  roomSelectedScoresDataSource = new MatTableDataSource<Score>();
+  dataSource = new MatTableDataSource<Score>();
+  @ViewChild(MatSort, {static : true}) sort: MatSort;
 
   constructor(private scoresService: ScoresService, private dialog: MatDialog,
-              private snackBar: MatSnackBar) {
+              private snackBar: MatSnackBar) {}
+
+  ngOnInit() {
     this.rooms = this.scoresService.rooms;
     this.selectRoom(null);
 
@@ -34,6 +43,10 @@ export class ScoresComponent {
       this.rooms = rooms;
       this.selectRoom(null);
     });
+
+    this.dataSource.sort = this.sort;
+    this.sort.active = 'time';
+    this.sort.direction = 'asc';
   }
 
   selectRoom(room: Room|null): void {
@@ -46,7 +59,7 @@ export class ScoresComponent {
     }
 
     if (this.roomSelected != null) {
-      this.roomSelectedScoresDataSource.data = this.roomSelected.scores;
+      this.dataSource.data = this.roomSelected.scores;
     }
   }
 
@@ -115,7 +128,7 @@ export class ScoresComponent {
         .subscribe(
             () => {
               // Update table since it does not detect changes automatically
-              this.roomSelectedScoresDataSource.data = this.roomSelected.scores;
+              this.dataSource.data = this.roomSelected.scores;
 
               this.snackBar.open('Score was added', 'Hide', {
                 duration : 2000,
@@ -145,7 +158,7 @@ export class ScoresComponent {
             });
 
     // Update table since it does not detect changes automatically
-    this.roomSelectedScoresDataSource.data = this.roomSelected.scores;
+    this.dataSource.data = this.roomSelected.scores;
   }
 }
 

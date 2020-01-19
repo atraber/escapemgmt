@@ -1,60 +1,62 @@
-<h1 mat-dialog-title>Edit Stream {{data.name}}</h1>
-<div mat-dialog-content>
-    <div class="form-container">
-        <mat-form-field>
-            <input matInput [(ngModel)]="data.name" placeholder="Name" [required]=true>
-        </mat-form-field>
-        <mat-form-field>
-            <mat-label>Orientation</mat-label>
-            <mat-select (selectionChange)="orientationChange()" [(value)]="orientation" [required]=true>
-                <mat-option value="0">0</mat-option>
-                <mat-option value="90">90</mat-option>
-                <mat-option value="180">180</mat-option>
-                <mat-option value="270">270</mat-option>
-            </mat-select>
-        </mat-form-field>
+<form>
+    <h1 mat-dialog-title>Edit Stream {{data.name}}</h1>
+    <div mat-dialog-content>
+        <div class="form-container">
+            <mat-form-field>
+                <input matInput [(ngModel)]="data.name" name="name" placeholder="Name" [required]=true>
+            </mat-form-field>
+            <mat-form-field>
+                <mat-label>Orientation</mat-label>
+                <mat-select (selectionChange)="orientationChange()" [(value)]="orientation" name="orientation" [required]=true>
+                    <mat-option value="0">0</mat-option>
+                    <mat-option value="90">90</mat-option>
+                    <mat-option value="180">180</mat-option>
+                    <mat-option value="270">270</mat-option>
+                </mat-select>
+            </mat-form-field>
 
-        <mat-accordion>
-            <mat-expansion-panel *ngFor="let streamview of data.streamviews">
-                <mat-expansion-panel-header>
-                    <mat-panel-title>
-                        {{streamview.url ? streamview.url : "New"}}
-                    </mat-panel-title>
-                    <mat-panel-description>
-                    </mat-panel-description>
-                </mat-expansion-panel-header>
+            <mat-accordion>
+                <mat-expansion-panel *ngFor="let streamview of data.streamviews; let index=index">
+                    <mat-expansion-panel-header>
+                        <mat-panel-title>
+                            {{streamview.url ? streamview.url : "New"}}
+                        </mat-panel-title>
+                        <mat-panel-description>
+                        </mat-panel-description>
+                    </mat-expansion-panel-header>
 
-                <div class="form-container">
-                    <mat-form-field>
-                        <input matInput [(ngModel)]="streamview.url" placeholder="URL">
-                    </mat-form-field>
-                    <mat-form-field>
-                        <input matInput [(ngModel)]="streamview.crop_x1" placeholder="Crop X1">
-                    </mat-form-field>
-                    <mat-form-field>
-                        <input matInput [(ngModel)]="streamview.crop_y1" placeholder="Crop Y1">
-                    </mat-form-field>
-                    <mat-form-field>
-                        <input matInput [(ngModel)]="streamview.crop_x2" placeholder="Width / Crop X2">
-                    </mat-form-field>
-                    <mat-form-field>
-                        <input matInput [(ngModel)]="streamview.crop_y2" placeholder="Height / Crop Y2">
-                    </mat-form-field>
-                </div>
+                    <div class="form-container">
+                        <mat-form-field>
+                            <input matInput [(ngModel)]="streamview.url" name="url_{{index}}" placeholder="URL">
+                        </mat-form-field>
+                        <mat-form-field>
+                            <input matInput [(ngModel)]="streamview.crop_x1" name="crop_x1_{{index}}" placeholder="Crop X1">
+                        </mat-form-field>
+                        <mat-form-field>
+                            <input matInput [(ngModel)]="streamview.crop_y1" name="crop_y1_{{index}}" placeholder="Crop Y1">
+                        </mat-form-field>
+                        <mat-form-field>
+                            <input matInput [(ngModel)]="streamview.crop_x2" name="crop_x2_{{index}}" placeholder="Width / Crop X2">
+                        </mat-form-field>
+                        <mat-form-field>
+                            <input matInput [(ngModel)]="streamview.crop_y2" name="crop_y2_{{index}}" placeholder="Height / Crop Y2">
+                        </mat-form-field>
+                    </div>
 
-                <mat-action-row>
-                    <button mat-raised-button color="warn" (click)="deleteStreamView(streamview)">Remove</button>
-                </mat-action-row>
-            </mat-expansion-panel>
-        </mat-accordion>
+                    <mat-action-row>
+                        <button mat-raised-button color="warn" (click)="deleteStreamView(streamview)">Remove</button>
+                    </mat-action-row>
+                </mat-expansion-panel>
+            </mat-accordion>
 
-        <div class="preset-create-field">
-            <button mat-button color="primary" (click)="addStreamView()">Add additional stream view</button>
+            <div class="preset-create-field">
+                <button mat-button color="primary" (click)="addStreamView()">Add additional stream view</button>
+            </div>
+
         </div>
-
     </div>
-</div>
-<div mat-dialog-actions>
-    <button mat-raised-button mat-dialog-close>Close</button>
-    <button mat-raised-button cdkFocusInitial color="primary" (click)="updateStream()">Save</button>
-</div>
+    <div mat-dialog-actions>
+        <button mat-raised-button mat-dialog-close>Close</button>
+        <button mat-raised-button cdkFocusInitial color="primary" (click)="updateStream()">Save</button>
+    </div>
+</form>
