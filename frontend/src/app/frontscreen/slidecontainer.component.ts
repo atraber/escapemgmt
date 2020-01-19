@@ -3,7 +3,7 @@
  * Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
  */
 import {
-  AfterViewInit,
+  AfterContentInit,
   Component,
   ContentChildren,
   QueryList
@@ -17,11 +17,12 @@ import {SlideComponent} from './slide.component';
   styleUrls : [ './slidecontainer.component.scss' ],
   selector : 'slide-container',
 })
-export class SlideContainerComponent implements AfterViewInit {
-  @ContentChildren(SlideComponent) slides: QueryList<SlideComponent>;
+export class SlideContainerComponent implements AfterContentInit {
+  @ContentChildren(SlideComponent, {descendants : true})
+  slides: QueryList<SlideComponent>;
   interval: number = 15; // Seconds.
 
-  ngAfterViewInit() {
+  ngAfterContentInit() {
     if (this.slides.length > 0) {
       this.slides.first.showSlide(true);
     }
@@ -34,8 +35,8 @@ export class SlideContainerComponent implements AfterViewInit {
     if (this.slides.length > 1) {
       let activeSlide: SlideComponent = null;
       let activate = 0;
-      let arr = this.slides.toArray();
-      arr.forEach((slide, idx) => {
+      let slideArray = this.slides.toArray();
+      slideArray.forEach((slide, idx) => {
         if (slide.isShown()) {
           activeSlide = slide;
           activate = idx + 1;
@@ -46,8 +47,10 @@ export class SlideContainerComponent implements AfterViewInit {
         activeSlide.showSlide(false);
       }
 
-      activate = activate % this.slides.length;
-      arr[activate].showSlide(true);
+      activate = activate % slideArray.length;
+      slideArray[activate].showSlide(true);
+
+      console.log('Next slide is ' + activate);
     } else if (this.slides.length == 1) {
       if (!this.slides.first.isShown()) {
         this.slides.first.showSlide(true);

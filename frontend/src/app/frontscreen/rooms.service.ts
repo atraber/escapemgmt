@@ -23,10 +23,11 @@ const jsonOptions = {
 export class RoomsService {
   rooms: Room[] = [];
   roomsUpdated: EventEmitter<Room[]> = new EventEmitter();
+  interval: number = 15; // Seconds.
 
   constructor(private http: HttpClient) {
     this.updateRooms();
-    let t = timer(0, 15 * 1000);
+    let t = timer(0, this.interval * 1000);
     t.subscribe(t => { this.updateRooms(); });
   }
 
@@ -57,7 +58,7 @@ export class RoomsService {
         })))
         .subscribe(rooms => {
           this.rooms = this.sortRooms(rooms);
-          this.roomsUpdated.emit(rooms)
+          this.roomsUpdated.emit(rooms);
         });
   }
 

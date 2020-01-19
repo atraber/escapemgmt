@@ -1,56 +1,55 @@
 .card {
-  font-family: Abel;
-  font-weight: 900;
-  color: rgba(243, 146, 0, 1);
-  height: calc(100vh);
-  width: calc(100vw);
-  overflow: hidden;
+    font-family: Abel;
+    font-weight: 900;
+    color: rgba(243, 146, 0, 1);
+    height: calc(100vh);
+    width: calc(100vw);
+    overflow: hidden;
 }
 
 .card-header {
-  margin-left: 30px;
+    margin-left: 30px;
 }
 
 .card-title {
-  font-size: 44px;
-  margin-top: 16px;
-  margin-bottom: 16px;
+    font-size: 44px;
+    margin-top: 16px;
+    margin-bottom: 16px;
 }
 
 .description {
-  position: absolute;
-  margin-top: calc(50vh);
+    position: absolute;
+    margin-top: calc(50vh);
 }
 
 .card-subtitle {
-  color: rgba(255, 255, 255, 1);
-  background-color: rgba(243, 146, 0, 1);
-  font-size: 27pt;
-  font-weight: 600;
-  width: fit-content;
-  margin-bottom: 25px;
-  margin-left: 15px;
-  margin-right: 5px;
-  margin-top: 25px;
-  padding-bottom: 2px;
-  padding-left: 10px;
-  padding-right: 10px;
-  padding-top: 2px;
+    color: rgba(255, 255, 255, 1);
+    background-color: rgba(243, 146, 0, 1);
+    font-size: 27pt;
+    font-weight: 600;
+    width: fit-content;
+    margin-bottom: 25px;
+    margin-left: 15px;
+    margin-right: 5px;
+    margin-top: 25px;
+    padding-bottom: 2px;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 2px;
 }
 
-.card > .img-container > img {
-  max-width: calc(100vw);
-  max-height: calc(90vh);
-  object-position: center;
-  object-fit: cover;
-  margin-left: auto;
-  margin-right: auto;
-  display: block;
+.card>.img-container>img {
+    width: 100%;
+    object-position: center;
+    object-fit: cover;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
 }
 
-.card > .img-container {
-  width: calc(100vw);
-  height: calc(90vh);
-  object-position: center;
-  object-fit: cover;
+.card>.img-container {
+    width: calc(100vw);
+    height: calc(90vh);
+    object-position: center;
+    object-fit: cover;
 }

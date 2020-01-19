@@ -1,38 +1,38 @@
 <div>
-  <div class="top-bar">
-    <img class="logo" src="assets/houdinis_quest_logo_2018_neu_300_weiss.png">
-    <h1>Houdini's Quest - Adventure Game</h1>
-  </div>
-  <div class="card-container">
-    <mat-card *ngFor="let room of rooms">
-      <img mat-card-image src="{{imagePath(room.profile_image)}}">
-      <mat-card-header>
-        <mat-card-title>{{room.name}}</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <div class="subtitle">Bestzeiten</div>
-        <table class="table">
-          <thead>
-            <tr>
-              <th scope="col" class="rank">#</th>
-              <th scope="col" class="name">Name</th>
-              <th scope="col" class="time">Zeit</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let score of room.scores; index as i">
-              <th scope="row" class="rank">{{score.rank}}</th>
-              <td class="name">
-                <div class="name">{{score.name}}</div>
-                <div class="date">{{formatDate(score.created_at)}}</div>
-              </td>
-              <td class="time">{{formatTime(score.time)}}</td>
-            </tr>
-          </tbody>
-        </table>
+    <div class="top-bar">
+        <img class="logo" src="assets/houdinis_quest_logo_2018_neu_300_weiss.png">
+        <h1>Houdini's Quest - Adventure Game</h1>
+    </div>
+    <div class="card-container">
+        <mat-card *ngFor="let room of rooms">
+            <img mat-card-image src="{{imagePath(room.profile_image)}}">
+            <mat-card-header>
+                <mat-card-title>{{room.name}}</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <div class="subtitle">Bestzeiten</div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col" class="rank">#</th>
+                            <th scope="col" class="name">Name</th>
+                            <th scope="col" class="time">Zeit</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let score of room.scores; index as i" class="rank">
+                            <th scope="row" class="rank">{{score.rank}}</th>
+                            <td class="name">
+                                <p class="name">{{score.name}}</p>
+                                <p class="date">{{formatDate(score.created_at)}}</p>
+                            </td>
+                            <td class="time">{{formatTime(score.time)}}</td>
+                        </tr>
+                    </tbody>
+                </table>
 
-      </mat-card-content>
-    </mat-card>
+            </mat-card-content>
+        </mat-card>
 
-  </div>
+    </div>
 </div>
