@@ -72,7 +72,7 @@ export class DevicesComponent {
     } else {
       let filtered = [];
       for (let device of this.devices) {
-        if (device.name.indexOf(this.deviceFilter) != -1)
+        if (device.name.trim().toLowerCase().indexOf(this.deviceFilter) != -1)
           filtered.push(device);
       }
       this.filteredDevices = filtered;

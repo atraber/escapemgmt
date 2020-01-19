@@ -15,13 +15,14 @@ import {PresetsService} from '../presets.service';
 })
 export class ScreensComponent {
   dataSource = new MatTableDataSource<Preset>();
+  screenFilter: string = "";
 
   constructor(private presetsService: PresetsService,
               private snackBar: MatSnackBar) {
-    this.dataSource.data = this.presetsService.presets;
+    this.updateFilter();
 
     this.presetsService.presetsUpdated.subscribe(
-        presets => { this.dataSource.data = presets; });
+        presets => { this.updateFilter(); });
   }
 
   activatePreset(preset: Preset) {
@@ -37,5 +38,23 @@ export class ScreensComponent {
                                duration : 2000,
                              });
         });
+  }
+
+  applyFilter(filterValue: string): void {
+    this.screenFilter = filterValue.trim().toLowerCase();
+    this.updateFilter();
+  }
+
+  updateFilter() {
+    if (this.screenFilter.length == 0) {
+      this.dataSource.data = this.presetsService.presets;
+    } else {
+      let filtered = [];
+      for (let preset of this.presetsService.presets) {
+        if (preset.name.trim().toLowerCase().indexOf(this.screenFilter) != -1)
+          filtered.push(preset);
+      }
+      this.dataSource.data = filtered;
+    }
   }
 }
