@@ -1,0 +1,5 @@
+/bazel-bin
+/bazel-node_exporter2
+/bazel-out
+/bazel-testlogs
+/main
