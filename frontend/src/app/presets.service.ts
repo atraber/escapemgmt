@@ -26,8 +26,7 @@ export class PresetsService {
   presetsUpdated: EventEmitter<Preset[]> = new EventEmitter();
 
   constructor(private devicesService: DevicesService,
-              private http: HttpClient) {}
-  onInit() {
+              private http: HttpClient) {
     this.http.get<Preset[]>(environment.apiEndpoint + '/presets')
         .pipe(retryWhen(genericRetryStrategy({
           maxRetryAttempts : 0,

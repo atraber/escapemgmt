@@ -10,7 +10,7 @@ import {
 } from '@angular/material/dialog';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {MatTableDataSource} from '@angular/material/table';
-import * as moment from 'moment';
+import moment from 'moment';
 import {BehaviorSubject} from 'rxjs';
 
 import {Device} from '../device';
@@ -119,8 +119,8 @@ export class DevicesComponent {
     this.deviceSelectedStreamsDataSource.data = [];
   }
 
-  deviceLastSeen(last_seen: number) {
-    return moment.utc(last_seen * 1000).fromNow();
+  deviceLastSeen(device: Device) {
+    return moment.utc(device.last_seen * 1000).fromNow();
   }
 
   addDeviceDialog(): void {
@@ -160,6 +160,14 @@ export class DevicesComponent {
   }
 
   addPresetStreamDialog(device: Device, preset: Preset): void {
+    if (preset == null) {
+      this.snackBar.open(
+          'No preset was selected. Please select a preset before adding streams.',
+          'Hide', {
+            duration : 2000,
+          });
+      return;
+    }
     const dialogRef = this.dialog.open(DeviceAddStreamDialog, {
       width : '500px',
       data : {

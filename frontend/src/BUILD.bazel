@@ -33,6 +33,7 @@ exports_files(["tsconfig.json"])
 # Files that we serve in both development and production
 _ASSETS = [
     "styles.css",
+    "assets/houdinis_quest_logo_2018_neu_300_weiss.png",
 ]
 
 _ASSETS_PROD = _ASSETS + [

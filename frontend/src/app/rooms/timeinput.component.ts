@@ -26,7 +26,7 @@ import {
 import {MatFormFieldControl} from '@angular/material/form-field';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {MatTableDataSource} from '@angular/material/table';
-import * as moment from 'moment';
+import moment from 'moment';
 import {Subject} from 'rxjs';
 
 @Component({

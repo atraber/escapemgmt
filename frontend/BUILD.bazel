@@ -14,8 +14,13 @@ alias(
     actual = "//src:tsconfig.json",
 )
 
+alias(
+    name = "frontend_dev",
+    actual = "//src:devserver",
+)
+
 container_image(
-    name = "frontend",
+    name = "frontend_image",
     base = "@frontend_base//image",
     cmd = [
         "nginx",
@@ -37,7 +42,7 @@ container_image(
 container_push(
     name = "frontend_push",
     format = "Docker",
-    image = ":frontend",
+    image = ":frontend_image",
     registry = "192.168.0.80:5000",
     repository = "escape_frontend",
     tag = "prod",

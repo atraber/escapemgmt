@@ -2,19 +2,24 @@
  * Copyright 2019 Andreas Traber
  * Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
  */
-import {AfterViewInit, Component, QueryList, ContentChildren} from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ContentChildren,
+  QueryList
+} from '@angular/core';
 import {timer} from 'rxjs';
 
 import {SlideComponent} from './slide.component';
 
 @Component({
-  templateUrl: './slidecontainer.component.html',
-  styleUrls: ['./slidecontainer.component.scss'],
-  selector: 'slide-container',
+  templateUrl : './slidecontainer.component.html',
+  styleUrls : [ './slidecontainer.component.scss' ],
+  selector : 'slide-container',
 })
 export class SlideContainerComponent implements AfterViewInit {
   @ContentChildren(SlideComponent) slides: QueryList<SlideComponent>;
-  interval: number = 5; // Seconds.
+  interval: number = 15; // Seconds.
 
   ngAfterViewInit() {
     if (this.slides.length > 0) {
@@ -22,9 +27,7 @@ export class SlideContainerComponent implements AfterViewInit {
     }
 
     let t = timer(this.interval * 1000, this.interval * 1000);
-    t.subscribe(t => {
-      this.nextSlide();
-    });
+    t.subscribe(t => { this.nextSlide(); });
   }
 
   private nextSlide() {

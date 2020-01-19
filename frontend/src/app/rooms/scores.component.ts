@@ -114,6 +114,9 @@ export class ScoresComponent {
     this.scoresService.addScoreToRoom(room, score)
         .subscribe(
             () => {
+              // Update table since it does not detect changes automatically
+              this.roomSelectedScoresDataSource.data = this.roomSelected.scores;
+
               this.snackBar.open('Score was added', 'Hide', {
                 duration : 2000,
               });
@@ -124,9 +127,6 @@ export class ScoresComponent {
                                    duration : 2000,
                                  });
             });
-
-    // Update table since it does not detect changes automatically
-    this.roomSelectedScoresDataSource.data = this.roomSelected.scores;
   }
 
   deleteScoreFromRoom(room: Room, score: Score): void {

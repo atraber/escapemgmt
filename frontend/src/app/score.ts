@@ -10,9 +10,9 @@ export class Score {
   // rank gets annotated in the highscore component.
   rank: number;
 
-  constructor () {
+  constructor() {
     this.name = "";
-    this.time = 0;
+    this.time = undefined;
     this.created_at = 0;
   }
 }

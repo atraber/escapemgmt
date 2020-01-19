@@ -25,7 +25,6 @@
         "@fortawesome/fontawesome-free-webfonts": "^1.0.9",
         "material-design-icons-iconfont": "^5.0.1",
         "moment": "^2.24.0",
-        "moment": "^2.24.0",
         "roboto-fontface": "^0.10.0",
         "rxjs": "6.5.3",
         "systemjs": "6.1.2",

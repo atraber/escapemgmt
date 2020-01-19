@@ -3,17 +3,18 @@
  * Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
  */
 import {Component} from '@angular/core';
-import * as moment from 'moment';
+import moment from 'moment';
 
 import {environment} from '../../environment';
 import {Room} from '../room';
-import {RoomsService} from './rooms.service';
 import {Score} from '../score';
 
+import {RoomsService} from './rooms.service';
+
 @Component({
-  selector: 'carousel-highscore',
-  templateUrl: './highscore.component.html',
-  styleUrls: ['./highscore.component.scss']
+  selector : 'carousel-highscore',
+  templateUrl : './highscore.component.html',
+  styleUrls : [ './highscore.component.scss' ]
 })
 export class HighscoreComponent {
   rooms: Room[];
@@ -21,9 +22,8 @@ export class HighscoreComponent {
   constructor(private roomsService: RoomsService) {
     this.rooms = this.filterRooms(this.roomsService.rooms);
 
-    this.roomsService.roomsUpdated.subscribe(rooms => {
-      this.rooms = this.filterRooms(rooms);
-    });
+    this.roomsService.roomsUpdated.subscribe(
+        rooms => { this.rooms = this.filterRooms(rooms); });
   }
 
   private rankScores(scores: Score[]): Score[] {
@@ -84,7 +84,7 @@ export class HighscoreComponent {
   formatTime(time: number): string {
     let m = moment.duration(time * 1000);
     let hours = m.hours();
-    let minutes =  m.minutes();
+    let minutes = m.minutes();
 
     let hours_str: string = hours.toString();
     if (hours < 10)
