@@ -2,6 +2,7 @@
 # Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
 from app import db
 from datetime import datetime
+import copy
 import sqlalchemy as sa
 import sqlalchemy.orm as orm
 
@@ -83,7 +84,7 @@ class Device(db.Model):  # type: ignore
         presets = {}
         for ds in self.device_streams:
             if ds.preset_id not in presets:
-                presets[ds.preset_id] = ds.preset
+                presets[ds.preset_id] = copy.deepcopy(ds.preset)
 
             if not hasattr(presets[ds.preset_id], 'streams_bar'):
                 presets[ds.preset_id].streams_bar = []
@@ -210,6 +211,7 @@ class Room(db.Model):  # type: ignore
 
     id = sa.Column(sa.Integer, primary_key=True)
     name = sa.Column(sa.String(100))
+    # TODO: Make this not nullable
     description = sa.Column(sa.Text)
     profile_image = sa.Column(sa.String(255))
     bg_image = sa.Column(sa.String(255))
