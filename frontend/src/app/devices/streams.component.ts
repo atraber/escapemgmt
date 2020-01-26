@@ -26,15 +26,18 @@ import {StreamEditDialog} from './stream-edit.dialog';
 export class StreamsComponent {
   streams: Stream[] = [];
   streamsDataSource = new MatTableDataSource<Stream>();
+  loaded = false;
 
   constructor(private devicesService: DevicesService, private dialog: MatDialog,
               private snackBar: MatSnackBar) {
     this.streams = this.devicesService.streams;
     this.streamsDataSource.data = this.streams;
+    this.loaded = this.devicesService.loaded;
 
     this.devicesService.streamsUpdated.subscribe(streams => {
       this.streams = streams;
       this.streamsDataSource.data = this.streams;
+      this.loaded = this.devicesService.loaded;
     });
   }
 

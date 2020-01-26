@@ -23,9 +23,11 @@ const jsonOptions = {
 //@Injectable({providedIn : 'root', deps : [ ScoresService, HttpClient ]})
 @Injectable()
 export class BookingsService {
+  // TODO: rooms are not used in this service. Why are they here?
   rooms: Room[] = [];
   bookings: Booking[] = [];
 
+  loaded = false;
   bookingsUpdated: EventEmitter<Booking[]> = new EventEmitter();
 
   constructor(private http: HttpClient, private scoresService: ScoresService) {
@@ -42,6 +44,7 @@ export class BookingsService {
         .pipe(catchError(this.handleError))
         .subscribe(bookings => {
           this.bookings = bookings;
+          this.loaded = true;
           this.bookingsUpdated.emit(bookings);
         });
   }

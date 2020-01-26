@@ -16,6 +16,7 @@ import {PresetsService} from '../presets.service';
 export class ScreensComponent {
   dataSource = new MatTableDataSource<Preset>();
   screenFilter: string = "";
+  loaded = false;
 
   constructor(private presetsService: PresetsService,
               private snackBar: MatSnackBar) {
@@ -46,6 +47,7 @@ export class ScreensComponent {
   }
 
   updateFilter() {
+    this.loaded = this.presetsService.loaded;
     if (this.screenFilter.length == 0) {
       this.dataSource.data = this.presetsService.presets;
     } else {

@@ -2,6 +2,7 @@
     <a mat-list-item>Scores</a>
 </mat-list>
 <mat-divider></mat-divider>
+<mat-spinner class="spinner-center" *ngIf="!loaded"></mat-spinner>
 <mat-drawer-container class="room-drawer-list">
     <mat-drawer [opened]=true [disableClose]=true mode="side">
         <mat-button-toggle-group [vertical]=true>

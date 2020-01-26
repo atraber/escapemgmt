@@ -24,6 +24,9 @@ const jsonOptions = {
 export class DevicesService {
   devices: Device[] = [];
   streams: Stream[] = [];
+  loaded = false;
+  devicesLoaded = false;
+  streamsLoaded = false;
 
   devicesUpdated: EventEmitter<Device[]> = new EventEmitter();
   streamsUpdated: EventEmitter<Stream[]> = new EventEmitter();
@@ -66,6 +69,8 @@ export class DevicesService {
         })))
         .subscribe(streams => {
           this.streams = streams;
+          this.streamsLoaded = true;
+          this.loaded = this.devicesLoaded && this.streamsLoaded;
           this.streamsUpdated.emit(streams)
         });
 
@@ -77,6 +82,8 @@ export class DevicesService {
         })))
         .subscribe(devices => {
           this.devices = devices;
+          this.devicesLoaded = true;
+          this.loaded = this.devicesLoaded && this.streamsLoaded;
           this.devicesUpdated.emit(devices)
         });
   }

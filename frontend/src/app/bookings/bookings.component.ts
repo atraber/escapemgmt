@@ -25,14 +25,18 @@ export class BookingsComponent implements OnInit {
   dataSource = new MatTableDataSource<Booking>();
   @ViewChild(MatPaginator, {static : true}) paginator: MatPaginator;
   @ViewChild(MatSort, {static : true}) sort: MatSort;
+  loaded = false;
 
   constructor(private bookingsService: BookingsService) {}
 
   ngOnInit() {
     this.dataSource.data = this.bookingsService.bookings;
+    this.loaded = this.bookingsService.loaded;
 
-    this.bookingsService.bookingsUpdated.subscribe(
-        (bookings) => { this.dataSource.data = bookings; });
+    this.bookingsService.bookingsUpdated.subscribe((bookings) => {
+      this.dataSource.data = bookings;
+      this.loaded = this.bookingsService.loaded;
+    });
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
     this.sort.active = 'slot_from';

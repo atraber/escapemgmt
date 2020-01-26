@@ -1,16 +1,18 @@
+@import 'src/styles.scss';
+
 .mat-table {
-  width: 100%;
+    width: 100%;
 }
 
 td.mat-cell:first-of-type {
-  padding-left: 2px !important;
+    padding-left: 2px !important;
 }
 
 td.mat-cell:last-of-type {
-  padding-right: 2px !important;
+    padding-right: 2px !important;
 }
 
 td.mat-cell {
-  padding-left: 2px;
-  padding-right: 2px;
+    padding-left: 2px;
+    padding-right: 2px;
 }

@@ -26,15 +26,20 @@ import {FileUploadService} from './fileupload.service';
 })
 export class RoomsComponent {
   rooms: Room[];
+  loaded = false;
+
   readonly separatorKeysCodes: number[] = [ ENTER, COMMA ];
 
   constructor(private scoresService: ScoresService,
               private fileUploadService: FileUploadService,
               private dialog: MatDialog, private snackBar: MatSnackBar) {
     this.rooms = this.scoresService.rooms;
+    this.loaded = this.scoresService.loaded;
 
-    this.scoresService.roomsUpdated.subscribe(
-        (rooms) => { this.rooms = rooms; });
+    this.scoresService.roomsUpdated.subscribe((rooms) => {
+      this.rooms = rooms;
+      this.loaded = this.scoresService.loaded;
+    });
   }
 
   changeProfileImage(room: Room, file: File) {

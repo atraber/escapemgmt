@@ -22,13 +22,17 @@ import {PresetDeleteDialog} from './preset-delete.dialog';
 })
 export class PresetsComponent {
   presets: Preset[] = [];
+  loaded = false;
 
   constructor(private presetsService: PresetsService, private dialog: MatDialog,
               private snackBar: MatSnackBar) {
     this.presets = this.presetsService.presets;
+    this.loaded = this.presetsService.loaded;
 
-    this.presetsService.presetsUpdated.subscribe(
-        presets => { this.presets = presets; });
+    this.presetsService.presetsUpdated.subscribe(presets => {
+      this.presets = presets;
+      this.loaded = this.presetsService.loaded;
+    });
   }
 
   addPresetDialog(): void {

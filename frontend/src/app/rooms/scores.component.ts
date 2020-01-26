@@ -31,6 +31,7 @@ export class ScoresComponent implements OnInit {
   roomSelected: Room = null;
   dataSource = new MatTableDataSource<Score>();
   @ViewChild(MatSort, {static : true}) sort: MatSort;
+  loaded = false;
 
   constructor(private scoresService: ScoresService, private dialog: MatDialog,
               private snackBar: MatSnackBar) {}
@@ -38,10 +39,12 @@ export class ScoresComponent implements OnInit {
   ngOnInit() {
     this.rooms = this.scoresService.rooms;
     this.selectRoom(null);
+    this.loaded = this.scoresService.loaded;
 
     this.scoresService.roomsUpdated.subscribe(rooms => {
       this.rooms = rooms;
       this.selectRoom(null);
+      this.loaded = this.scoresService.loaded;
     });
 
     this.dataSource.sort = this.sort;

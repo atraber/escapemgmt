@@ -1,54 +1,51 @@
 <mat-list>
-  <a mat-list-item>Rooms</a>
+    <a mat-list-item>Rooms</a>
 </mat-list>
 <mat-divider></mat-divider>
-<mat-accordion class="room-accordion">
-  <mat-expansion-panel *ngFor="let room of rooms">
-    <mat-expansion-panel-header>
-      <mat-panel-title>
-        {{room.name}}
-      </mat-panel-title>
-    </mat-expansion-panel-header>
+<mat-spinner class="spinner-center" *ngIf="!loaded"></mat-spinner>
+<div *ngIf="loaded">
+    <mat-accordion class="room-accordion">
+        <mat-expansion-panel *ngFor="let room of rooms">
+            <mat-expansion-panel-header>
+                <mat-panel-title>
+                    {{room.name}}
+                </mat-panel-title>
+            </mat-expansion-panel-header>
 
-    <div class="room-form-container">
-      <mat-form-field>
-        <input matInput [(ngModel)]="room.name" placeholder="Name">
-      </mat-form-field>
+            <div class="room-form-container">
+                <mat-form-field>
+                    <input matInput [(ngModel)]="room.name" placeholder="Name">
+                </mat-form-field>
 
-      <mat-form-field>
-        <textarea matInput [(ngModel)]="room.description" placeholder="Description"></textarea>
-      </mat-form-field>
+                <mat-form-field>
+                    <textarea matInput [(ngModel)]="room.description" placeholder="Description"></textarea>
+                </mat-form-field>
 
-      <mat-form-field>
-        <mat-chip-list #tags>
-          <mat-chip *ngFor="let tag of room.tags"
-                    [selectable]="true"
-                    [removable]="true" (removed)="removeRoomTag(room, tag)">
-            {{tag}}
-            <mat-icon matChipRemove>cancel</mat-icon>
-          </mat-chip>
-          <input placeholder="Tags"
-                 [matChipInputFor]="tags"
-                 [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
-                 [matChipInputAddOnBlur]="true"
-                 (matChipInputTokenEnd)="addRoomTag(room, $event)">
-        </mat-chip-list>
-      </mat-form-field>
+                <mat-form-field>
+                    <mat-chip-list #tags>
+                        <mat-chip *ngFor="let tag of room.tags" [selectable]="true" [removable]="true" (removed)="removeRoomTag(room, tag)">
+                            {{tag}}
+                            <mat-icon matChipRemove>cancel</mat-icon>
+                        </mat-chip>
+                        <input placeholder="Tags" [matChipInputFor]="tags" [matChipInputSeparatorKeyCodes]="separatorKeysCodes" [matChipInputAddOnBlur]="true" (matChipInputTokenEnd)="addRoomTag(room, $event)">
+                    </mat-chip-list>
+                </mat-form-field>
 
-      <img src="{{imagePath(room.profile_image)}}">
-      <file-upload (onLoad)="changeProfileImage(room, $event)" label="Profile Image"></file-upload>
+                <img src="{{imagePath(room.profile_image)}}">
+                <file-upload (onLoad)="changeProfileImage(room, $event)" label="Profile Image"></file-upload>
 
-      <img src="{{imagePath(room.bg_image)}}">
-      <file-upload (onLoad)="changeBackgroundImage(room, $event)" label="Background Image"></file-upload>
+                <img src="{{imagePath(room.bg_image)}}">
+                <file-upload (onLoad)="changeBackgroundImage(room, $event)" label="Background Image"></file-upload>
 
-      <div class="buttons">
-        <button mat-raised-button color="warn" (click)="deleteRoomDialog(room)">Delete</button>
-        <button mat-raised-button color="primary" (click)="updateRoom(room)">Save</button>
-      </div>
+                <div class="buttons">
+                    <button mat-raised-button color="warn" (click)="deleteRoomDialog(room)">Delete</button>
+                    <button mat-raised-button color="primary" (click)="updateRoom(room)">Save</button>
+                </div>
+            </div>
+        </mat-expansion-panel>
+    </mat-accordion>
+
+    <div class="rooms-create-field">
+        <button mat-button color="primary" (click)="addRoom()">Create a new Room</button>
     </div>
-  </mat-expansion-panel>
-</mat-accordion>
-
-<div class="rooms-create-field">
-  <button mat-button color="primary" (click)="addRoom()">Create a new Room</button>
 </div>

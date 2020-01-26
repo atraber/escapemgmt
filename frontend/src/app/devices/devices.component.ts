@@ -35,25 +35,29 @@ export class DevicesComponent {
   deviceSelected: Device = null;
   deviceSelectedStreamsDataSource = new MatTableDataSource<Stream>();
   deviceFilter: string = "";
+  loaded = false;
 
   constructor(private devicesService: DevicesService,
               private presetsService: PresetsService, private dialog: MatDialog,
               private snackBar: MatSnackBar) {
     this.presets = this.presetsService.presets;
-    this.active_preset = this.findActivePreset();
-
     this.devices = this.devicesService.devices;
+    this.loaded = this.devicesService.loaded && this.presetsService.loaded;
+
+    this.active_preset = this.findActivePreset();
     this.updateDeviceFilter();
     this.selectDevice(null);
 
     this.devicesService.devicesUpdated.subscribe(devices => {
       this.devices = devices;
+      this.loaded = this.devicesService.loaded && this.presetsService.loaded;
       this.updateDeviceFilter();
       this.selectDevice(null);
     });
 
     this.presetsService.presetsUpdated.subscribe(presets => {
       this.presets = presets;
+      this.loaded = this.devicesService.loaded && this.presetsService.loaded;
       if (this.active_preset == null) {
         this.active_preset = this.findActivePreset();
         this.selectDevice(null);

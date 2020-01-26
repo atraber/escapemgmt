@@ -22,6 +22,7 @@ const jsonOptions = {
 @Injectable()
 export class PresetsService {
   presets: Preset[] = [];
+  loaded = false;
 
   presetsUpdated: EventEmitter<Preset[]> = new EventEmitter();
 
@@ -35,6 +36,7 @@ export class PresetsService {
         })))
         .subscribe(presets => {
           this.presets = presets;
+          this.loaded = true;
           this.presetsUpdated.emit(presets);
         });
   }

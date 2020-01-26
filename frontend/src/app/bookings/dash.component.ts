@@ -22,13 +22,17 @@ export class BookingsDashComponent {
   recentBookings: Booking[] = [];
   currentBookings: Booking[] = [];
   upcomingBookings: Booking[] = [];
+  loaded = false;
 
   constructor(private bookingsService: BookingsService,
               private dialog: MatDialog, private snackBar: MatSnackBar) {
     this.filterAndSortBookings(this.bookingsService.bookings);
+    this.loaded = this.bookingsService.loaded;
 
-    this.bookingsService.bookingsUpdated.subscribe(
-        (bookings) => { this.filterAndSortBookings(bookings); });
+    this.bookingsService.bookingsUpdated.subscribe((bookings) => {
+      this.filterAndSortBookings(bookings);
+      this.loaded = this.bookingsService.loaded;
+    });
   }
 
   private filterAndSortBookings(bookings: Booking[]) {

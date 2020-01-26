@@ -24,6 +24,7 @@ const jsonOptions = {
 export class ScoresService {
   rooms: Room[] = [];
 
+  loaded = false;
   roomsUpdated: EventEmitter<Room[]> = new EventEmitter();
 
   constructor(private http: HttpClient) {
@@ -36,6 +37,7 @@ export class ScoresService {
         .pipe(catchError(this.handleError))
         .subscribe(rooms => {
           this.rooms = rooms;
+          this.loaded = true;
           this.roomsUpdated.emit(rooms);
         });
   }
