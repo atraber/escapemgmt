@@ -9,7 +9,8 @@ import {catchError, retryWhen} from 'rxjs/operators';
 
 import {environment} from '../environment';
 
-import {Device} from './device';
+import {Device, DeviceStream} from './device';
+import {Preset} from './preset';
 import {genericRetryStrategy} from './rxjs-utils';
 import {Stream} from './stream';
 import {StreamView} from './streamview';
@@ -240,6 +241,74 @@ export class DevicesService {
               },
               err => { observer.error(err); });
     });
+  }
+
+  addStreamToDevicePreset(device: Device, preset: Preset,
+                          stream: Stream): boolean {
+    let ds = device.device_streams.find(ds => {
+      return ds.stream_id == stream.id && ds.preset_id == preset.id;
+    });
+    if (ds != undefined) {
+      console.log('DeviceStream already present: cannot add stream');
+      return false;
+    }
+
+    let newds = new DeviceStream();
+    newds.device_id = device.id;
+    newds.preset_id = preset.id;
+    newds.stream_id = stream.id;
+
+    device.device_streams.push(newds);
+
+    this.devicesUpdated.emit(this.devices);
+
+    return true;
+  }
+
+  removeStreamFromDevicePreset(device: Device, preset: Preset,
+                               stream: Stream): boolean {
+    let ds = device.device_streams.find(ds => {
+      return ds.stream_id == stream.id && ds.preset_id == preset.id;
+    });
+    if (ds == undefined) {
+      console.log('DeviceStream not found: cannot delete stream');
+      return false;
+    }
+
+    let index = device.device_streams.indexOf(ds);
+    if (index < 0) {
+      console.log('Stream not found: Cannot delete stream');
+      return false;
+    }
+    device.device_streams.splice(index, 1);
+
+    this.devicesUpdated.emit(this.devices);
+
+    return true;
+  }
+
+  getStreamById(id: number): Stream|null {
+    // TODO: Use an index. This is very inefficient.
+    for (let stream of this.streams) {
+      if (stream.id == id)
+        return stream;
+    }
+    return null;
+  }
+
+  getDeviceStreamsByPreset(device: Device, preset: Preset): Stream[] {
+    let streams: Stream[] = [];
+    for (let ds of device.device_streams) {
+      if (ds.preset_id == preset.id) {
+        let stream = this.getStreamById(ds.stream_id);
+        if (stream == null) {
+          console.log('Stream with id ' + ds.stream_id + ' not found');
+          continue;
+        }
+        streams.push(stream);
+      }
+    }
+    return streams;
   }
 }
 

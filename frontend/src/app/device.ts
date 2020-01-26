@@ -5,6 +5,18 @@
 import {Preset} from './preset';
 import {Stream} from './stream';
 
+export class DeviceStream {
+  device_id: number;
+  preset_id: number;
+  stream_id: number;
+
+  constructor() {
+    this.device_id = null;
+    this.preset_id = null;
+    this.stream_id = null;
+  }
+}
+
 export class Device {
   id: number;
   name: string;
@@ -12,14 +24,14 @@ export class Device {
   screen_enable: Boolean;
   last_seen: number;
   streams: Stream[];
-  presets_used: Preset[];
+  device_streams: DeviceStream[];
 
-  constructor () {
+  constructor() {
     this.name = "";
     this.mac = "";
     this.screen_enable = true;
     this.last_seen = 0;
     this.streams = [];
-    this.presets_used = [];
+    this.device_streams = [];
   }
 }

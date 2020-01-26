@@ -59,63 +59,43 @@ def _StreamsCompare(new: List[int], old: List[int]):
     return (added, removed)
 
 
-def _PresetStreamsCompare(new: List[Preset], old: List[Preset]):
+def _DeviceStreamsCompare(new: List[DeviceStream], old: List[DeviceStream]):
     """Finds streams added and removed.
 
-    Both parameters must be list of Presets.
+    Both parameters must be list of DeviceStream.
 
     Returns a tuple of two lists: added, removed.
     """
     added = []
     removed = []
 
-    new_dict = {}
+    new_set = set()
     for n in new:
-        new_dict[n.id] = n
+        new_set.add(n)
 
-    old_dict = {}
+    old_set = set()
     for o in old:
-        old_dict[o.id] = o
+        old_set.add(o)
 
-    for n in new_dict.keys():
-        np = new_dict[n]
+    for n in new:
+        if n not in old_set:
+            added.append(n)
 
-        if n in old_dict.keys():
-            op = old_dict[n]
-
-            a, r = _StreamsCompare([stream.id for stream in np.streams],
-                                   [stream.id for stream in op.streams_bar])
-
-            for stream_added in a:
-                added.append((n, stream_added))
-
-            for stream_removed in r:
-                removed.append((n, stream_removed))
-        else:
-            # No preset currently present, add all streams.
-            for stream in np.streams:
-                added.append((n, stream.id))
-
-    for o in old_dict.keys():
-        if o not in new_dict.keys():
-            op = old_dict[o]
-            # Preset is no longer there, but used to be, remove all of them.
-            for stream in op.streams_bar:
-                removed.append((n, stream.id))
+    for o in old:
+        if o not in new_set:
+            removed.append(o)
 
     return (added, removed)
 
 
-def _JsonToPresets(data) -> List[Preset]:
-    presets = []
+def _JsonToDeviceStreams(data) -> List[DeviceStream]:
+    arr = []
     for d in data:
-        p = Preset(id=d['id'], name=d['name'], active=d['active'])
-
-        for s in d['streams']:
-            p.streams.append(Stream(id=s['id'], name=s['name']))
-
-        presets.append(p)
-    return presets
+        arr.append(
+            DeviceStream(device_id=d['device_id'],
+                         preset_id=d['preset_id'],
+                         stream_id=d['stream_id']))
+    return arr
 
 
 @devices.route('/devices/<int:deviceid>', methods=['POST', 'DELETE'])
@@ -129,27 +109,24 @@ async def apiDeviceUpdate(deviceid: int):
             db_device.mac = data_json['mac']
             db_device.screen_enable = data_json['screen_enable']
 
-            (streams_added, streams_removed) = _PresetStreamsCompare(
-                _JsonToPresets(data_json['presets_used']),
-                db_device.presets_used())
+            (streams_added, streams_removed) = _DeviceStreamsCompare(
+                _JsonToDeviceStreams(data_json['device_streams']),
+                db_device.device_streams)
 
-            for preset_id, stream_id in streams_removed:
+            for ds in streams_removed:
                 logger.info(
                     'Removing DeviceStream for device_id {}, preset_id {}, stream_id {}'
-                    .format(db_device.id, preset_id, stream_id))
+                    .format(ds.device_id, ds.preset_id, ds.stream_id))
                 db.session.query(DeviceStream).filter_by(
-                    device_id=db_device.id,
-                    preset_id=preset_id,
-                    stream_id=stream_id).delete()
+                    device_id=ds.device_id,
+                    preset_id=ds.preset_id,
+                    stream_id=ds.stream_id).delete()
 
-            for preset_id, stream_id in streams_added:
+            for ds in streams_added:
                 logger.info(
                     'Adding DeviceStream for device_id {}, preset_id {}, stream_id {}'
-                    .format(db_device.id, preset_id, stream_id))
-                device_stream = DeviceStream(device=db_device,
-                                             preset_id=preset_id,
-                                             stream_id=stream_id)
-                db.session.add(device_stream)
+                    .format(ds.device_id, ds.preset_id, ds.stream_id))
+                db.session.add(ds)
 
             db.session.commit()
             return jsonify('ok')

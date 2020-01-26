@@ -51,6 +51,23 @@ class DeviceStream(db.Model):  # type: ignore
         else:
             raise Exception('Need to specify either preset or preset_id')
 
+    def __hash__(self):
+        return hash('{}:{}:{}'.format(self.device_id, self.preset_id,
+                                      self.stream_id))
+
+    def __eq__(self, other):
+        """checking equality"""
+        if isinstance(other, self.__class__):
+            return self.device_id == other.device_id and self.preset_id == other.preset_id and self.stream_id == other.stream_id
+        return NotImplemented
+
+    def serialize(self):
+        return {
+            'device_id': self.device_id,
+            'preset_id': self.preset_id,
+            'stream_id': self.stream_id,
+        }
+
     def __repr__(self):
         return "<DeviceStream: device_id: {}, preset_id: {}, stream_id: {}>".format(
             self.device_id, self.preset_id, self.stream_id)
@@ -64,6 +81,8 @@ class Device(db.Model):  # type: ignore
     mac = sa.Column(sa.String(17), unique=True)
     screen_enable = sa.Column(sa.Boolean, default=True, nullable=False)
     last_seen = sa.Column(sa.Integer)
+    # TODO: Should remove this at some point. It is only used on the Raspberry
+    # Pis anyways.
     streams = orm.relationship(
         'Stream',
         primaryjoin=
@@ -80,34 +99,16 @@ class Device(db.Model):  # type: ignore
         self.mac = mac
         self.screen_enable = screen_enable
 
-    def presets_used(self):
-        presets = {}
-        for ds in self.device_streams:
-            if ds.preset_id not in presets:
-                presets[ds.preset_id] = copy.deepcopy(ds.preset)
-
-            if not hasattr(presets[ds.preset_id], 'streams_bar'):
-                presets[ds.preset_id].streams_bar = []
-            presets[ds.preset_id].streams_bar.append(ds.stream)
-
-        return presets.values()
-
     def serialize(self):
 
         return {
-            'id':
-            self.id,
-            'name':
-            self.name,
-            'mac':
-            self.mac,
-            'screen_enable':
-            self.screen_enable,
-            'last_seen':
-            self.last_seen,
+            'id': self.id,
+            'name': self.name,
+            'mac': self.mac,
+            'screen_enable': self.screen_enable,
+            'last_seen': self.last_seen,
             'streams': [s.serialize() for s in self.streams],
-            'presets_used':
-            [s.serialize(load_streams=True) for s in self.presets_used()],
+            'device_streams': [s.serialize() for s in self.device_streams],
         }
 
 
@@ -193,15 +194,12 @@ class Preset(db.Model):  # type: ignore
         self.name = name
         self.active = active
 
-    def serialize(self, load_streams=False):
+    def serialize(self):
         out = {
             'id': self.id,
             'name': self.name,
             'active': self.active,
         }
-
-        if load_streams:
-            out['streams'] = [s.serialize() for s in self.streams_bar]
 
         return out
 

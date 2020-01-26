@@ -31,6 +31,7 @@ export class DevicesComponent {
   devices: Device[] = [];
   filteredDevices: Device[] = [];
   presets: Preset[] = [];
+  streams: Stream[] = [];
   presetSelected: Preset = null;
   deviceSelected: Device = null;
   deviceSelectedStreamsDataSource = new MatTableDataSource<Stream>();
@@ -42,27 +43,39 @@ export class DevicesComponent {
               private snackBar: MatSnackBar) {
     this.presets = this.presetsService.presets;
     this.devices = this.devicesService.devices;
-    this.loaded = this.devicesService.loaded && this.presetsService.loaded;
+    this.streams = this.devicesService.streams;
+    this.updateLoaded();
 
     this.active_preset = this.findActivePreset();
     this.updateDeviceFilter();
     this.selectDevice(null);
 
+    this.devicesService.streamsUpdated.subscribe(streams => {
+      this.streams = streams;
+      this.updateLoaded();
+      this.updateDeviceFilter();
+      this.selectDevice(null);
+    });
+
     this.devicesService.devicesUpdated.subscribe(devices => {
       this.devices = devices;
-      this.loaded = this.devicesService.loaded && this.presetsService.loaded;
+      this.updateLoaded();
       this.updateDeviceFilter();
       this.selectDevice(null);
     });
 
     this.presetsService.presetsUpdated.subscribe(presets => {
       this.presets = presets;
-      this.loaded = this.devicesService.loaded && this.presetsService.loaded;
+      this.updateLoaded();
       if (this.active_preset == null) {
         this.active_preset = this.findActivePreset();
         this.selectDevice(null);
       }
     });
+  }
+
+  private updateLoaded() {
+    this.loaded = this.devicesService.loaded && this.presetsService.loaded;
   }
 
   applyDeviceFilter(filterValue: string): void {
@@ -92,6 +105,7 @@ export class DevicesComponent {
       this.deviceSelected = device;
     }
 
+    // Update table if we have found a selected device.
     if (this.deviceSelected != null) {
       let preset = this.active_preset;
       if (preset == null) {
@@ -100,8 +114,15 @@ export class DevicesComponent {
 
         preset = this.presets[0];
       }
+
       this.deviceSelectPreset(preset);
     }
+  }
+
+  deviceSelectPreset(preset: Preset): void {
+    this.deviceSelectedStreamsDataSource.data =
+        this.devicesService.getDeviceStreamsByPreset(this.deviceSelected,
+                                                     preset);
   }
 
   findActivePreset(): Preset|null {
@@ -110,17 +131,7 @@ export class DevicesComponent {
         return preset;
     }
 
-    return null
-  }
-
-  deviceSelectPreset(preset: Preset): void {
-    for (let dp of this.deviceSelected.presets_used) {
-      if (dp.id == preset.id) {
-        this.deviceSelectedStreamsDataSource.data = dp.streams;
-        return;
-      }
-    }
-    this.deviceSelectedStreamsDataSource.data = [];
+    return null;
   }
 
   deviceLastSeen(device: Device) {
@@ -183,20 +194,11 @@ export class DevicesComponent {
 
   removeStreamFromDevicePreset(device: Device, preset: Preset,
                                stream: Stream): void {
-    let p_used = device.presets_used.find(e => { return e.id == preset.id; });
-
-    if (p_used != undefined) {
-      let index = p_used.streams.indexOf(stream);
-      if (index >= 0) {
-        p_used.streams.splice(index, 1);
-
-        // TODO: This is a hack at best!
-        this.devicesService.devicesUpdated.emit(this.devicesService.devices);
-      } else {
-        console.log('Stream not found: Cannot delete stream');
-      }
-    } else {
-      console.log('Preset not found: Cannot delete stream');
+    if (!this.devicesService.removeStreamFromDevicePreset(device, preset,
+                                                          stream)) {
+      this.snackBar.open('Unable to remove stream from device.', 'Hide', {
+        duration : 2000,
+      });
     }
   }
 }
