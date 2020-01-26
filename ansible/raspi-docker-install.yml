@@ -18,6 +18,7 @@
     - name: Install docker
       become: true
       command: /bin/sh /home/pi/get-docker.sh
+      when: dockercmd|failed
 
     - name: Create repository entry
       become: true

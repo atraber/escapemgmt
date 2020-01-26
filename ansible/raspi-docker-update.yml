@@ -36,6 +36,10 @@
                 - /tmp/.X11-unix:/tmp/.X11-unix
                 - /home/pi/.Xauthority:/root/.Xauthority
                 - /home/pi/config.yml:/app/config.yml
+              command:
+                - "--escape_backend_address"
+                - "http://escapemgmt.houdini.traber-web.ch/api"
+
 
     - name: Pull docker-compose
       become: true
