@@ -15,7 +15,6 @@ ng_module(
     srcs = [
         "app.component.ts",
         "app.module.ts",
-        "nav.service.ts",
     ],
     assets = [
         ":app-style",
@@ -63,6 +62,8 @@ ts_library(
         "bookings.service.ts",
         "device.ts",
         "devices.service.ts",
+        "entity-utils.ts",
+        "nav.service.ts",
         "preset.ts",
         "presets.service.ts",
         "room.ts",
@@ -77,6 +78,7 @@ ts_library(
         "//src:environment_lib",
         "@npm//@angular/common",
         "@npm//@angular/core",
+        "@npm//@angular/material",
         "@npm//rxjs",
     ],
 )

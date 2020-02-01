@@ -10,6 +10,7 @@ import {catchError, retryWhen} from 'rxjs/operators';
 import {environment} from '../environment';
 
 import {Device, DeviceStream} from './device';
+import {NavService} from './nav.service';
 import {Preset} from './preset';
 import {genericRetryStrategy} from './rxjs-utils';
 import {Stream} from './stream';
@@ -32,7 +33,7 @@ export class DevicesService {
   devicesUpdated: EventEmitter<Device[]> = new EventEmitter();
   streamsUpdated: EventEmitter<Stream[]> = new EventEmitter();
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private navService: NavService) {
     this.refresh();
     this.listenForChanges();
   }
@@ -47,8 +48,8 @@ export class DevicesService {
       console.error(`Backend returned code ${error.status}, ` +
                     `body was: ${error.error}`);
     }
-    // TODO: Use the snackbar or something to deliver this in a user friendly
-    // manner.
+    this.navService.message(
+        'Failed to communicate with backend. Please try again later.');
     return Observable.throw('Something bad happened; please try again later.');
   }
 
@@ -66,8 +67,10 @@ export class DevicesService {
         .pipe(retryWhen(genericRetryStrategy({
           maxRetryAttempts : 3,
           scalingDuration : 2000,
-          excludedStatusCodes : [ 500 ]
+          excludedStatusCodes : [ 500 ],
+          messageFn : (msg: string) : void => { this.navService.message(msg); }
         })))
+        .pipe(catchError(this.handleError))
         .subscribe(streams => {
           this.streams = streams;
           this.streamsLoaded = true;
@@ -79,8 +82,10 @@ export class DevicesService {
         .pipe(retryWhen(genericRetryStrategy({
           maxRetryAttempts : 3,
           scalingDuration : 2000,
-          excludedStatusCodes : [ 500 ]
+          excludedStatusCodes : [ 500 ],
+          messageFn : (msg: string) : void => { this.navService.message(msg); }
         })))
+        .pipe(catchError(this.handleError))
         .subscribe(devices => {
           this.devices = devices;
           this.devicesLoaded = true;
@@ -314,6 +319,8 @@ export class DevicesService {
 
 export let devicesServiceProvider = {
   provide : DevicesService,
-  useFactory : (http: HttpClient) => { return new DevicesService(http)},
-  deps : [ HttpClient ]
+  useFactory : (
+      http: HttpClient,
+      navService: NavService) => { return new DevicesService(http, navService)},
+  deps : [ HttpClient, NavService ]
 };

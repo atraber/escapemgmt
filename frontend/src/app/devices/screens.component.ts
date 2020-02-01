@@ -6,6 +6,7 @@ import {Component} from '@angular/core';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {MatTableDataSource} from '@angular/material/table';
 
+import {NavService} from '../nav.service';
 import {Preset} from '../preset';
 import {PresetsService} from '../presets.service';
 
@@ -19,7 +20,7 @@ export class ScreensComponent {
   loaded = false;
 
   constructor(private presetsService: PresetsService,
-              private snackBar: MatSnackBar) {
+              private navService: NavService) {
     this.updateFilter();
 
     this.presetsService.presetsUpdated.subscribe(
@@ -28,16 +29,11 @@ export class ScreensComponent {
 
   activatePreset(preset: Preset) {
     this.presetsService.activatePreset(preset).subscribe(
-        () => {
-          this.snackBar.open('Preset was activated.', 'Hide', {
-            duration : 2000,
-          });
-        },
-        err => {
-          this.snackBar.open('Failed to activate preset. Please try again!',
-                             'Hide', {
-                               duration : 2000,
-                             });
+        () => { this.navService.message('Preset was activated.'); }, err => {
+          () => {
+            this.navService.message(
+                'Failed to activate preset. Please try again!');
+          }
         });
   }
 

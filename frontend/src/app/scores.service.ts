@@ -9,6 +9,7 @@ import {catchError, retryWhen} from 'rxjs/operators';
 
 import {environment} from '../environment';
 
+import {NavService} from './nav.service';
 import {Room} from './room';
 import {genericRetryStrategy} from './rxjs-utils';
 import {Score} from './score';
@@ -19,7 +20,6 @@ const jsonOptions = {
   })
 };
 
-//@Injectable({providedIn : 'root', deps : [ HttpClient ]})
 @Injectable()
 export class ScoresService {
   rooms: Room[] = [];
@@ -27,12 +27,13 @@ export class ScoresService {
   loaded = false;
   roomsUpdated: EventEmitter<Room[]> = new EventEmitter();
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private navService: NavService) {
     this.http.get<Room[]>(environment.apiEndpoint + '/rooms')
         .pipe(retryWhen(genericRetryStrategy({
           maxRetryAttempts : 0,
           scalingDuration : 2000,
-          excludedStatusCodes : [ 500 ]
+          excludedStatusCodes : [ 500 ],
+          messageFn : (msg: string) : void => { this.navService.message(msg); }
         })))
         .pipe(catchError(this.handleError))
         .subscribe(rooms => {
@@ -52,8 +53,8 @@ export class ScoresService {
       console.error(`Backend returned code ${error.status}, ` +
                     `body was: ${error.error}`);
     }
-    // TODO: Use the snackbar or something to deliver this in a user friendly
-    // manner.
+    this.navService.message(
+        'Failed to communicate with backend. Please try again later.');
     return throwError('Something bad happened; please try again later.');
   }
 
@@ -145,6 +146,8 @@ export class ScoresService {
 
 export let scoresServiceProvider = {
   provide : ScoresService,
-  useFactory : (http: HttpClient) => { return new ScoresService(http)},
-  deps : [ HttpClient ]
+  useFactory :
+      (http: HttpClient,
+       navService: NavService) => { return new ScoresService(http, navService)},
+  deps : [ HttpClient, NavService ]
 };

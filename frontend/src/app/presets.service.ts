@@ -10,6 +10,7 @@ import {catchError, retryWhen} from 'rxjs/operators';
 import {environment} from '../environment';
 
 import {DevicesService} from './devices.service';
+import {NavService} from './nav.service';
 import {Preset} from './preset';
 import {genericRetryStrategy} from './rxjs-utils';
 
@@ -26,14 +27,15 @@ export class PresetsService {
 
   presetsUpdated: EventEmitter<Preset[]> = new EventEmitter();
 
-  constructor(private devicesService: DevicesService,
-              private http: HttpClient) {
+  constructor(private devicesService: DevicesService, private http: HttpClient,
+              private navService: NavService) {
     this.http.get<Preset[]>(environment.apiEndpoint + '/presets')
         .pipe(retryWhen(genericRetryStrategy({
           maxRetryAttempts : 0,
           scalingDuration : 2000,
           excludedStatusCodes : [ 500 ]
         })))
+        .pipe(catchError(this.handleError))
         .subscribe(presets => {
           this.presets = presets;
           this.loaded = true;
@@ -51,8 +53,8 @@ export class PresetsService {
       console.error(`Backend returned code ${error.status}, ` +
                     `body was: ${error.error}`);
     }
-    // TODO: Use the snackbar or something to deliver this in a user friendly
-    // manner.
+    this.navService.message(
+        'Failed to communicate with backend. Please try again later.');
     return Observable.throw('Something bad happened; please try again later.');
   }
 
@@ -130,7 +132,9 @@ export class PresetsService {
 
 export let presetsServiceProvider = {
   provide : PresetsService,
-  useFactory : (ds: DevicesService,
-                http: HttpClient) => { return new PresetsService(ds, http)},
-  deps : [ DevicesService, HttpClient ]
+  useFactory :
+      (ds: DevicesService, http: HttpClient,
+       navService:
+           NavService) => { return new PresetsService(ds, http, navService)},
+  deps : [ DevicesService, HttpClient, NavService ]
 };

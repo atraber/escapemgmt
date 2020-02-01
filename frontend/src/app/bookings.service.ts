@@ -10,9 +10,9 @@ import {catchError, retryWhen} from 'rxjs/operators';
 import {environment} from '../environment';
 
 import {Booking} from './booking';
+import {NavService} from './nav.service';
 import {Room} from './room';
 import {genericRetryStrategy} from './rxjs-utils';
-import {ScoresService} from './scores.service';
 
 const jsonOptions = {
   headers : new HttpHeaders({
@@ -20,26 +20,21 @@ const jsonOptions = {
   })
 };
 
-//@Injectable({providedIn : 'root', deps : [ ScoresService, HttpClient ]})
 @Injectable()
 export class BookingsService {
-  // TODO: rooms are not used in this service. Why are they here?
-  rooms: Room[] = [];
   bookings: Booking[] = [];
 
   loaded = false;
   bookingsUpdated: EventEmitter<Booking[]> = new EventEmitter();
 
-  constructor(private http: HttpClient, private scoresService: ScoresService) {
-    this.rooms = this.scoresService.rooms;
-
-    this.scoresService.roomsUpdated.subscribe((rooms) => this.rooms = rooms);
+  constructor(private http: HttpClient, private navService: NavService) {
 
     this.http.get<Booking[]>(environment.apiEndpoint + '/bookings')
         .pipe(retryWhen(genericRetryStrategy({
           maxRetryAttempts : 0,
           scalingDuration : 2000,
-          excludedStatusCodes : [ 500 ]
+          excludedStatusCodes : [ 500 ],
+          messageFn : (msg: string) : void => { this.navService.message(msg); }
         })))
         .pipe(catchError(this.handleError))
         .subscribe(bookings => {
@@ -59,8 +54,8 @@ export class BookingsService {
       console.error(`Backend returned code ${error.status}, ` +
                     `body was: ${error.error}`);
     }
-    // TODO: Use the snackbar or something to deliver this in a user friendly
-    // manner.
+    this.navService.message(
+        'Failed to retrieve booking data. Please try again later.');
     return throwError('Something bad happened; please try again later.');
   }
 }
@@ -69,7 +64,7 @@ export let bookingsServiceProvider = {
   provide : BookingsService,
   useFactory :
       (http: HttpClient,
-       scoresService:
-           ScoresService) => { return new BookingsService(http, scoresService)},
-  deps : [ HttpClient, ScoresService ]
+       navService:
+           NavService) => { return new BookingsService(http, navService)},
+  deps : [ HttpClient, NavService ]
 };

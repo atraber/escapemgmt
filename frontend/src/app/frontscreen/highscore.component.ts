@@ -6,6 +6,7 @@ import {Component} from '@angular/core';
 import moment from 'moment';
 
 import {environment} from '../../environment';
+import {EntityUtils} from '../entity-utils';
 import {Room} from '../room';
 import {Score} from '../score';
 
@@ -77,8 +78,8 @@ export class HighscoreComponent {
     return filtered_rooms;
   }
 
-  imagePath(path: string): string {
-    return environment.apiEndpoint + '/file/' + path;
+  imagePath(room: Room): string {
+    return EntityUtils.getRoomProfileImage(room);
   }
 
   formatTime(time: number): string {

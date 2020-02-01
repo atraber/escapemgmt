@@ -14,7 +14,7 @@ import {DevicesService, devicesServiceProvider} from './devices.service';
 import {DevicesModule} from './devices/devices.module';
 import {FrontscreenModule} from './frontscreen/frontscreen.module';
 import {RoomsService} from './frontscreen/rooms.service';
-import {NavService} from './nav.service';
+import {NavService, navServiceProvider} from './nav.service';
 import {PresetsService, presetsServiceProvider} from './presets.service';
 import {RoomsModule} from './rooms/rooms.module';
 import {ScoresService, scoresServiceProvider} from './scores.service';
@@ -53,7 +53,7 @@ const appRoutes: Routes = [
     RouterModule.forRoot(appRoutes),
   ],
   providers : [
-    NavService,
+    navServiceProvider,
     devicesServiceProvider,
     presetsServiceProvider,
     RoomsService,

@@ -8,6 +8,7 @@ import {Observable} from 'rxjs';
 import {catchError, retryWhen} from 'rxjs/operators';
 
 import {environment} from '../../environment';
+import {NavService} from '../nav.service';
 import {genericRetryStrategy} from '../rxjs-utils';
 
 import {FileBuffer} from './filebuffer';
@@ -15,7 +16,7 @@ import {FileBuffer} from './filebuffer';
 @Injectable({providedIn : 'root'})
 export class FileUploadService {
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private navService: NavService) {}
 
   private handleError(error: HttpErrorResponse) {
     if (error.error instanceof ErrorEvent) {
@@ -27,8 +28,8 @@ export class FileUploadService {
       console.error(`Backend returned code ${error.status}, ` +
                     `body was: ${error.error}`);
     }
-    // TODO: Use the snackbar or something to deliver this in a user friendly
-    // manner.
+    this.navService.message(
+        'Failed to communicate with backend. Please try again later.');
     return Observable.throw('Something bad happened; please try again later.');
   }
 

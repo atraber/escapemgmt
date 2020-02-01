@@ -5,7 +5,7 @@
     </div>
     <div class="card-container">
         <mat-card *ngFor="let room of rooms">
-            <img mat-card-image src="{{imagePath(room.profile_image)}}">
+            <img mat-card-image src="{{imagePath(room)}}">
             <mat-card-header>
                 <mat-card-title>{{room.name}}</mat-card-title>
             </mat-card-header>
