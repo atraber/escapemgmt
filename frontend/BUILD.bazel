@@ -47,3 +47,12 @@ container_push(
     repository = "escape_frontend",
     tag = "prod",
 )
+
+container_push(
+    name = "frontend_canary_push",
+    format = "Docker",
+    image = ":frontend_image",
+    registry = "192.168.0.80:5000",
+    repository = "escape_frontend",
+    tag = "canary",
+)
