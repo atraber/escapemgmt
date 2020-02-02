@@ -68,9 +68,21 @@ async def apiRoomAddScore(roomid: int):
     abort(400)
 
 
-@rooms.route('/rooms/<int:roomid>/scores/<int:scoreid>', methods=['DELETE'])
-async def apiRoomDeleteScore(roomid: int, scoreid: int):
-    if request.method == 'DELETE':
+@rooms.route('/rooms/<int:roomid>/scores/<int:scoreid>',
+             methods=['POST', 'DELETE'])
+async def apiRoomUpdateScore(roomid: int, scoreid: int):
+    if request.method == 'POST':
+        if request.headers['Content-Type'] == 'application/json':
+            data_json = await request.json
+            db_room = db.session.query(Room).filter_by(id=roomid).first()
+            db_score = db.session.query(Score).filter_by(
+                id=scoreid, room_id=db_room.id).first()
+            db_score.name = data_json['name']
+            db_score.time = data_json['time']
+            db.session.commit()
+            return jsonify(db_room.serialize())
+        abort(400)
+    elif request.method == 'DELETE':
         db_room = db.session.query(Room).filter_by(id=roomid).first()
         db.session.query(Score).filter_by(id=scoreid,
                                           room_id=db_room.id).delete()
