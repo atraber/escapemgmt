@@ -46,17 +46,15 @@ export class StreamsComponent {
   }
 
   addStreamDialog(): void {
-    const dialogRef = this.dialog.open(StreamCreateDialog, {width : '500px'});
+    this.dialog.open(StreamCreateDialog, {width : '500px'});
   }
 
   editStreamDialog(stream: Stream): void {
-    const dialogRef =
-        this.dialog.open(StreamEditDialog, {width : '500px', data : stream});
+    this.dialog.open(StreamEditDialog, {width : '500px', data : stream});
   }
 
   deleteStreamDialog(stream: Stream): void {
-    const dialogRef =
-        this.dialog.open(StreamDeleteDialog, {width : '400px', data : stream});
+    this.dialog.open(StreamDeleteDialog, {width : '400px', data : stream});
   }
 
   updateStream(stream: Stream) {

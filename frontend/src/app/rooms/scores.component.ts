@@ -21,6 +21,7 @@ import moment from 'moment';
 import {Room} from '../room';
 import {Score} from '../score';
 import {ScoresService} from '../scores.service';
+import {ScoreEditDialog} from './score-edit.dialog';
 
 @Component({
   templateUrl : './scores.component.html',
@@ -103,13 +104,11 @@ export class ScoresComponent implements OnInit {
   }
 
   editScoreDialog(room: Room, score: Score): void {
-    const dialogRef =
-        this.dialog.open(ScoreEditDialog, {width : '350px', data : score});
-
-    dialogRef.afterClosed().subscribe(score => {
-      if (score != undefined && score != "") {
-        console.log('The dialog was closed. Submitting edited score');
-        // TODO
+    this.dialog.open(ScoreEditDialog, {
+      width : '350px',
+      data : {
+        'room' : room,
+        'score' : score,
       }
     });
   }
@@ -185,17 +184,6 @@ export class ScoreAddDialog {
     this.room = data;
     this.score = new Score();
   }
-}
-
-@Component({
-  selector : 'score-edit-dialog',
-  templateUrl : 'score-edit-dialog.html',
-})
-export class ScoreEditDialog {
-  score: Score;
-
-  constructor(public dialogRef: MatDialogRef<ScoreEditDialog>,
-              @Inject(MAT_DIALOG_DATA) public data: Score) {}
 }
 
 @Component({

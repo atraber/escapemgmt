@@ -1,1 +1,19 @@
-TODO: This has not been implemented yet!
+<form>
+    <h1 mat-dialog-title>Edit Score {{score.name}} in {{room.name}}</h1>
+    <div mat-dialog-content>
+        <div class="score-form-container">
+            <mat-form-field>
+                <input matInput [(ngModel)]="score.name" name="name" placeholder="Name" [required]=true cdkFocusInitial>
+            </mat-form-field>
+
+            <mat-form-field>
+                <mat-label>Time</mat-label>
+                <time-input [(ngModel)]="score.time" name="time" [required]=true></time-input>
+            </mat-form-field>
+        </div>
+    </div>
+    <div mat-dialog-actions>
+        <button mat-raised-button mat-dialog-close>Close</button>
+        <button mat-raised-button color="primary" (click)="editScore(room, score)">Save</button>
+    </div>
+</form>

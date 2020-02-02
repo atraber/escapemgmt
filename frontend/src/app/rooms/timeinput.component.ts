@@ -146,9 +146,9 @@ export class TimeInput implements MatFormFieldControl<number>, OnDestroy,
 
   set value(time: number|null) {
     if (time != null) {
-      let hours: number = time / 60 / 60;
-      let minutes: number = (time - hours * 60) / 60;
-      let seconds: number = (time - hours * 60 * 60 - minutes * 60) / 60;
+      let hours: number = Math.trunc(time / 60 / 60);
+      let minutes: number = Math.trunc((time - hours * 60 * 60) / 60);
+      let seconds: number = Math.trunc(time - hours * 60 * 60 - minutes * 60);
       this.parts.setValue({hours, minutes, seconds});
     }
     this.stateChanges.next();
@@ -157,9 +157,7 @@ export class TimeInput implements MatFormFieldControl<number>, OnDestroy,
   get errorState() {
     if (this.empty)
       return false;
-    if (this.value == null)
-      return true;
-    return false;
+    return this.value == null;
   }
 
   constructor(fb: FormBuilder, private fm: FocusMonitor,

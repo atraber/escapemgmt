@@ -4,22 +4,28 @@
  */
 import {NgModule} from '@angular/core';
 import {RouterModule, Routes} from '@angular/router';
+
 import {CommonModule} from '../common.module';
 
+import {RoomCreateDialog} from './create.dialog';
 import {FileUploadComponent} from './fileupload.component';
 import {FileUploadService} from './fileupload.service';
 import {RoomsComponent, RoomsDeleteDialog} from './rooms.component';
-import {RoomCreateDialog} from './create.dialog';
-import {ScoresComponent, ScoreAddDialog, ScoreEditDialog, ScoreDeleteDialog} from './scores.component';
+import {ScoreEditDialog} from './score-edit.dialog';
+import {
+  ScoreAddDialog,
+  ScoreDeleteDialog,
+  ScoresComponent
+} from './scores.component';
 import {TimeInput} from './timeinput.component';
 
 const routes: Routes = [
-  { path: 'rooms', component: RoomsComponent },
-  { path: 'rooms/scores', component: ScoresComponent },
+  {path : 'rooms', component : RoomsComponent},
+  {path : 'rooms/scores', component : ScoresComponent},
 ];
 
 @NgModule({
-  declarations: [
+  declarations : [
     FileUploadComponent,
     RoomCreateDialog,
     RoomsComponent,
@@ -30,7 +36,7 @@ const routes: Routes = [
     ScoresComponent,
     TimeInput,
   ],
-  entryComponents: [
+  entryComponents : [
     RoomCreateDialog,
     RoomsDeleteDialog,
     ScoreAddDialog,
@@ -38,15 +44,14 @@ const routes: Routes = [
     ScoreDeleteDialog,
     TimeInput,
   ],
-  imports: [
+  imports : [
     CommonModule,
     RouterModule.forChild(routes),
   ],
-  exports: [
-    RouterModule
-  ],
-  providers: [
+  exports : [ RouterModule ],
+  providers : [
     FileUploadService,
   ],
 })
-export class RoomsModule { }
+export class RoomsModule {
+}

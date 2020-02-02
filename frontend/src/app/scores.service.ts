@@ -124,6 +124,23 @@ export class ScoresService {
     });
   }
 
+  updateScore(room: Room, score: Score): Observable<Score> {
+    return Observable.create(observer => {
+      this.http
+          .post<Score>(environment.apiEndpoint + '/rooms/' + room.id +
+                           '/scores/' + score.id,
+                       score, jsonOptions)
+          .pipe(catchError(this.handleError))
+          .subscribe(
+              data => {
+                observer.next(data);
+                this.roomsUpdated.emit(this.rooms);
+                observer.complete();
+              },
+              err => { observer.error(err); });
+    });
+  }
+
   deleteScoreFromRoom(room: Room, score: Score): Observable<{}> {
     return Observable.create(observer => {
       this.http

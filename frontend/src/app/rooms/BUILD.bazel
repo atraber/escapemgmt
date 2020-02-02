@@ -8,6 +8,7 @@ SCSS_ASSETS = [
     "fileupload.component.scss",
     "rooms.component.scss",
     "scores.component.scss",
+    "score-edit.dialog.scss",
 ]
 
 [
@@ -31,6 +32,7 @@ ng_module(
         "fileupload.service.ts",
         "rooms.component.ts",
         "rooms.module.ts",
+        "score-edit.dialog.ts",
         "scores.component.ts",
         "timeinput.component.ts",
     ],
