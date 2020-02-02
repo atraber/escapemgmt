@@ -21,9 +21,10 @@ except ModuleNotFoundError:
     import os
     import sys
     # To ensure that the app will be found, add its path to the Python path.
-    app_path = os.path.abspath(
-            os.path.join(os.path.dirname(os.path.abspath(__file__)), '../..'))
-    sys.path.insert(0, app_path)
+    file_path = os.path.dirname(os.path.abspath(__file__))
+    sys.path.insert(0, os.path.abspath(os.path.join(file_path, '../..')))
+    sys.path.insert(0, os.path.abspath(os.path.join(file_path, '..')))
+    sys.path.insert(0, os.path.abspath(file_path))
     from app import App, db
     app = App()
     db.app = app
@@ -72,6 +73,7 @@ def run_migrations_online():
             context.run_migrations()
     finally:
         connection.close()
+
 
 if context.is_offline_mode():
     raise Exception('Offline mode is not supported')

@@ -118,7 +118,7 @@ class Stream(db.Model):  # type: ignore
     id = sa.Column(sa.Integer, primary_key=True)
     name = sa.Column(sa.String(20))
     orientation = sa.Column(sa.Integer)
-    streamviews = orm.relationship('StreamView')
+    streamviews = orm.relationship('StreamView', cascade='delete')
 
     def __init__(self, id=None, name=None, orientation=0):
         self.id = id

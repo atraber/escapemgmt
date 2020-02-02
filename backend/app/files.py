@@ -37,15 +37,18 @@ def minioInit():
         raise
 
 
+def minioUpload(data):
+    object_id = uuid.uuid1().hex
+    minio_client.put_object(_BUCKET, object_id, io.BytesIO(data), len(data))
+    logger.info('Uploading object with id: {}'.format(object_id))
+    return object_id
+
+
 @files.route('/file/upload', methods=['POST'])
 async def fileUpload():
     if 'multipart/form-data' in request.headers['Content-Type']:
         files = await request.files
-        object_id = uuid.uuid1().hex
-        data = files['file'].read()
-        minio_client.put_object(_BUCKET, object_id, io.BytesIO(data),
-                                len(data))
-        logger.info('Uploading object with id: {}'.format(object_id))
+        object_id = minioUpload(files['file'].read())
 
         file_asset = File(
             name=object_id,

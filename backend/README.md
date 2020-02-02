@@ -71,7 +71,7 @@ The following commands will automatically create a new candidate revision.
 Please ensure that it matches what you expected and only then apply the
 revision.
 
-    cd app && alembic -c ./app/migrations/alembic.ini revision --autogenerate
+    alembic -c ./app/migrations/alembic.ini revision --autogenerate
 
 ## Performing migrations
-    cd app && alembic -c ./app/migrations/alembic.ini upgrade
+    alembic -c ./app/migrations/alembic.ini upgrade
