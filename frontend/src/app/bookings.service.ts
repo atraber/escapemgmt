@@ -12,7 +12,7 @@ import {environment} from '../environment';
 import {Booking} from './booking';
 import {NavService} from './nav.service';
 import {Room} from './room';
-import {genericRetryStrategy} from './rxjs-utils';
+import {saneRetryStrategy} from './rxjs-utils';
 
 const jsonOptions = {
   headers : new HttpHeaders({
@@ -30,12 +30,8 @@ export class BookingsService {
   constructor(private http: HttpClient, private navService: NavService) {
 
     this.http.get<Booking[]>(environment.apiEndpoint + '/bookings')
-        .pipe(retryWhen(genericRetryStrategy({
-          maxRetryAttempts : 0,
-          scalingDuration : 2000,
-          excludedStatusCodes : [ 500 ],
-          messageFn : (msg: string) : void => { this.navService.message(msg); }
-        })))
+        .pipe(retryWhen(saneRetryStrategy(
+            (msg: string): void => { this.navService.message(msg); })))
         .pipe(catchError(this.handleError))
         .subscribe(bookings => {
           this.bookings = bookings;

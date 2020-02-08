@@ -12,7 +12,7 @@ import {environment} from '../environment';
 import {Device, DeviceStream} from './device';
 import {NavService} from './nav.service';
 import {Preset} from './preset';
-import {genericRetryStrategy} from './rxjs-utils';
+import {saneRetryStrategy} from './rxjs-utils';
 import {Stream} from './stream';
 import {StreamView} from './streamview';
 
@@ -55,12 +55,8 @@ export class DevicesService {
   private refresh(): void {
     console.log('refresh() called in DevicesService');
     this.http.get<Stream[]>(environment.apiEndpoint + '/streams')
-        .pipe(retryWhen(genericRetryStrategy({
-          maxRetryAttempts : 3,
-          scalingDuration : 2000,
-          excludedStatusCodes : [ 500 ],
-          messageFn : (msg: string) : void => { this.navService.message(msg); }
-        })))
+        .pipe(retryWhen(saneRetryStrategy(
+            (msg: string): void => { this.navService.message(msg); })))
         .pipe(catchError(this.handleError))
         .subscribe(streams => {
           this.streams = streams;
@@ -70,12 +66,8 @@ export class DevicesService {
         });
 
     this.http.get<Device[]>(environment.apiEndpoint + '/devices')
-        .pipe(retryWhen(genericRetryStrategy({
-          maxRetryAttempts : 3,
-          scalingDuration : 2000,
-          excludedStatusCodes : [ 500 ],
-          messageFn : (msg: string) : void => { this.navService.message(msg); }
-        })))
+        .pipe(retryWhen(saneRetryStrategy(
+            (msg: string): void => { this.navService.message(msg); })))
         .pipe(catchError(this.handleError))
         .subscribe(devices => {
           this.devices = devices;

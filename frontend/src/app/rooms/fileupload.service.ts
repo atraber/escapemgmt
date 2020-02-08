@@ -9,7 +9,6 @@ import {catchError, retryWhen} from 'rxjs/operators';
 
 import {environment} from '../../environment';
 import {NavService} from '../nav.service';
-import {genericRetryStrategy} from '../rxjs-utils';
 
 import {FileBuffer} from './filebuffer';
 

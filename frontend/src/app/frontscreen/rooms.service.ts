@@ -11,7 +11,7 @@ import {catchError, retryWhen} from 'rxjs/operators';
 
 import {environment} from '../../environment';
 import {Room} from '../room';
-import {genericRetryStrategy} from '../rxjs-utils';
+import {saneRetryStrategy} from '../rxjs-utils';
 
 const jsonOptions = {
   headers : new HttpHeaders({
@@ -50,12 +50,11 @@ export class RoomsService {
   }
 
   private updateRooms(): void {
+    // We do not display a message here when we cannot refresh. This is because
+    // this is shown on "the big screen" and thus this message is less
+    // interesting to clients.
     this.http.get<Room[]>(environment.apiEndpoint + '/rooms')
-        .pipe(retryWhen(genericRetryStrategy({
-          maxRetryAttempts : 3,
-          scalingDuration : 2000,
-          excludedStatusCodes : [ 500 ]
-        })))
+        .pipe(retryWhen(saneRetryStrategy()))
         .subscribe(rooms => {
           this.rooms = this.sortRooms(rooms);
           this.roomsUpdated.emit(rooms);

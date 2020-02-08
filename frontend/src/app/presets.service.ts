@@ -12,7 +12,7 @@ import {environment} from '../environment';
 import {DevicesService} from './devices.service';
 import {NavService} from './nav.service';
 import {Preset} from './preset';
-import {genericRetryStrategy} from './rxjs-utils';
+import {saneRetryStrategy} from './rxjs-utils';
 
 const jsonOptions = {
   headers : new HttpHeaders({
@@ -30,11 +30,8 @@ export class PresetsService {
   constructor(private devicesService: DevicesService, private http: HttpClient,
               private navService: NavService) {
     this.http.get<Preset[]>(environment.apiEndpoint + '/presets')
-        .pipe(retryWhen(genericRetryStrategy({
-          maxRetryAttempts : 0,
-          scalingDuration : 2000,
-          excludedStatusCodes : [ 500 ]
-        })))
+        .pipe(retryWhen(saneRetryStrategy(
+            (msg: string): void => { this.navService.message(msg); })))
         .pipe(catchError(this.handleError))
         .subscribe(presets => {
           this.presets = presets;
