@@ -35,7 +35,6 @@ export class DevicesService {
 
   constructor(private http: HttpClient, private navService: NavService) {
     this.refresh();
-    this.listenForChanges();
   }
 
   private handleError(error: HttpErrorResponse) {
@@ -51,14 +50,6 @@ export class DevicesService {
     this.navService.message(
         'Failed to communicate with backend. Please try again later.');
     return Observable.throw('Something bad happened; please try again later.');
-  }
-
-  private listenForChanges() {
-    let source = new EventSource(environment.apiEndpoint + '/subscribe');
-    source.addEventListener('devicesChanged', message => {
-      console.log('devicesChanged event received from server');
-      this.refresh();
-    });
   }
 
   private refresh(): void {

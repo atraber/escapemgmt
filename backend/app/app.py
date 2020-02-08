@@ -8,7 +8,6 @@ from minio import Minio
 from quart import Quart
 from quart_cors import cors
 #from prometheus_flask_exporter import PrometheusMetrics
-import pulsar
 
 import app
 
@@ -17,14 +16,13 @@ from config import app_config, app_envs
 from logger import logger
 
 app = None
-pulsar_client = None  # type: pulsar.Client
 minio_client = None  # type: Minio
 db = SQLAlchemy()
 metrics = None
 
 
 def App() -> Quart:
-    global pulsar_client, minio_client
+    global minio_client
     app = Quart(__name__)
     logger.info('Applying config')
     app.config.from_object(app_config)
@@ -36,9 +34,6 @@ def App() -> Quart:
     logger.info('Initializing database')
     db.init_app(app)
     db.app = app
-
-    logger.info('Initializing pulsar_client')
-    pulsar_client = pulsar.Client(app.config['PULSAR_URL'])
 
     logger.info('Initializing minio_client')
     minio_client = Minio(app.config['MINIO_URL'],
@@ -58,9 +53,6 @@ def App() -> Quart:
 
     from presets import presets as presets_blueprint
     app.register_blueprint(presets_blueprint)
-
-    from pubsub import pubsub as pubsub_blueprint
-    app.register_blueprint(pubsub_blueprint)
 
     from rooms import rooms as rooms_blueprint
     app.register_blueprint(rooms_blueprint)

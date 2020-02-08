@@ -5,7 +5,6 @@ from quart import abort, Blueprint, request, jsonify
 from app import db
 from logger import logger
 from models import Device, Preset
-from pubsub import publish
 
 presets = Blueprint('presets', __name__)
 
@@ -60,6 +59,5 @@ async def apiPresetActivate(presetid: int):
             device.screen_enable = True
 
         db.session.commit()
-        publish('devicesChanged')
         return jsonify('ok')
     abort(400)

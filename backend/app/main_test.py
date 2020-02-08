@@ -12,24 +12,8 @@ from typing import Generator
 from app import App, Init, PerformInitDB
 
 
-class FakePulsarProducer:
-    def send(self, msg):
-        pass
-
-
-class FakePulsarClient:
-    def create_producer(self, topic: str):
-        return FakePulsarProducer()
-
-    def subscribe(self, topic: str, subscriber_id: str):
-        return None
-
-
 @pytest.fixture
 def client(mocker, event_loop) -> Generator:
-    # Do not use Pulsar, we use our fake instead.
-    mocker.patch('pulsar.Client', return_value=FakePulsarClient())
-
     # Do not export promtheus metrics as this does not work when repeated tests
     # are performed.
     #mocker.patch('app.app.PrometheusMetrics')
