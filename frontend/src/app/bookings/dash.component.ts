@@ -10,6 +10,7 @@ import {
 } from '@angular/material/dialog';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import moment from 'moment';
+import {timer} from 'rxjs';
 
 import {Booking} from '../booking';
 import {BookingsService} from '../bookings.service';
@@ -33,6 +34,11 @@ export class BookingsDashComponent {
       this.filterAndSortBookings(bookings);
       this.loaded = this.bookingsService.loaded;
     });
+
+    // Update the displayed list every minute.
+    let t = timer(0, 60 * 1000);
+    t.subscribe(
+        t => { this.filterAndSortBookings(this.bookingsService.bookings); });
   }
 
   private filterAndSortBookings(bookings: Booking[]) {
