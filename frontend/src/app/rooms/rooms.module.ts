@@ -11,12 +11,9 @@ import {RoomCreateDialog} from './create.dialog';
 import {FileUploadComponent} from './fileupload.component';
 import {FileUploadService} from './fileupload.service';
 import {RoomsComponent, RoomsDeleteDialog} from './rooms.component';
+import {ScoreAddDialog} from './score-add.dialog';
 import {ScoreEditDialog} from './score-edit.dialog';
-import {
-  ScoreAddDialog,
-  ScoreDeleteDialog,
-  ScoresComponent
-} from './scores.component';
+import {ScoreDeleteDialog, ScoresComponent} from './scores.component';
 import {TimeInput} from './timeinput.component';
 
 const routes: Routes = [

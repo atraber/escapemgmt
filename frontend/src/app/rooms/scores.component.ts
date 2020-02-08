@@ -21,6 +21,7 @@ import moment from 'moment';
 import {Room} from '../room';
 import {Score} from '../score';
 import {ScoresService} from '../scores.service';
+import {ScoreAddDialog} from './score-add.dialog';
 import {ScoreEditDialog} from './score-edit.dialog';
 
 @Component({
@@ -96,10 +97,8 @@ export class ScoresComponent implements OnInit {
         this.dialog.open(ScoreAddDialog, {width : '350px', data : room});
 
     dialogRef.afterClosed().subscribe(score => {
-      if (score != undefined && score != "") {
-        console.log('The dialog was closed. Adding new score');
-        this.addScoreToRoom(room, score);
-      }
+      // Update table since it does not detect changes automatically
+      this.dataSource.data = this.roomSelected.scores;
     });
   }
 
@@ -125,25 +124,6 @@ export class ScoresComponent implements OnInit {
     });
   }
 
-  addScoreToRoom(room: Room, score: Score): void {
-    this.scoresService.addScoreToRoom(room, score)
-        .subscribe(
-            () => {
-              // Update table since it does not detect changes automatically
-              this.dataSource.data = this.roomSelected.scores;
-
-              this.snackBar.open('Score was added', 'Hide', {
-                duration : 2000,
-              });
-            },
-            err => {
-              this.snackBar.open('Failed to add score. Please try again!',
-                                 'Hide', {
-                                   duration : 2000,
-                                 });
-            });
-  }
-
   deleteScoreFromRoom(room: Room, score: Score): void {
     this.scoresService.deleteScoreFromRoom(room, score)
         .subscribe(
@@ -161,28 +141,6 @@ export class ScoresComponent implements OnInit {
 
     // Update table since it does not detect changes automatically
     this.dataSource.data = this.roomSelected.scores;
-  }
-}
-
-@Component({
-  selector : 'score-add-dialog',
-  templateUrl : 'score-add-dialog.html',
-  styles : [ `
-    .score-form-container {
-      display: flex;
-      flex-direction: column;
-      margin-right: 180px;
-    }
-  ` ],
-})
-export class ScoreAddDialog {
-  room: Room;
-  score: Score;
-
-  constructor(public dialogRef: MatDialogRef<ScoreAddDialog>,
-              @Inject(MAT_DIALOG_DATA) public data: Room) {
-    this.room = data;
-    this.score = new Score();
   }
 }
 

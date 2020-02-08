@@ -1,4 +1,4 @@
-<form>
+<form (ngSubmit)="addScoreToRoom(room, score)" #scoreForm="ngForm">
     <h1 mat-dialog-title>Add new Score to {{room.name}}</h1>
     <div mat-dialog-content>
         <div class="score-form-container">
@@ -14,6 +14,6 @@
     </div>
     <div mat-dialog-actions>
         <button mat-raised-button mat-dialog-close>Close</button>
-        <button mat-raised-button [mat-dialog-close]="score" color="primary" type="submit">Add</button>
+        <button mat-raised-button color="primary" [disabled]="!scoreForm.form.valid" type="submit">Add</button>
     </div>
 </form>
