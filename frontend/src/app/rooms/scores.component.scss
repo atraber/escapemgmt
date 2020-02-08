@@ -3,7 +3,8 @@
 .scores-table-container {
     display: flex;
     flex-direction: column;
-    margin: 10px;
+    margin-left: 10px;
+    margin-right: 10px;
 }
 
 .score-add-field {
@@ -16,9 +17,6 @@
 }
 
 table {
-    margin-left: 10px;
-    margin-right: 10px;
-
     @media only screen and (min-width: 850px) {
         min-width: 400px;
     }
@@ -33,6 +31,11 @@ th.mat-column-index {
 
 th.mat-column-name {
     width: 100%;
+}
+
+td:first-of-type,
+th:first-of-type {
+    padding-left: 12px !important;
 }
 
 th {

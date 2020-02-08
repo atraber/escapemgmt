@@ -1,55 +1,56 @@
 .nav {
-  min-height: calc(100vh - 64px);
+    min-height: calc(100vh - 64px);
 }
 
 .nav[mode="side"] {
-  overflow: hidden;
-  overflow-y: auto;
-  white-space: nowrap;
+    overflow: hidden;
+    overflow-y: auto;
+    white-space: nowrap;
 
-  & > * {
-    flex-shrink: 0;
-  }
+    &>* {
+        flex-shrink: 0;
+    }
 
-  & > mat-drawer {
-    background: rgba(0, 0, 0, 0.02);
-  }
+    &>mat-drawer {
+        background: rgba(0, 0, 0, 0.02);
+    }
 
-  & mat-divider {
-    width: 150px;
-  }
+    & mat-divider {
+        width: 150px;
+    }
 
-  & .mat-nav-list {
-    overflow-x: hidden;
-  }
+    & .mat-nav-list {
+        overflow-x: hidden;
+    }
 }
 
 .drawer-row {
-  display: flex;
-  flex-direction: row;
+    display: flex;
+    flex-direction: row;
 }
 
 mat-nav-list {
-  overflow-x: hidden;
-  & > a.nav-group-item {
-    font-weight: 500;
-    padding-top: 5px;
-  }
+    overflow-x: hidden;
 
-  & > a:not(.nav-group-item) {
-    padding-left: 15px;
-  }
-
-  & > a {
-    font-size: 14px;
-    height: 35px;
-
-    mat-icon {
-      padding-right: 5px;
+    &>a.nav-group-item {
+        font-weight: 500;
+        padding-top: 5px;
     }
-  }
+
+    &>a:not(.nav-group-item) {
+        padding-left: 15px;
+    }
+
+    &>a {
+        font-size: 17px;
+        height: 35px;
+
+        mat-icon {
+            padding-right: 5px;
+        }
+    }
 }
 
 main {
-  width: 100%;
+    width: 100%;
 }

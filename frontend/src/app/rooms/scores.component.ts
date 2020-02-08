@@ -70,7 +70,7 @@ export class ScoresComponent implements OnInit {
   formatDatetime(time: number): string {
     // Need to multiply with 1000 to get from seconds to millis which is used
     // by JavaScript by default.
-    return moment(time * 1000).format('LLL');
+    return moment(time * 1000).format('DD.MM.YYYY HH:mm');
   }
 
   formatTime(time: number): string {
