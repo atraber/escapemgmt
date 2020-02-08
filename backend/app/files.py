@@ -65,6 +65,9 @@ async def fileUpload():
 async def fileView(object_name: str):
     file_asset = db.session.query(File).filter_by(name=object_name).first()
 
+    if not file_asset:
+        abort(404)
+
     http_response = minio_client.get_object(_BUCKET, file_asset.name)
     image_data = http_response.data
     response = await make_response(image_data)
