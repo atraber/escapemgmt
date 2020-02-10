@@ -6,22 +6,26 @@ configure_make(
         "ffmpeg",
         "ffprobe",
     ],
+    configure_options = [
+        "--enable-libx264",
+        "--enable-gpl",
+    ],
     lib_name = "install",
     lib_source = "@ffmpeg//:all",
-    #configure_options = [],
     # Optinal make commands, defaults to ["make", "make install"]
     make_commands = [
         "make -j8",
         "make install",
     ],
     static_libraries = [
+        "libavcodec.a",
+        "libavdevice.a",
+        "libavfilter.a",
+        "libavformat.a",
+        "libavutil.a",
+        "libpostproc.a",
         "libswresample.a",
         "libswscale.a",
-        "libavdevice.a",
-        "libavformat.a",
-        "libavcodec.a",
-        "libavfilter.a",
-        "libavutil.a",
     ],
     visibility = ["//visibility:public"],
 )

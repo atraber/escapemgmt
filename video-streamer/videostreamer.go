@@ -1,13 +1,14 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"log"
-	"net"
 	"net/http"
-	"net/http/fcgi"
+	"net/url"
 	"os"
+	"strconv"
 	"sync"
 	"unsafe"
 )
@@ -26,14 +27,22 @@ type Args struct {
 	InputFormat string
 	InputURL    string
 	Verbose     bool
-	// Serve with FCGI protocol (true) or HTTP (false).
-	FCGI bool
+}
+
+type streamInfo struct {
+	Url       string
+	Transcode bool
+	PosX      int
+	PosY      int
+	Width     int
+	Height    int
 }
 
 // HTTPHandler allows us to pass information to our request handlers.
 type HTTPHandler struct {
-	Verbose    bool
-	ClientChan chan<- *Client
+	Verbose         bool
+	ClientChan      map[streamInfo]chan *Client
+	ClientChanMutex *sync.RWMutex
 }
 
 // Client is servicing one HTTP client.
@@ -61,46 +70,28 @@ func main() {
 		log.Fatalf("Invalid argument: %s", err)
 	}
 
-	C.vs_setup()
-
-	// Clients provide encoder info about themselves when they start up.
-	clientChan := make(chan *Client)
-
-	go encoder(args.InputFormat, args.InputURL, args.Verbose, clientChan)
+	C.vs_init()
 
 	// Start serving either with HTTP or FastCGI.
 
 	hostPort := fmt.Sprintf("%s:%d", args.ListenHost, args.ListenPort)
 
 	handler := HTTPHandler{
-		Verbose:    args.Verbose,
-		ClientChan: clientChan,
+		Verbose:         args.Verbose,
+		ClientChan:      make(map[streamInfo]chan *Client),
+		ClientChanMutex: &sync.RWMutex{},
 	}
 
-	if args.FCGI {
-		listener, err := net.Listen("tcp", hostPort)
-		if err != nil {
-			log.Fatalf("Unable to listen: %s", err)
-		}
+	s := &http.Server{
+		Addr:    hostPort,
+		Handler: handler,
+	}
 
-		log.Printf("Starting to serve requests on %s (FastCGI)", hostPort)
+	log.Printf("Starting to serve requests on %s (HTTP)", hostPort)
 
-		err = fcgi.Serve(listener, handler)
-		if err != nil {
-			log.Fatalf("Unable to serve: %s", err)
-		}
-	} else {
-		s := &http.Server{
-			Addr:    hostPort,
-			Handler: handler,
-		}
-
-		log.Printf("Starting to serve requests on %s (HTTP)", hostPort)
-
-		err = s.ListenAndServe()
-		if err != nil {
-			log.Fatalf("Unable to serve: %s", err)
-		}
+	err = s.ListenAndServe()
+	if err != nil {
+		log.Fatalf("Unable to serve: %s", err)
 	}
 }
 
@@ -108,27 +99,11 @@ func main() {
 func getArgs() (Args, error) {
 	listenHost := flag.String("host", "0.0.0.0", "Host to listen on.")
 	listenPort := flag.Int("port", 8080, "Port to listen on.")
-	format := flag.String("format", "pulse", "Input format. Example: rtsp for RTSP.")
+	format := flag.String("format", "rtsp", "Input format. Example: rtsp for RTSP.")
 	input := flag.String("input", "", "Input URL valid for the given format. For RTSP you can provide a rtsp:// URL.")
 	verbose := flag.Bool("verbose", false, "Enable verbose logging output.")
-	fcgi := flag.Bool("fcgi", true, "Serve using FastCGI (true) or as a regular HTTP server.")
 
 	flag.Parse()
-
-	if len(*listenHost) == 0 {
-		flag.PrintDefaults()
-		return Args{}, fmt.Errorf("you must provide a host")
-	}
-
-	if len(*format) == 0 {
-		flag.PrintDefaults()
-		return Args{}, fmt.Errorf("you must provide an input format")
-	}
-
-	if len(*input) == 0 {
-		flag.PrintDefaults()
-		return Args{}, fmt.Errorf("you must provide an input URL")
-	}
 
 	return Args{
 		ListenHost:  *listenHost,
@@ -136,20 +111,20 @@ func getArgs() (Args, error) {
 		InputFormat: *format,
 		InputURL:    *input,
 		Verbose:     *verbose,
-		FCGI:        *fcgi,
 	}, nil
 }
 
-func encoder(inputFormat, inputURL string, verbose bool,
-	clientChan <-chan *Client) {
+func (h HTTPHandler) encoder(si streamInfo) {
 	clients := []*Client{}
 	var input *Input
+
+	log.Printf("encoder: got url %s", si.Url)
 
 	for {
 		// If there are no clients, then block waiting for one.
 		if len(clients) == 0 {
 			log.Printf("encoder: Waiting for clients...")
-			client := <-clientChan
+			client := <-h.ClientChan[si]
 			log.Printf("encoder: New client")
 			clients = append(clients, client)
 			continue
@@ -159,7 +134,7 @@ func encoder(inputFormat, inputURL string, verbose bool,
 
 		// Get any new clients, but don't block.
 		clientCountBefore := len(clients)
-		clients = acceptClients(clientChan, clients)
+		clients = acceptClients(h.ClientChan[si], clients)
 		clientCountAfter := len(clients)
 
 		if clientCountBefore != clientCountAfter {
@@ -168,14 +143,17 @@ func encoder(inputFormat, inputURL string, verbose bool,
 
 		// Open the input if it is not open yet.
 		if input == nil {
-			input = openInput(inputFormat, inputURL, verbose)
+			input = openInputRetry(si, 3, h.Verbose)
 			if input == nil {
 				log.Printf("encoder: Unable to open input")
+				h.ClientChanMutex.Lock()
 				cleanupClients(clients)
+				delete(h.ClientChan, si)
+				h.ClientChanMutex.Unlock()
 				return
 			}
 
-			if verbose {
+			if h.Verbose {
 				log.Printf("encoder: Opened input")
 			}
 		}
@@ -185,11 +163,14 @@ func encoder(inputFormat, inputURL string, verbose bool,
 		readRes := C.int(0)
 		// We might want to lock input here. It's probably not necessary though.
 		// Other goroutines should only be reading it. We're the writer.
-		readRes = C.vs_read_packet(input.vsInput, &pkt, C.bool(verbose))
+		readRes = C.vs_read_packet(input.vsInput, &pkt, C.bool(h.Verbose))
 		if readRes == -1 {
 			log.Printf("encoder: Failure reading packet")
+			h.ClientChanMutex.Lock()
 			destroyInput(input)
 			cleanupClients(clients)
+			delete(h.ClientChan, si)
+			h.ClientChanMutex.Unlock()
 			return
 		}
 
@@ -197,22 +178,45 @@ func encoder(inputFormat, inputURL string, verbose bool,
 			continue
 		}
 
-		// Write the packet to all clients.
-		clientCountBefore = len(clients)
-		clients = writePacketToClients(input, &pkt, clients, verbose)
-		clientCountAfter = len(clients)
+		if si.Transcode {
+			if C.vs_filter_packet(input.vsInput, &pkt, C.bool(h.Verbose)) != 0 {
+				log.Printf("could not filter packet")
+			}
+			C.av_packet_unref(&pkt)
 
-		if clientCountBefore != clientCountAfter {
-			log.Printf("encoder: %d clients", clientCountAfter)
+			for C.vs_get_filtered_packet(input.vsInput, &pkt, C.bool(h.Verbose)) > 0 {
+				// Write the packet to all clients.
+				clientCountBefore = len(clients)
+				clients = writePacketToClients(input, &pkt, clients, h.Verbose)
+				clientCountAfter = len(clients)
+
+				if clientCountBefore != clientCountAfter {
+					log.Printf("encoder: %d clients", clientCountAfter)
+				}
+
+				C.av_packet_unref(&pkt)
+			}
+		} else {
+			clientCountBefore = len(clients)
+			clients = writePacketToClients(input, &pkt, clients, h.Verbose)
+			clientCountAfter = len(clients)
+
+			if clientCountBefore != clientCountAfter {
+				log.Printf("encoder: %d clients", clientCountAfter)
+			}
+
+			C.av_packet_unref(&pkt)
 		}
-
-		C.av_packet_unref(&pkt)
 
 		// If we get down to zero clients, close the input.
 		if len(clients) == 0 {
+			h.ClientChanMutex.Lock()
 			destroyInput(input)
 			input = nil
 			log.Printf("encoder: Closed input")
+			delete(h.ClientChan, si)
+			h.ClientChanMutex.Unlock()
+			return
 		}
 	}
 }
@@ -275,23 +279,43 @@ type Input struct {
 	vsInput *C.struct_VSInput
 }
 
-func openInput(inputFormat, inputURL string, verbose bool) *Input {
-	inputFormatC := C.CString(inputFormat)
-	inputURLC := C.CString(inputURL)
-
-	input := C.vs_open_input(inputFormatC, inputURLC, C.bool(verbose))
-	if input == nil {
-		C.free(unsafe.Pointer(inputFormatC))
-		C.free(unsafe.Pointer(inputURLC))
-		return nil
+func openInputRetry(si streamInfo, tries int, verbose bool) *Input {
+	var input *Input
+	for i := 0; i < tries && input == nil; i++ {
+		input = openInput(si, verbose)
 	}
+	return input
+}
+
+func openInput(si streamInfo, verbose bool) *Input {
+	inputFormatC := C.CString("rtsp")
+	inputURLC := C.CString(si.Url)
+
+	input := C.vs_input_open(inputFormatC, inputURLC, C.bool(verbose))
 	C.free(unsafe.Pointer(inputFormatC))
 	C.free(unsafe.Pointer(inputURLC))
+	if input == nil {
+		log.Printf("Unable to open input")
+		return nil
+	}
+	log.Printf("Input opened")
 
-	return &Input{
+	i := &Input{
 		mutex:   &sync.RWMutex{},
 		vsInput: input,
 	}
+
+	if !si.Transcode {
+		return i
+	}
+
+	if C.vs_input_encoder_open(input, C.bool(true), C.int(si.PosX), C.int(si.PosY), C.int(si.Width), C.int(si.Height), C.bool(verbose)) != 0 {
+		log.Printf("Unable to open encoder")
+		destroyInput(i)
+		return nil
+	}
+
+	return i
 }
 
 func destroyInput(input *Input) {
@@ -299,7 +323,7 @@ func destroyInput(input *Input) {
 	defer input.mutex.Unlock()
 
 	if input.vsInput != nil {
-		C.vs_destroy_input(input.vsInput)
+		C.vs_input_free(input.vsInput)
 		input.vsInput = nil
 	}
 }
@@ -399,16 +423,55 @@ func openOutput(outputFormat, outputURL string, verbose bool,
 	output := C.vs_open_output(outputFormatC, outputURLC, input.vsInput,
 		C.bool(verbose))
 	input.mutex.RUnlock()
-	if output == nil {
-		log.Printf("Unable to open output")
-		C.free(unsafe.Pointer(outputFormatC))
-		C.free(unsafe.Pointer(outputURLC))
-		return nil
-	}
 	C.free(unsafe.Pointer(outputFormatC))
 	C.free(unsafe.Pointer(outputURLC))
+	if output == nil {
+		log.Printf("Unable to open output")
+		return nil
+	}
 
 	return output
+}
+
+func parseUrl(u url.URL) (streamInfo, error) {
+	q := u.Query()
+	streamUrl, err := url.QueryUnescape(q["url"][0])
+	if err != nil {
+		return streamInfo{}, errors.New("unable to query unescape URL")
+	}
+	si := streamInfo{
+		Url:       streamUrl,
+		Transcode: false,
+	}
+	if len(q["x"]) > 0 {
+		si.PosX, err = strconv.Atoi(q["x"][0])
+		if err != nil {
+			return si, err
+		}
+	}
+	if len(q["y"]) > 0 {
+		si.PosY, err = strconv.Atoi(q["y"][0])
+		if err != nil {
+			return si, err
+		}
+	}
+	if len(q["width"]) > 0 {
+		si.Width, err = strconv.Atoi(q["width"][0])
+		if err != nil {
+			return si, err
+		}
+	}
+	if len(q["height"]) > 0 {
+		si.Height, err = strconv.Atoi(q["height"][0])
+		if err != nil {
+			return si, err
+		}
+	}
+	// Only transcode if we are cropping. This would be a waste of CPU
+	// resources otherwise.
+	si.Transcode = si.Width > 0 && si.Height > 0
+
+	return si, nil
 }
 
 // ServeHTTP handles an HTTP request.
@@ -417,7 +480,22 @@ func (h HTTPHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		r.Method, r.RemoteAddr, r.URL.Path, r.ContentLength)
 
 	if r.Method == "GET" && r.URL.Path == "/stream" {
-		h.streamRequest(rw, r)
+		si, err := parseUrl(*r.URL)
+		if err != nil {
+			log.Printf("Unable to parse URL parameters: %s", r.URL)
+			return
+		}
+		log.Printf("Stream URL: %s", si.Url)
+		h.ClientChanMutex.Lock()
+		if ok := h.ClientChan[si]; ok == nil {
+			// This is a new stream. We create a new client channel and start
+			// an encoder for it.
+			h.ClientChan[si] = make(chan *Client)
+			go h.encoder(si)
+		}
+		h.ClientChanMutex.Unlock()
+
+		h.streamRequest(rw, r, h.ClientChan[si])
 		return
 	}
 
@@ -429,7 +507,7 @@ func (h HTTPHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 // Read from a pipe where streaming media shows up. We read a chunk and write it
 // immediately to the client, and repeat forever (until either the client goes
 // away, or an error of some kind occurs).
-func (h HTTPHandler) streamRequest(rw http.ResponseWriter, r *http.Request) {
+func (h HTTPHandler) streamRequest(rw http.ResponseWriter, r *http.Request, clientChan chan<- *Client) {
 	// The encoder writes to the out pipe (using the packetWriter goroutine). We
 	// read from the in pipe.
 	inPipe, outPipe, err := os.Pipe()
@@ -446,7 +524,7 @@ func (h HTTPHandler) streamRequest(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	// Tell the encoder we're here.
-	h.ClientChan <- c
+	clientChan <- c
 
 	rw.Header().Set("Content-Type", "video/mp4")
 	rw.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")

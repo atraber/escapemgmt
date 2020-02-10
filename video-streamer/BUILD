@@ -34,6 +34,7 @@ go_library(
         "-lxcb-shm",
         "-lxcb-xfixes",
         "-lz",
+        "-lx264",
     ],
     importpath = "main",
     visibility = ["//visibility:private"],

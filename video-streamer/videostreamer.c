@@ -19,50 +19,211 @@
 static void __vs_log_packet(const AVFormatContext *const, const AVPacket *const,
                             const char *const);
 
-void vs_setup(void) {
-  // Set up library.
-
-  // Register muxers, demuxers, and protocols.
-  av_register_all();
-
-  // Make formats available.
+void vs_init(void) {
   avdevice_register_all();
 
   avformat_network_init();
 }
 
-struct VSInput *vs_open_input(const char *const input_format_name,
+int vs_filter_init(struct VSInput *input, const char *filters_descr,
+                   const bool verbose) {
+  char args[512];
+  int ret = 0;
+  const AVFilter *buffersrc = avfilter_get_by_name("buffer");
+  const AVFilter *buffersink = avfilter_get_by_name("buffersink");
+  AVFilterInOut *outputs = avfilter_inout_alloc();
+  AVFilterInOut *inputs = avfilter_inout_alloc();
+  AVRational time_base =
+      input->format_ctx->streams[input->video_stream_index]->time_base;
+
+  input->filter_graph = avfilter_graph_alloc();
+  if (outputs == NULL || inputs == NULL || input->filter_graph == NULL) {
+    ret = AVERROR(ENOMEM);
+    goto end;
+  }
+
+  /* buffer video source: the decoded frames from the decoder will be inserted
+   * here. */
+  snprintf(args, sizeof(args),
+           "video_size=%dx%d:pix_fmt=%d:time_base=%d/%d:pixel_aspect=%d/%d",
+           input->dec_ctx->width, input->dec_ctx->height,
+           input->dec_ctx->pix_fmt, time_base.num, time_base.den,
+           input->dec_ctx->sample_aspect_ratio.num,
+           input->dec_ctx->sample_aspect_ratio.den);
+  if (verbose) {
+    printf("args: %s\n", args);
+  }
+
+  ret = avfilter_graph_create_filter(&input->buffersrc_ctx, buffersrc, "in",
+                                     args, NULL, input->filter_graph);
+  if (ret < 0) {
+    printf("Cannot create buffer source\n");
+    goto end;
+  }
+
+  /* buffer video sink: to terminate the filter chain. */
+  ret = avfilter_graph_create_filter(&input->buffersink_ctx, buffersink, "out",
+                                     NULL, NULL, input->filter_graph);
+  if (ret < 0) {
+    printf("Cannot create buffer sink\n");
+    goto end;
+  }
+
+  ret = av_opt_set_bin(input->buffersink_ctx, "pix_fmts",
+                       (uint8_t *)&input->enc_ctx->pix_fmt,
+                       sizeof(input->enc_ctx->pix_fmt), AV_OPT_SEARCH_CHILDREN);
+  if (ret < 0) {
+    av_log(NULL, AV_LOG_ERROR, "Cannot set output pixel format\n");
+    goto end;
+  }
+
+  /*
+   * Set the endpoints for the filter graph. The filter_graph will
+   * be linked to the graph described by filters_descr.
+   */
+
+  /*
+   * The buffer source output must be connected to the input pad of
+   * the first filter described by filters_descr; since the first
+   * filter input label is not specified, it is set to "in" by
+   * default.
+   */
+  outputs->name = av_strdup("in");
+  outputs->filter_ctx = input->buffersrc_ctx;
+  outputs->pad_idx = 0;
+  outputs->next = NULL;
+
+  /*
+   * The buffer sink input must be connected to the output pad of
+   * the last filter described by filters_descr; since the last
+   * filter output label is not specified, it is set to "out" by
+   * default.
+   */
+  inputs->name = av_strdup("out");
+  inputs->filter_ctx = input->buffersink_ctx;
+  inputs->pad_idx = 0;
+  inputs->next = NULL;
+
+  if ((ret = avfilter_graph_parse_ptr(input->filter_graph, filters_descr,
+                                      &inputs, &outputs, NULL)) < 0)
+    goto end;
+
+  if ((ret = avfilter_graph_config(input->filter_graph, NULL)) < 0)
+    goto end;
+
+end:
+  avfilter_inout_free(&inputs);
+  avfilter_inout_free(&outputs);
+
+  return ret;
+}
+
+int vs_input_encoder_open(struct VSInput *input, bool crop, int x, int y,
+                          int width, int height, const bool verbose) {
+  if (crop) {
+    if (x + width > input->dec_ctx->width ||
+        y + height > input->dec_ctx->height)
+      return -1;
+  }
+
+  AVCodec *enc = avcodec_find_encoder(input->dec_ctx->codec_id);
+  if (enc == NULL) {
+    printf("Encoder does not exists\n");
+    return -1;
+  }
+
+  input->enc_ctx = avcodec_alloc_context3(enc);
+  if (input->enc_ctx == NULL) {
+    printf("Could not allocate video codec context\n");
+    return -1;
+  }
+
+  if (crop) {
+    input->enc_ctx->width = width;
+    input->enc_ctx->height = height;
+  } else {
+    input->enc_ctx->width = input->dec_ctx->width;
+    input->enc_ctx->height = input->dec_ctx->height;
+  }
+  input->enc_ctx->sample_aspect_ratio = input->dec_ctx->sample_aspect_ratio;
+  input->enc_ctx->framerate = (AVRational){25, 1};
+  input->enc_ctx->time_base = av_inv_q(input->enc_ctx->framerate);
+
+  /* emit one intra frame every ten frames
+   * check frame pict_type before passing frame
+   * to encoder, if frame->pict_type is AV_PICTURE_TYPE_I
+   * then gop_size is ignored and the output of encoder
+   * will always be I frame irrespective to gop_size
+   */
+  input->enc_ctx->gop_size = 10;
+  input->enc_ctx->max_b_frames = 1;
+  if (enc->pix_fmts)
+    input->enc_ctx->pix_fmt = enc->pix_fmts[0];
+  else
+    input->enc_ctx->pix_fmt = input->dec_ctx->pix_fmt;
+
+  if (enc->id == AV_CODEC_ID_H264)
+    av_opt_set(input->enc_ctx->priv_data, "preset", "ultrafast", 0);
+
+  if (avcodec_open2(input->enc_ctx, enc, NULL) < 0) {
+    printf("cannot open video encoder\n");
+    return -1;
+  }
+
+  char filter_desc[512];
+  if (crop) {
+    if (snprintf(filter_desc, sizeof(filter_desc), "crop=%d:%d:%d:%d", width,
+                 height, x, y) < 0) {
+      printf("Failed to create filter desc\n");
+      return -1;
+    }
+  } else {
+    snprintf(filter_desc, sizeof(filter_desc), "null");
+  }
+
+  if (vs_filter_init(input, filter_desc, verbose) != 0) {
+    printf("failed to initalize filters\n");
+    return -1;
+  }
+
+  return 0;
+}
+
+struct VSInput *vs_input_open(const char *const input_format_name,
                               const char *const input_url, const bool verbose) {
-  if (!input_format_name || strlen(input_format_name) == 0 || !input_url ||
-      strlen(input_url) == 0) {
+  if (input_format_name == NULL || strlen(input_format_name) == 0 ||
+      input_url == NULL || strlen(input_url) == 0) {
     printf("%s\n", strerror(EINVAL));
     return NULL;
   }
 
-  struct VSInput *const input = calloc(1, sizeof(struct VSInput));
-  if (!input) {
+  struct VSInput *const input = malloc(sizeof(*input));
+  if (input == NULL) {
     printf("%s\n", strerror(errno));
     return NULL;
   }
 
   AVInputFormat *const input_format = av_find_input_format(input_format_name);
-  if (!input_format) {
+  if (input_format == NULL) {
     printf("input format not found\n");
-    vs_destroy_input(input);
+    vs_input_free(input);
     return NULL;
   }
+
+  input->format_ctx = avformat_alloc_context();
+  input->format_ctx->probesize = 8192;
 
   int const open_status =
       avformat_open_input(&input->format_ctx, input_url, input_format, NULL);
   if (open_status != 0) {
     printf("unable to open input: %s\n", av_err2str(open_status));
-    vs_destroy_input(input);
+    vs_input_free(input);
     return NULL;
   }
 
   if (avformat_find_stream_info(input->format_ctx, NULL) < 0) {
     printf("failed to find stream info\n");
-    vs_destroy_input(input);
+    vs_input_free(input);
     return NULL;
   }
 
@@ -70,40 +231,51 @@ struct VSInput *vs_open_input(const char *const input_format_name,
     av_dump_format(input->format_ctx, 0, input_url, 0);
   }
 
-  // Find the first video stream.
-
-  input->video_stream_index = -1;
-
-  for (unsigned int i = 0; i < input->format_ctx->nb_streams; i++) {
-    AVStream *const in_stream = input->format_ctx->streams[i];
-
-    if (in_stream->codecpar->codec_type != AVMEDIA_TYPE_VIDEO) {
-      if (verbose) {
-        printf("skip non-video stream %u\n", i);
-      }
-      continue;
-    }
-
-    input->video_stream_index = (int)i;
-    break;
+  AVCodec *dec;
+  /* select the video stream */
+  int ret = av_find_best_stream(input->format_ctx, AVMEDIA_TYPE_VIDEO, -1, -1,
+                                &dec, 0);
+  if (ret < 0) {
+    printf("Cannot find a video stream in the input file\n");
+    vs_input_free(input);
+    return NULL;
   }
+  input->video_stream_index = ret;
 
-  if (input->video_stream_index == -1) {
-    printf("no video stream found\n");
-    vs_destroy_input(input);
+  /* create decoding context */
+  input->dec_ctx = avcodec_alloc_context3(dec);
+  if (!input->dec_ctx) {
+    printf("unable to alloc context\n");
+    vs_input_free(input);
+    return NULL;
+  }
+  avcodec_parameters_to_context(
+      input->dec_ctx,
+      input->format_ctx->streams[input->video_stream_index]->codecpar);
+
+  /* init the video decoder */
+  if (avcodec_open2(input->dec_ctx, dec, NULL) < 0) {
+    printf("cannot open video decoder\n");
+    vs_input_free(input);
     return NULL;
   }
 
   return input;
 }
 
-void vs_destroy_input(struct VSInput *const input) {
-  if (!input) {
+void vs_input_free(struct VSInput *const input) {
+  if (input == NULL) {
     return;
   }
 
-  if (input->format_ctx) {
+  // TODO: Free encoder & decoder?
+
+  if (input->format_ctx != NULL) {
     avformat_close_input(&input->format_ctx);
+  }
+
+  if (input->filter_graph != NULL) {
+    avfilter_graph_free(&input->filter_graph);
   }
 
   free(input);
@@ -259,14 +431,12 @@ int vs_read_packet(const struct VSInput *input, AVPacket *const pkt,
   memset(pkt, 0, sizeof(AVPacket));
 
   // Read encoded frame (as a packet).
-
   if (av_read_frame(input->format_ctx, pkt) != 0) {
     printf("unable to read frame\n");
     return -1;
   }
 
   // Ignore it if it's not our video stream.
-
   if (pkt->stream_index != input->video_stream_index) {
     if (verbose) {
       printf(
@@ -282,6 +452,85 @@ int vs_read_packet(const struct VSInput *input, AVPacket *const pkt,
     __vs_log_packet(input->format_ctx, pkt, "in");
   }
 
+  return 1;
+}
+
+int vs_filter_packet(const struct VSInput *input, AVPacket *const pkt,
+                     const bool verbose) {
+  if (pkt->stream_index != input->video_stream_index) {
+    return 0;
+  }
+
+  int ret = avcodec_send_packet(input->dec_ctx, pkt);
+  if (ret < 0) {
+    printf("Error while sending a packet to the decoder\n");
+    return -1;
+  }
+
+  AVFrame *frame = av_frame_alloc();
+
+  while (ret >= 0) {
+    ret = avcodec_receive_frame(input->dec_ctx, frame);
+    if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
+      break;
+    } else if (ret < 0) {
+      printf("Error while receiving a frame from the decoder\n");
+      break;
+    }
+
+    frame->pts = frame->best_effort_timestamp;
+
+    /* push the decoded frame into the filtergraph */
+    if (av_buffersrc_add_frame_flags(input->buffersrc_ctx, frame,
+                                     AV_BUFFERSRC_FLAG_KEEP_REF) < 0) {
+      printf("Error while feeding the filtergraph\n");
+      break;
+    }
+
+    /* pull filtered frames from the filtergraph */
+    AVFrame *filt_frame = av_frame_alloc();
+    while (1) {
+      ret = av_buffersink_get_frame(input->buffersink_ctx, filt_frame);
+      if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
+        break;
+      }
+      if (ret < 0) {
+        printf("Error getting frame from buffersink: %s\n", av_err2str(ret));
+        continue;
+      }
+      filt_frame->pict_type = AV_PICTURE_TYPE_NONE;
+      ret = avcodec_send_frame(input->enc_ctx, filt_frame);
+      if (ret < 0) {
+        printf("Error sending a frame for encoding: %s\n", av_err2str(ret));
+        continue;
+      }
+    }
+    av_frame_free(&filt_frame);
+  }
+  av_frame_free(&frame);
+  return 0;
+}
+
+// Returns:
+// -1 if error
+// 0 if nothing useful read (e.g., non-video packet)
+// 1 if read a packet
+int vs_get_filtered_packet(const struct VSInput *input, AVPacket *pkt,
+                           const bool verbose) {
+  if (!input || !pkt) {
+    printf("%s\n", strerror(errno));
+    return -1;
+  }
+
+  int ret = avcodec_receive_packet(input->enc_ctx, pkt);
+  if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF)
+    return -1;
+  else if (ret < 0) {
+    fprintf(stderr, "Error during encoding\n");
+    return -1;
+  }
+
+  printf("Write packet %3" PRId64 " (size=%5d)\n", pkt->pts, pkt->size);
   return 1;
 }
 
@@ -411,6 +660,10 @@ int vs_write_packet(const struct VSInput *const input,
       av_rescale_q(pkt->duration, in_stream->time_base, out_stream->time_base);
   pkt->pos = -1;
 
+  // PTS can never be smaller than DTS.
+  if (pkt->pts < pkt->dts)
+    pkt->pts = pkt->dts;
+
   if (verbose) {
     __vs_log_packet(output->format_ctx, pkt, "out");
   }
@@ -428,6 +681,7 @@ int vs_write_packet(const struct VSInput *const input,
     return -1;
   }
 
+  printf("Wrote packet with dts %ld; pts %ld\n", pkt->dts, pkt->pts);
   return 1;
 }
 
