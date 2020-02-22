@@ -32,10 +32,14 @@ type Args struct {
 type streamInfo struct {
 	Url       string
 	Transcode bool
+	Crop      bool
 	PosX      int
 	PosY      int
 	Width     int
 	Height    int
+	Scale     bool
+	OutWidth  int
+	OutHeight int
 }
 
 // HTTPHandler allows us to pass information to our request handlers.
@@ -150,6 +154,7 @@ func (h HTTPHandler) encoder(si streamInfo) {
 				cleanupClients(clients)
 				delete(h.ClientChan, si)
 				h.ClientChanMutex.Unlock()
+				log.Printf("encoder: returning")
 				return
 			}
 
@@ -171,6 +176,7 @@ func (h HTTPHandler) encoder(si streamInfo) {
 			cleanupClients(clients)
 			delete(h.ClientChan, si)
 			h.ClientChanMutex.Unlock()
+			log.Printf("encoder: returning")
 			return
 		}
 
@@ -210,12 +216,14 @@ func (h HTTPHandler) encoder(si streamInfo) {
 
 		// If we get down to zero clients, close the input.
 		if len(clients) == 0 {
+			log.Printf("No clients left")
 			h.ClientChanMutex.Lock()
 			destroyInput(input)
 			input = nil
 			log.Printf("encoder: Closed input")
 			delete(h.ClientChan, si)
 			h.ClientChanMutex.Unlock()
+			log.Printf("encoder: returning")
 			return
 		}
 	}
@@ -309,7 +317,11 @@ func openInput(si streamInfo, verbose bool) *Input {
 		return i
 	}
 
-	if C.vs_input_encoder_open(input, C.bool(true), C.int(si.PosX), C.int(si.PosY), C.int(si.Width), C.int(si.Height), C.bool(verbose)) != 0 {
+	if C.vs_input_encoder_open(
+		input,
+		C.bool(si.Crop), C.int(si.PosX), C.int(si.PosY), C.int(si.Width), C.int(si.Height),
+		C.bool(si.Scale), C.int(si.OutWidth), C.int(si.OutHeight),
+		C.bool(verbose)) != 0 {
 		log.Printf("Unable to open encoder")
 		destroyInput(i)
 		return nil
@@ -467,9 +479,23 @@ func parseUrl(u url.URL) (streamInfo, error) {
 			return si, err
 		}
 	}
-	// Only transcode if we are cropping. This would be a waste of CPU
-	// resources otherwise.
-	si.Transcode = si.Width > 0 && si.Height > 0
+	if len(q["out_width"]) > 0 {
+		si.OutWidth, err = strconv.Atoi(q["out_width"][0])
+		if err != nil {
+			return si, err
+		}
+	}
+	if len(q["out_height"]) > 0 {
+		si.OutHeight, err = strconv.Atoi(q["out_height"][0])
+		if err != nil {
+			return si, err
+		}
+	}
+	si.Crop = si.Width > 0 && si.Height > 0
+	si.Scale = si.OutWidth > 0 && si.OutHeight > 0
+	// Only transcode if we are cropping or  scaling. This would be a waste of
+	// CPU resources otherwise.
+	si.Transcode = si.Crop || si.Scale
 
 	return si, nil
 }

@@ -119,7 +119,8 @@ end:
 }
 
 int vs_input_encoder_open(struct VSInput *input, bool crop, int x, int y,
-                          int width, int height, const bool verbose) {
+                          int width, int height, bool scale, int out_width,
+                          int out_height, const bool verbose) {
   if (crop) {
     if (x + width > input->dec_ctx->width ||
         y + height > input->dec_ctx->height)
@@ -139,11 +140,21 @@ int vs_input_encoder_open(struct VSInput *input, bool crop, int x, int y,
   }
 
   if (crop) {
-    input->enc_ctx->width = width;
-    input->enc_ctx->height = height;
+    if (scale) {
+      input->enc_ctx->width = out_width;
+      input->enc_ctx->height = out_height;
+    } else {
+      input->enc_ctx->width = width;
+      input->enc_ctx->height = height;
+    }
   } else {
-    input->enc_ctx->width = input->dec_ctx->width;
-    input->enc_ctx->height = input->dec_ctx->height;
+    if (scale) {
+      input->enc_ctx->width = out_width;
+      input->enc_ctx->height = out_height;
+    } else {
+      input->enc_ctx->width = input->dec_ctx->width;
+      input->enc_ctx->height = input->dec_ctx->height;
+    }
   }
   input->enc_ctx->sample_aspect_ratio = input->dec_ctx->sample_aspect_ratio;
   input->enc_ctx->framerate = (AVRational){25, 1};
@@ -172,13 +183,33 @@ int vs_input_encoder_open(struct VSInput *input, bool crop, int x, int y,
 
   char filter_desc[512];
   if (crop) {
-    if (snprintf(filter_desc, sizeof(filter_desc), "crop=%d:%d:%d:%d", width,
-                 height, x, y) < 0) {
-      printf("Failed to create filter desc\n");
-      return -1;
+    if (scale) {
+      if (snprintf(filter_desc, sizeof(filter_desc),
+                   "crop=%d:%d:%d:%d,scale=%d:%d", width, height, x, y,
+                   out_width, out_height) < 0) {
+        printf("Failed to create filter desc\n");
+        return -1;
+      }
+    } else {
+      if (snprintf(filter_desc, sizeof(filter_desc), "crop=%d:%d:%d:%d", width,
+                   height, x, y) < 0) {
+        printf("Failed to create filter desc\n");
+        return -1;
+      }
     }
   } else {
-    snprintf(filter_desc, sizeof(filter_desc), "null");
+    if (scale) {
+      if (snprintf(filter_desc, sizeof(filter_desc), "scale=%d:%d", out_width,
+                   out_height) < 0) {
+        printf("Failed to create filter desc\n");
+        return -1;
+      }
+    } else {
+      if (snprintf(filter_desc, sizeof(filter_desc), "null") < 0) {
+        printf("Failed to create filter desc\n");
+        return -1;
+      }
+    }
   }
 
   if (vs_filter_init(input, filter_desc, verbose) != 0) {
@@ -202,6 +233,7 @@ struct VSInput *vs_input_open(const char *const input_format_name,
     printf("%s\n", strerror(errno));
     return NULL;
   }
+  memset(input, 0, sizeof(*input));
 
   AVInputFormat *const input_format = av_find_input_format(input_format_name);
   if (input_format == NULL) {
@@ -211,7 +243,7 @@ struct VSInput *vs_input_open(const char *const input_format_name,
   }
 
   input->format_ctx = avformat_alloc_context();
-  input->format_ctx->probesize = 8192;
+  // input->format_ctx->probesize = 8192;
 
   int const open_status =
       avformat_open_input(&input->format_ctx, input_url, input_format, NULL);
@@ -268,14 +300,24 @@ void vs_input_free(struct VSInput *const input) {
     return;
   }
 
-  // TODO: Free encoder & decoder?
+  if (input->filter_graph != NULL) {
+    avfilter_graph_free(&input->filter_graph);
+    input->filter_graph = NULL;
+  }
+
+  if (input->enc_ctx != NULL) {
+    avcodec_free_context(&input->enc_ctx);
+    input->enc_ctx = NULL;
+  }
+
+  if (input->dec_ctx != NULL) {
+    avcodec_free_context(&input->dec_ctx);
+    input->dec_ctx = NULL;
+  }
 
   if (input->format_ctx != NULL) {
     avformat_close_input(&input->format_ctx);
-  }
-
-  if (input->filter_graph != NULL) {
-    avfilter_graph_free(&input->filter_graph);
+    input->format_ctx = NULL;
   }
 
   free(input);

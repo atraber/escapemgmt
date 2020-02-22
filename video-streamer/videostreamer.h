@@ -32,7 +32,8 @@ void vs_init(void);
 
 struct VSInput *vs_input_open(const char *const, const char *const, const bool);
 int vs_input_encoder_open(struct VSInput *input, bool crop, int x, int y,
-                          int width, int height, const bool verbose);
+                          int width, int height, bool scale, int out_width,
+                          int out_height, const bool verbose);
 
 void vs_input_free(struct VSInput *const);
 
