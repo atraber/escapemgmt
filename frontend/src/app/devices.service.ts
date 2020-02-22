@@ -52,6 +52,20 @@ export class DevicesService {
     return Observable.throw('Something bad happened; please try again later.');
   }
 
+  private devicesUpdatedEmit() {
+    this.loaded = this.devicesLoaded && this.streamsLoaded;
+    // TODO: We need to emit both here anyways. Let's just use one in the
+    // future since this makes no sense this way.
+    this.streamsUpdated.emit(this.streams);
+    this.devicesUpdated.emit(this.devices);
+  }
+
+  private streamsUpdatedEmit() {
+    this.loaded = this.devicesLoaded && this.streamsLoaded;
+    this.devicesUpdated.emit(this.devices);
+    this.streamsUpdated.emit(this.streams)
+  }
+
   private refresh(): void {
     console.log('refresh() called in DevicesService');
     this.http.get<Stream[]>(environment.apiEndpoint + '/streams')
@@ -61,8 +75,7 @@ export class DevicesService {
         .subscribe(streams => {
           this.streams = streams;
           this.streamsLoaded = true;
-          this.loaded = this.devicesLoaded && this.streamsLoaded;
-          this.streamsUpdated.emit(streams)
+          this.streamsUpdatedEmit();
         });
 
     this.http.get<Device[]>(environment.apiEndpoint + '/devices')
@@ -72,8 +85,7 @@ export class DevicesService {
         .subscribe(devices => {
           this.devices = devices;
           this.devicesLoaded = true;
-          this.loaded = this.devicesLoaded && this.streamsLoaded;
-          this.devicesUpdated.emit(devices)
+          this.devicesUpdatedEmit();
         });
   }
 
@@ -86,7 +98,7 @@ export class DevicesService {
           .subscribe(
               data => {
                 this.devices.push(data);
-                this.devicesUpdated.emit(this.devices);
+                this.devicesUpdatedEmit();
                 observer.next(data);
                 observer.complete();
               },
@@ -102,7 +114,7 @@ export class DevicesService {
           .pipe(catchError(this.handleError))
           .subscribe(
               data => {
-                this.devicesUpdated.emit(this.devices);
+                this.devicesUpdatedEmit();
                 observer.next(data);
                 observer.complete();
               },
@@ -120,7 +132,7 @@ export class DevicesService {
               data => {
                 let index = this.devices.indexOf(device);
                 this.devices.splice(index, 1);
-                this.devicesUpdated.emit(this.devices)
+                this.devicesUpdatedEmit();
                 observer.next(null);
                 observer.complete();
               },
@@ -138,6 +150,7 @@ export class DevicesService {
               data => {
                 this.streams.push(data);
                 this.streamsUpdated.emit(this.streams);
+                this.streamsUpdatedEmit();
                 observer.next(data);
                 observer.complete();
               },
@@ -153,7 +166,7 @@ export class DevicesService {
           .pipe(catchError(this.handleError))
           .subscribe(
               data => {
-                this.streamsUpdated.emit(this.streams);
+                this.streamsUpdatedEmit();
                 observer.next(data);
                 observer.complete();
               },
@@ -171,7 +184,7 @@ export class DevicesService {
               data => {
                 let index = this.streams.indexOf(stream);
                 this.streams.splice(index, 1);
-                this.streamsUpdated.emit(this.streams)
+                this.streamsUpdatedEmit();
                 observer.next(null);
                 observer.complete();
               },
@@ -248,7 +261,7 @@ export class DevicesService {
 
     device.device_streams.push(newds);
 
-    this.devicesUpdated.emit(this.devices);
+    this.devicesUpdatedEmit();
 
     return true;
   }
@@ -270,7 +283,7 @@ export class DevicesService {
     }
     device.device_streams.splice(index, 1);
 
-    this.devicesUpdated.emit(this.devices);
+    this.devicesUpdatedEmit();
 
     return true;
   }

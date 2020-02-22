@@ -3,7 +3,7 @@
 </mat-list>
 <mat-divider></mat-divider>
 <mat-spinner class="spinner-center" *ngIf="!loaded"></mat-spinner>
-<mat-drawer-container [autosize]=true class="devices-drawer-list">
+<mat-drawer-container [autosize]=true class="drawer-list">
     <mat-drawer [opened]=true [disableClose]=true mode="side">
         <mat-form-field class="form-full-width">
             <input matInput placeholder="Filter" (keyup)="applyDeviceFilter($event.target.value)">

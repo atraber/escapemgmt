@@ -1,0 +1,23 @@
+<mat-list>
+    <a mat-list-item>View Streams</a>
+</mat-list>
+<mat-divider></mat-divider>
+<mat-spinner class="spinner-center" *ngIf="!loaded"></mat-spinner>
+<mat-drawer-container [autosize]=true class="drawer-list">
+    <mat-drawer [opened]=true [disableClose]=true mode="side">
+        <mat-form-field class="form-full-width">
+            <input matInput placeholder="Filter" (keyup)="applyFilter($event.target.value)">
+        </mat-form-field>
+
+        <mat-button-toggle-group [vertical]=true>
+            <mat-button-toggle *ngFor="let stream of streamsFiltered" value="stream" (click)="selectStream(stream)" [checked]="streamSelected == stream">
+                <div>{{stream.name}}</div>
+            </mat-button-toggle>
+        </mat-button-toggle-group>
+    </mat-drawer>
+    <mat-drawer-content>
+        <div *ngIf="streamSelected != null" class="form-container">
+            <video src="{{streamPreviewUrl(streamSelected)}}" autoplay controls></video>
+        </div>
+    </mat-drawer-content>
+</mat-drawer-container>

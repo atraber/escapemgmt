@@ -42,6 +42,7 @@
                             <input matInput [(ngModel)]="streamview.crop_y2" name="crop_y2_{{index}}" placeholder="Height / Crop Y2">
                         </mat-form-field>
                     </div>
+                    <video src="{{streamPreviewUrl(streamview)}}" autoplay controls></video>
 
                     <mat-action-row>
                         <button mat-raised-button color="warn" (click)="deleteStreamView(streamview)">Remove</button>

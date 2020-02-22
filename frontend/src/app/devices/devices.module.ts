@@ -4,28 +4,31 @@
  */
 import {NgModule} from '@angular/core';
 import {RouterModule, Routes} from '@angular/router';
+
 import {CommonModule} from '../common.module';
 
 import {DeviceAddStreamDialog} from './device-add-stream.dialog';
 import {DeviceCreateDialog} from './device-create.dialog';
-import {DevicesComponent, DeviceDeleteDialog} from './devices.component';
-import {PresetsComponent} from './presets.component';
+import {DeviceDeleteDialog, DevicesComponent} from './devices.component';
 import {PresetCreateDialog} from './preset-create.dialog';
 import {PresetDeleteDialog} from './preset-delete.dialog';
+import {PresetsComponent} from './presets.component';
 import {ScreensComponent} from './screens.component';
 import {StreamCreateDialog} from './stream-create.dialog';
 import {StreamEditDialog} from './stream-edit.dialog';
-import {StreamsComponent, StreamDeleteDialog} from './streams.component';
+import {StreamDeleteDialog, StreamsComponent} from './streams.component';
+import {ViewStreamsComponent} from './view.component';
 
 const routes: Routes = [
-  { path: 'devices', component: DevicesComponent },
-  { path: 'devices/screens', component: ScreensComponent },
-  { path: 'devices/streams', component: StreamsComponent },
-  { path: 'devices/presets', component: PresetsComponent },
+  {path : 'devices', component : DevicesComponent},
+  {path : 'devices/screens', component : ScreensComponent},
+  {path : 'devices/streams', component : StreamsComponent},
+  {path : 'devices/presets', component : PresetsComponent},
+  {path : 'devices/view', component : ViewStreamsComponent},
 ];
 
 @NgModule({
-  declarations: [
+  declarations : [
     DeviceAddStreamDialog,
     DeviceCreateDialog,
     DeviceDeleteDialog,
@@ -38,8 +41,9 @@ const routes: Routes = [
     StreamEditDialog,
     StreamDeleteDialog,
     StreamsComponent,
+    ViewStreamsComponent,
   ],
-  entryComponents: [
+  entryComponents : [
     DeviceAddStreamDialog,
     DeviceCreateDialog,
     DeviceDeleteDialog,
@@ -49,12 +53,11 @@ const routes: Routes = [
     StreamEditDialog,
     StreamDeleteDialog,
   ],
-  imports: [
+  imports : [
     CommonModule,
     RouterModule.forChild(routes),
   ],
-  exports: [
-    RouterModule
-  ]
+  exports : [ RouterModule ]
 })
-export class DevicesModule { }
+export class DevicesModule {
+}

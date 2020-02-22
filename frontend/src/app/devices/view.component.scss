@@ -1,0 +1,5 @@
+@import 'src/styles.scss';
+
+.drawer-list {
+    @include drawer-button-list;
+}

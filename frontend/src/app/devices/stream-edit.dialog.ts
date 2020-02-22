@@ -32,13 +32,20 @@ export class StreamEditDialog {
     this.data.orientation = parseInt(this.orientation);
   }
 
+  streamPreviewUrl(streamview: StreamView): string {
+    console.log("http://127.0.0.1:8080/stream?url=" +
+                encodeURIComponent(streamview.url));
+    return "http://127.0.0.1:8080/stream?url=" +
+           encodeURIComponent(streamview.url);
+  }
+
   addStreamView(): void {
     let sv = new StreamView();
     this.data.streamviews.push(sv);
     this.newStreamViews.push(sv);
   }
 
-  deleteStreamView(streamview): void {
+  deleteStreamView(streamview: StreamView): void {
     let index = this.data.streamviews.indexOf(streamview);
     this.data.streamviews.splice(index, 1);
     this.deletedStreamViews.push(streamview);

@@ -13,6 +13,7 @@ SCSS_ASSETS = [
     "stream-create.dialog.scss",
     "stream-edit.dialog.scss",
     "streams.component.scss",
+    "view.component.scss",
 ]
 
 [
@@ -41,6 +42,7 @@ ng_module(
         "stream-create.dialog.ts",
         "stream-edit.dialog.ts",
         "streams.component.ts",
+        "view.component.ts",
     ],
     assets = [
         "device-add-stream.dialog.html",
@@ -55,9 +57,11 @@ ng_module(
         "stream-delete.dialog.html",
         "stream-edit.dialog.html",
         "streams.component.html",
+        "view.component.html",
     ] + CSS_ASSETS,
     tsconfig = "//src:tsconfig.json",
     deps = [
+        "//src:environment_lib",
         "//src/app:common_lib",
         "//src/app:common_module",
         "@npm//moment",

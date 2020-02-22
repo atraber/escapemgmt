@@ -1,14 +1,20 @@
 .form-container {
-  display: flex;
-  flex-direction: column;
-  margin: 10px;
+    display: flex;
+    flex-direction: column;
+    margin: 10px;
 }
 
-.form-container > .buttons {
-  flex-direction: row;
+.form-container>.buttons {
+    flex-direction: row;
 }
 
-.form-container > .buttons button {
-  margin-left: 4px;
-  margin-right: 4px;
+.form-container>.buttons button {
+    margin-left: 4px;
+    margin-right: 4px;
+}
+
+video {
+    max-width: 300px;
+    margin: 0 auto;
+    display: block;
 }
