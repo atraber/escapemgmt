@@ -28,7 +28,7 @@ install_pkgs(
 
 container_image(
     name = "video_streamer_image",
-    base = ":ubuntu_install_pkgs.tar",
+    base = ":ubuntu_install_pkgs",
     cmd = [
         "/video_streamer",
     ],

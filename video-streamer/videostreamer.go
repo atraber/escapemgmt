@@ -30,15 +30,6 @@ var (
 	verbose         = flag.Bool("verbose", false, "Enable verbose logging output.")
 )
 
-// Args holds command line arguments.
-type Args struct {
-	ListenHost  string
-	ListenPort  int
-	InputFormat string
-	InputURL    string
-	Verbose     bool
-}
-
 type streamInfo struct {
 	Width  int
 	Height int
@@ -83,6 +74,12 @@ type Client struct {
 	// Encoder writes packets to this channel, then the packetWriter goroutine
 	// writes them to the pipe.
 	PacketChan chan *C.AVPacket
+}
+
+// Input represents a video input.
+type Input struct {
+	mutex   *sync.RWMutex
+	vsInput *C.struct_VSInput
 }
 
 func main() {
@@ -134,24 +131,15 @@ func (h HTTPHandler) encoder(si streamViewInfo) {
 		// There is at least one client.
 
 		// Get any new clients, but don't block.
-		clientCountBefore := len(clients)
 		clients = acceptClients(h.ClientChan[si], clients)
-		clientCountAfter := len(clients)
-
-		if clientCountBefore != clientCountAfter {
-			log.Printf("encoder: %d clients", clientCountAfter)
-		}
 
 		// Open the input if it is not open yet.
 		if input == nil {
-			input = openInputRetry(si, h.ProbeSize, h.AnalyzeDuration, 3, h.Verbose)
+			input = openInputRetry(si, h.ProbeSize, h.AnalyzeDuration, 5, h.Verbose)
 			if input == nil {
 				log.Printf("encoder: Unable to open input")
-				h.ClientChanMutex.Lock()
-				cleanupClients(clients)
-				delete(h.ClientChan, si)
-				h.ClientChanMutex.Unlock()
-				log.Printf("encoder: returning")
+				h.cleanupEncoder(si, clients, input)
+				log.Printf("encoder: giving up")
 				return
 			}
 
@@ -168,12 +156,8 @@ func (h HTTPHandler) encoder(si streamViewInfo) {
 		readRes = C.vs_read_packet(input.vsInput, &pkt, C.bool(h.Verbose))
 		if readRes == -1 {
 			log.Printf("encoder: Failure reading packet")
-			h.ClientChanMutex.Lock()
-			destroyInput(input)
-			cleanupClients(clients)
-			delete(h.ClientChan, si)
-			h.ClientChanMutex.Unlock()
-			log.Printf("encoder: returning")
+			h.cleanupEncoder(si, clients, input)
+			log.Printf("encoder: giving up")
 			return
 		}
 
@@ -189,47 +173,39 @@ func (h HTTPHandler) encoder(si streamViewInfo) {
 
 			for C.vs_get_filtered_packet(input.vsInput, &pkt, C.bool(h.Verbose)) > 0 {
 				// Write the packet to all clients.
-				clientCountBefore = len(clients)
 				clients = writePacketToClients(input, &pkt, clients, h.Verbose)
-				clientCountAfter = len(clients)
-
-				if clientCountBefore != clientCountAfter {
-					log.Printf("encoder: %d clients", clientCountAfter)
-				}
-
 				C.av_packet_unref(&pkt)
 			}
 		} else {
-			clientCountBefore = len(clients)
 			clients = writePacketToClients(input, &pkt, clients, h.Verbose)
-			clientCountAfter = len(clients)
-
-			if clientCountBefore != clientCountAfter {
-				log.Printf("encoder: %d clients", clientCountAfter)
-			}
-
 			C.av_packet_unref(&pkt)
 		}
 
 		// If we get down to zero clients, close the input.
 		if len(clients) == 0 {
 			log.Printf("No clients left")
-			h.ClientChanMutex.Lock()
-			destroyInput(input)
-			input = nil
-			log.Printf("encoder: Closed input")
-			delete(h.ClientChan, si)
-			h.ClientChanMutex.Unlock()
-			log.Printf("encoder: returning")
+			h.cleanupEncoder(si, clients, input)
+			log.Printf("encoder: giving up")
 			return
 		}
 	}
+}
+
+func (h HTTPHandler) cleanupEncoder(si streamViewInfo, clients []*Client, input *Input) {
+	h.ClientChanMutex.Lock()
+	if input != nil {
+		destroyInput(input)
+	}
+	cleanupClients(clients)
+	delete(h.ClientChan, si)
+	h.ClientChanMutex.Unlock()
 }
 
 func acceptClients(clientChan <-chan *Client, clients []*Client) []*Client {
 	for {
 		select {
 		case client := <-clientChan:
+			log.Printf("got a new client")
 			clients = append(clients, client)
 		default:
 			return clients
@@ -278,16 +254,10 @@ func cleanupClient(client *Client) {
 	}
 }
 
-// Input represents a video input.
-type Input struct {
-	mutex   *sync.RWMutex
-	vsInput *C.struct_VSInput
-}
-
 func openInputRetry(si streamViewInfo, probeSize int, analyzeDuration int, tries int, verbose bool) *Input {
 	var input *Input
 	for i := 0; i < tries && input == nil; i++ {
-		input = openInput(si, probeSize, analyzeDuration, verbose)
+		input = openInput(si, probeSize*(2*i+1), analyzeDuration*(2*i+1), verbose)
 	}
 	return input
 }
@@ -331,7 +301,7 @@ func getInfoRetry(url string, probeSize int, analyzeDuration int, tries int, ver
 	info := streamInfo{}
 	var err error
 	for i := 0; i < tries; i++ {
-		info, err = getInfo(url, probeSize, analyzeDuration, verbose)
+		info, err = getInfo(url, probeSize*(2*i+1), analyzeDuration*(2*i+1), verbose)
 		if err == nil {
 			break
 		}
@@ -441,30 +411,25 @@ func packetWriter(client *Client, input *Input, verbose bool) {
 		writeRes := C.int(0)
 		client.mutex.RLock()
 		input.mutex.RLock()
-		writeRes = C.vs_write_packet(input.vsInput, client.Output, pkt,
-			C.bool(verbose))
+		writeRes = C.vs_write_packet(input.vsInput, client.Output, pkt, C.bool(verbose))
 		input.mutex.RUnlock()
-		if writeRes == -1 {
-			log.Printf("Failure writing packet")
-			C.av_packet_free(&pkt)
-			client.mutex.RUnlock()
-			return
-		}
 		client.mutex.RUnlock()
 		C.av_packet_free(&pkt)
+		if writeRes == -1 {
+			log.Printf("Failure writing packet")
+			return
+		}
 	}
 }
 
 // Open the output file. This creates an MP4 container and writes the header to
 // the given output URL.
-func openOutput(outputFormat, outputURL string, verbose bool,
-	input *Input) *C.struct_VSOutput {
+func openOutput(outputFormat, outputURL string, verbose bool, input *Input) *C.struct_VSOutput {
 	outputFormatC := C.CString("mp4")
 	outputURLC := C.CString(outputURL)
 
 	input.mutex.RLock()
-	output := C.vs_open_output(outputFormatC, outputURLC, input.vsInput,
-		C.bool(verbose))
+	output := C.vs_open_output(outputFormatC, outputURLC, input.vsInput, C.bool(verbose))
 	input.mutex.RUnlock()
 	C.free(unsafe.Pointer(outputFormatC))
 	C.free(unsafe.Pointer(outputURLC))
@@ -623,10 +588,6 @@ func (h HTTPHandler) streamRequest(rw http.ResponseWriter, r *http.Request, clie
 		if flusher, ok := rw.(http.Flusher); ok {
 			flusher.Flush()
 		}
-
-		if h.Verbose {
-			//log.Printf("%s: Sent %d bytes to client", r.RemoteAddr, n)
-		}
 	}
 
 	// Writes to write side will raise error when read side is closed.
@@ -644,7 +605,7 @@ func (h HTTPHandler) infoRequest(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	si, err := getInfoRetry(streamUrl, h.ProbeSize, h.AnalyzeDuration, 3, h.Verbose)
+	si, err := getInfoRetry(streamUrl, h.ProbeSize, h.AnalyzeDuration, 5, h.Verbose)
 	if err != nil {
 		log.Printf("Failed to get information for %s", streamUrl)
 		http.Error(rw, err.Error(), http.StatusInternalServerError)

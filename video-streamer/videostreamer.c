@@ -121,10 +121,18 @@ end:
 int vs_input_encoder_open(struct VSInput *input, bool crop, int x, int y,
                           int width, int height, bool scale, int out_width,
                           int out_height, const bool verbose) {
-  if (crop && (x + width > input->dec_ctx->width ||
-               y + height > input->dec_ctx->height)) {
-    printf("Input arguments are invalid\n");
-    return -1;
+  if (crop) {
+    if (x + width > input->dec_ctx->width) {
+      printf("Input arguments are invalid: x + width > actual width: "
+             "Adjusting.\n");
+      width = input->dec_ctx->width - x;
+    }
+
+    if (y + height > input->dec_ctx->height) {
+      printf("Input arguments are invalid: x + height > actual height: "
+             "Adjusting.\n");
+      height = input->dec_ctx->height - y;
+    }
   }
 
   AVCodec *enc = avcodec_find_encoder(input->dec_ctx->codec_id);
