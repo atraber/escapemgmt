@@ -28,4 +28,7 @@ configure_make(
         "libswscale.a",
     ],
     visibility = ["//visibility:public"],
+    deps = [
+        "//third_party/x264",
+    ],
 )

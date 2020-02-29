@@ -28,14 +28,22 @@ struct VSOutput {
   int64_t last_dts;
 };
 
+struct VSInfo {
+  int width;
+  int height;
+};
+
 void vs_init(void);
 
-struct VSInput *vs_input_open(const char *const, const char *const, const bool);
+struct VSInput *vs_input_open(const char *const input_format_name,
+                              const char *const input_url, int probesize,
+                              int analyze_duration, const bool verbose);
 int vs_input_encoder_open(struct VSInput *input, bool crop, int x, int y,
                           int width, int height, bool scale, int out_width,
                           int out_height, const bool verbose);
 
 void vs_input_free(struct VSInput *const);
+struct VSInfo *vs_stream_info(struct VSInput *input);
 
 struct VSOutput *vs_open_output(const char *const, const char *const,
                                 const struct VSInput *const, const bool);

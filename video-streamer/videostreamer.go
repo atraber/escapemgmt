@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -20,6 +21,15 @@ import (
 // #cgo pkg-config: libavcodec
 import "C"
 
+var (
+	probeSize       = flag.Int("probesize", 32000, "ProbeSize passed to ffmpeg.")
+	analyzeDuration = flag.Int("analyze_duration", 20000, "Max analyze duration passed to ffmpeg.")
+	listenHost      = flag.String("host", "0.0.0.0", "Host to listen on.")
+	listenPort      = flag.Int("port", 8080, "Port to listen on.")
+	input           = flag.String("input", "", "Input URL valid for the given format. For RTSP you can provide a rtsp:// URL.")
+	verbose         = flag.Bool("verbose", false, "Enable verbose logging output.")
+)
+
 // Args holds command line arguments.
 type Args struct {
 	ListenHost  string
@@ -30,6 +40,11 @@ type Args struct {
 }
 
 type streamInfo struct {
+	Width  int
+	Height int
+}
+
+type streamViewInfo struct {
 	Url       string
 	Transcode bool
 	Crop      bool
@@ -45,8 +60,10 @@ type streamInfo struct {
 // HTTPHandler allows us to pass information to our request handlers.
 type HTTPHandler struct {
 	Verbose         bool
-	ClientChan      map[streamInfo]chan *Client
+	ClientChan      map[streamViewInfo]chan *Client
 	ClientChanMutex *sync.RWMutex
+	ProbeSize       int
+	AnalyzeDuration int
 }
 
 // Client is servicing one HTTP client.
@@ -69,21 +86,20 @@ type Client struct {
 }
 
 func main() {
-	args, err := getArgs()
-	if err != nil {
-		log.Fatalf("Invalid argument: %s", err)
-	}
+	flag.Parse()
 
 	C.vs_init()
 
 	// Start serving either with HTTP or FastCGI.
 
-	hostPort := fmt.Sprintf("%s:%d", args.ListenHost, args.ListenPort)
+	hostPort := fmt.Sprintf("%s:%d", *listenHost, *listenPort)
 
 	handler := HTTPHandler{
-		Verbose:         args.Verbose,
-		ClientChan:      make(map[streamInfo]chan *Client),
+		Verbose:         *verbose,
+		ClientChan:      make(map[streamViewInfo]chan *Client),
 		ClientChanMutex: &sync.RWMutex{},
+		ProbeSize:       *probeSize,
+		AnalyzeDuration: *analyzeDuration,
 	}
 
 	s := &http.Server{
@@ -93,32 +109,13 @@ func main() {
 
 	log.Printf("Starting to serve requests on %s (HTTP)", hostPort)
 
-	err = s.ListenAndServe()
+	err := s.ListenAndServe()
 	if err != nil {
 		log.Fatalf("Unable to serve: %s", err)
 	}
 }
 
-// getArgs retrieves and validates command line arguments.
-func getArgs() (Args, error) {
-	listenHost := flag.String("host", "0.0.0.0", "Host to listen on.")
-	listenPort := flag.Int("port", 8080, "Port to listen on.")
-	format := flag.String("format", "rtsp", "Input format. Example: rtsp for RTSP.")
-	input := flag.String("input", "", "Input URL valid for the given format. For RTSP you can provide a rtsp:// URL.")
-	verbose := flag.Bool("verbose", false, "Enable verbose logging output.")
-
-	flag.Parse()
-
-	return Args{
-		ListenHost:  *listenHost,
-		ListenPort:  *listenPort,
-		InputFormat: *format,
-		InputURL:    *input,
-		Verbose:     *verbose,
-	}, nil
-}
-
-func (h HTTPHandler) encoder(si streamInfo) {
+func (h HTTPHandler) encoder(si streamViewInfo) {
 	clients := []*Client{}
 	var input *Input
 
@@ -147,7 +144,7 @@ func (h HTTPHandler) encoder(si streamInfo) {
 
 		// Open the input if it is not open yet.
 		if input == nil {
-			input = openInputRetry(si, 3, h.Verbose)
+			input = openInputRetry(si, h.ProbeSize, h.AnalyzeDuration, 3, h.Verbose)
 			if input == nil {
 				log.Printf("encoder: Unable to open input")
 				h.ClientChanMutex.Lock()
@@ -287,19 +284,19 @@ type Input struct {
 	vsInput *C.struct_VSInput
 }
 
-func openInputRetry(si streamInfo, tries int, verbose bool) *Input {
+func openInputRetry(si streamViewInfo, probeSize int, analyzeDuration int, tries int, verbose bool) *Input {
 	var input *Input
 	for i := 0; i < tries && input == nil; i++ {
-		input = openInput(si, verbose)
+		input = openInput(si, probeSize, analyzeDuration, verbose)
 	}
 	return input
 }
 
-func openInput(si streamInfo, verbose bool) *Input {
+func openInput(si streamViewInfo, probeSize int, analyzeDuration int, verbose bool) *Input {
 	inputFormatC := C.CString("rtsp")
 	inputURLC := C.CString(si.Url)
 
-	input := C.vs_input_open(inputFormatC, inputURLC, C.bool(verbose))
+	input := C.vs_input_open(inputFormatC, inputURLC, C.int(probeSize), C.int(analyzeDuration), C.bool(verbose))
 	C.free(unsafe.Pointer(inputFormatC))
 	C.free(unsafe.Pointer(inputURLC))
 	if input == nil {
@@ -328,6 +325,40 @@ func openInput(si streamInfo, verbose bool) *Input {
 	}
 
 	return i
+}
+
+func getInfoRetry(url string, probeSize int, analyzeDuration int, tries int, verbose bool) (streamInfo, error) {
+	info := streamInfo{}
+	var err error
+	for i := 0; i < tries; i++ {
+		info, err = getInfo(url, probeSize, analyzeDuration, verbose)
+		if err == nil {
+			break
+		}
+	}
+	return info, err
+}
+
+func getInfo(url string, probeSize int, analyzeDuration int, verbose bool) (streamInfo, error) {
+	inputFormatC := C.CString("rtsp")
+	inputURLC := C.CString(url)
+
+	input := C.vs_input_open(inputFormatC, inputURLC, C.int(probeSize), C.int(analyzeDuration), C.bool(verbose))
+	C.free(unsafe.Pointer(inputFormatC))
+	C.free(unsafe.Pointer(inputURLC))
+	if input == nil {
+		log.Printf("Unable to open input")
+		return streamInfo{}, errors.New("Could not open input")
+	}
+	log.Printf("Input opened")
+	info := C.vs_stream_info(input)
+
+	C.vs_input_free(input)
+
+	if info == nil {
+		return streamInfo{}, errors.New("Unable to get info from input")
+	}
+	return streamInfo{Width: int(info.width), Height: int(info.height)}, nil
 }
 
 func destroyInput(input *Input) {
@@ -445,13 +476,13 @@ func openOutput(outputFormat, outputURL string, verbose bool,
 	return output
 }
 
-func parseUrl(u url.URL) (streamInfo, error) {
+func parseStreamUrl(u url.URL) (streamViewInfo, error) {
 	q := u.Query()
 	streamUrl, err := url.QueryUnescape(q["url"][0])
 	if err != nil {
-		return streamInfo{}, errors.New("unable to query unescape URL")
+		return streamViewInfo{}, errors.New("unable to query unescape URL")
 	}
-	si := streamInfo{
+	si := streamViewInfo{
 		Url:       streamUrl,
 		Transcode: false,
 	}
@@ -505,8 +536,10 @@ func (h HTTPHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	log.Printf("Serving [%s] request from [%s] to path [%s] (%d bytes)",
 		r.Method, r.RemoteAddr, r.URL.Path, r.ContentLength)
 
+	rw.Header().Set("Access-Control-Allow-Origin", "*")
+
 	if r.Method == "GET" && r.URL.Path == "/stream" {
-		si, err := parseUrl(*r.URL)
+		si, err := parseStreamUrl(*r.URL)
 		if err != nil {
 			log.Printf("Unable to parse URL parameters: %s", r.URL)
 			return
@@ -522,6 +555,9 @@ func (h HTTPHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		h.ClientChanMutex.Unlock()
 
 		h.streamRequest(rw, r, h.ClientChan[si])
+		return
+	} else if r.Method == "GET" && r.URL.Path == "/info" {
+		h.infoRequest(rw, r)
 		return
 	}
 
@@ -597,4 +633,31 @@ func (h HTTPHandler) streamRequest(rw http.ResponseWriter, r *http.Request, clie
 	_ = inPipe.Close()
 
 	log.Printf("%s: Client cleaned up", r.RemoteAddr)
+}
+
+func (h HTTPHandler) infoRequest(rw http.ResponseWriter, r *http.Request) {
+	q := r.URL.Query()
+	streamUrl, err := url.QueryUnescape(q["url"][0])
+	if err != nil {
+		log.Printf("Unable to parse URL parameters: %s", r.URL)
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	si, err := getInfoRetry(streamUrl, h.ProbeSize, h.AnalyzeDuration, 3, h.Verbose)
+	if err != nil {
+		log.Printf("Failed to get information for %s", streamUrl)
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	js, err := json.Marshal(si)
+	if err != nil {
+		log.Printf("Failed to marshal json from StreamInfo")
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	rw.Header().Set("Content-Type", "application/json")
+	rw.Write(js)
 }

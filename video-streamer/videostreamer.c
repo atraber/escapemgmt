@@ -121,10 +121,10 @@ end:
 int vs_input_encoder_open(struct VSInput *input, bool crop, int x, int y,
                           int width, int height, bool scale, int out_width,
                           int out_height, const bool verbose) {
-  if (crop) {
-    if (x + width > input->dec_ctx->width ||
-        y + height > input->dec_ctx->height)
-      return -1;
+  if (crop && (x + width > input->dec_ctx->width ||
+               y + height > input->dec_ctx->height)) {
+    printf("Input arguments are invalid\n");
+    return -1;
   }
 
   AVCodec *enc = avcodec_find_encoder(input->dec_ctx->codec_id);
@@ -221,7 +221,8 @@ int vs_input_encoder_open(struct VSInput *input, bool crop, int x, int y,
 }
 
 struct VSInput *vs_input_open(const char *const input_format_name,
-                              const char *const input_url, const bool verbose) {
+                              const char *const input_url, int probesize,
+                              int analyze_duration, const bool verbose) {
   if (input_format_name == NULL || strlen(input_format_name) == 0 ||
       input_url == NULL || strlen(input_url) == 0) {
     printf("%s\n", strerror(EINVAL));
@@ -243,7 +244,8 @@ struct VSInput *vs_input_open(const char *const input_format_name,
   }
 
   input->format_ctx = avformat_alloc_context();
-  // input->format_ctx->probesize = 8192;
+  input->format_ctx->probesize = probesize;
+  input->format_ctx->max_analyze_duration = analyze_duration;
 
   int const open_status =
       avformat_open_input(&input->format_ctx, input_url, input_format, NULL);
@@ -293,6 +295,22 @@ struct VSInput *vs_input_open(const char *const input_format_name,
   }
 
   return input;
+}
+
+struct VSInfo *vs_stream_info(struct VSInput *input) {
+  if (input == NULL) {
+    return NULL;
+  }
+
+  struct VSInfo *retval = malloc(sizeof(*retval));
+  retval->width = input->dec_ctx->width;
+  retval->height = input->dec_ctx->height;
+
+  if (retval->width == 0 || retval->height == 0) {
+    return NULL;
+  }
+
+  return retval;
 }
 
 void vs_input_free(struct VSInput *const input) {
