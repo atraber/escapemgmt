@@ -256,10 +256,29 @@ func cleanupClient(client *Client) {
 
 func openInputRetry(si streamViewInfo, probeSize int, analyzeDuration int, tries int, verbose bool) *Input {
 	var input *Input
-	for i := 0; i < tries && input == nil; i++ {
-		input = openInput(si, probeSize*(2*i+1), analyzeDuration*(2*i+1), verbose)
+	linearTries := (tries + 1) / 2
+	expTries := tries - linearTries
+	ps := probeSize
+	ad := analyzeDuration
+	for i := 0; i < linearTries; i++ {
+		input = openInput(si, ps, ad, verbose)
+		if input != nil {
+			return input
+		}
+		ps += probeSize * 2
+		ad += analyzeDuration * 2
 	}
-	return input
+
+	for i := 0; i < expTries; i++ {
+		ps *= 2
+		ad *= 2
+		input = openInput(si, ps, ad, verbose)
+		if input != nil {
+			return input
+		}
+	}
+
+	return nil
 }
 
 func openInput(si streamViewInfo, probeSize int, analyzeDuration int, verbose bool) *Input {
@@ -298,36 +317,19 @@ func openInput(si streamViewInfo, probeSize int, analyzeDuration int, verbose bo
 }
 
 func getInfoRetry(url string, probeSize int, analyzeDuration int, tries int, verbose bool) (streamInfo, error) {
-	info := streamInfo{}
-	var err error
-	for i := 0; i < tries; i++ {
-		info, err = getInfo(url, probeSize*(2*i+1), analyzeDuration*(2*i+1), verbose)
-		if err == nil {
-			break
-		}
-	}
-	return info, err
-}
-
-func getInfo(url string, probeSize int, analyzeDuration int, verbose bool) (streamInfo, error) {
-	inputFormatC := C.CString("rtsp")
-	inputURLC := C.CString(url)
-
-	input := C.vs_input_open(inputFormatC, inputURLC, C.int(probeSize), C.int(analyzeDuration), C.bool(verbose))
-	C.free(unsafe.Pointer(inputFormatC))
-	C.free(unsafe.Pointer(inputURLC))
+	input := openInputRetry(streamViewInfo{Url: url}, probeSize, analyzeDuration, tries, verbose)
 	if input == nil {
-		log.Printf("Unable to open input")
-		return streamInfo{}, errors.New("Could not open input")
+		return streamInfo{}, errors.New("Unable to open input")
 	}
-	log.Printf("Input opened")
-	info := C.vs_stream_info(input)
 
-	C.vs_input_free(input)
+	info := C.vs_stream_info(input.vsInput)
+
+	destroyInput(input)
 
 	if info == nil {
 		return streamInfo{}, errors.New("Unable to get info from input")
 	}
+
 	return streamInfo{Width: int(info.width), Height: int(info.height)}, nil
 }
 
@@ -605,7 +607,7 @@ func (h HTTPHandler) infoRequest(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	si, err := getInfoRetry(streamUrl, h.ProbeSize, h.AnalyzeDuration, 5, h.Verbose)
+	si, err := getInfoRetry(streamUrl, h.ProbeSize, h.AnalyzeDuration, 8, h.Verbose)
 	if err != nil {
 		log.Printf("Failed to get information for %s", streamUrl)
 		http.Error(rw, err.Error(), http.StatusInternalServerError)

@@ -165,6 +165,8 @@ int vs_input_encoder_open(struct VSInput *input, bool crop, int x, int y,
     }
   }
   input->enc_ctx->sample_aspect_ratio = input->dec_ctx->sample_aspect_ratio;
+  // TODO: This should be the following, but it does not seem to work properly?
+  // input->enc_ctx->framerate = input->dec_ctx->framerate;
   input->enc_ctx->framerate = (AVRational){25, 1};
   input->enc_ctx->time_base = av_inv_q(input->enc_ctx->framerate);
 
