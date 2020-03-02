@@ -600,7 +600,9 @@ int vs_get_filtered_packet(const struct VSInput *input, AVPacket *pkt,
     return -1;
   }
 
-  printf("Write packet %3" PRId64 " (size=%5d)\n", pkt->pts, pkt->size);
+  if (verbose) {
+    printf("Write packet %3" PRId64 " (size=%5d)\n", pkt->pts, pkt->size);
+  }
   return 1;
 }
 
@@ -637,7 +639,6 @@ int vs_write_packet(const struct VSInput *const input,
       printf("updating packet stream index to 0 (from %d)\n",
              pkt->stream_index);
     }
-
     pkt->stream_index = 0;
   }
 
@@ -751,7 +752,9 @@ int vs_write_packet(const struct VSInput *const input,
     return -1;
   }
 
-  printf("Wrote packet with dts %ld; pts %ld\n", pkt->dts, pkt->pts);
+  if (verbose) {
+    printf("Wrote packet with dts %ld; pts %ld\n", pkt->dts, pkt->pts);
+  }
   return 1;
 }
 

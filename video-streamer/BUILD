@@ -52,12 +52,15 @@ gazelle(name = "gazelle")
 go_binary(
     name = "video_streamer",
     embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
 )
 
 go_library(
     name = "go_default_library",
     srcs = [
+        "videostreamer.c",
         "videostreamer.go",
+        "videostreamer.h",
     ],
     cdeps = [
         ":video_streamer_clib",
@@ -75,8 +78,14 @@ go_library(
         "-lxcb-shm",
         "-lxcb-xfixes",
     ],
+    copts = ["-std=c11"],
     importpath = "main",
     visibility = ["//visibility:private"],
+    deps = [
+        "@com_github_prometheus_client_golang//prometheus:go_default_library",
+        "@com_github_prometheus_client_golang//prometheus/promauto:go_default_library",
+        "@com_github_prometheus_client_golang//prometheus/promhttp:go_default_library",
+    ],
 )
 
 cc_library(

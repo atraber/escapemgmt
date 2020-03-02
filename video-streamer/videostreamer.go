@@ -12,13 +12,16 @@ import (
 	"strconv"
 	"sync"
 	"unsafe"
+
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 // #include "videostreamer.h"
 // #include <stdlib.h>
-// #cgo LDFLAGS: -lswscale -lavformat -lavdevice -lavcodec -lavutil -lswscale
+// #cgo LDFLAGS: -lasound -lbz2 -llzma -lxcb -lxcb-shape -lxcb-shm -lxcb-xfixes
 // #cgo CFLAGS: -std=c11
-// #cgo pkg-config: libavcodec
 import "C"
 
 var (
@@ -28,6 +31,14 @@ var (
 	listenPort      = flag.Int("port", 8080, "Port to listen on.")
 	input           = flag.String("input", "", "Input URL valid for the given format. For RTSP you can provide a rtsp:// URL.")
 	verbose         = flag.Bool("verbose", false, "Enable verbose logging output.")
+	packetChanDepth = flag.Int("packet_chan_depth", 64, "Depth of the packet channel.")
+)
+
+var (
+	activeEncoders = promauto.NewGauge(prometheus.GaugeOpts{
+		Name: "encoders_active",
+		Help: "The total number of active encoders",
+	})
 )
 
 type streamInfo struct {
@@ -91,7 +102,7 @@ func main() {
 
 	hostPort := fmt.Sprintf("%s:%d", *listenHost, *listenPort)
 
-	handler := HTTPHandler{
+	streamHandler := HTTPHandler{
 		Verbose:         *verbose,
 		ClientChan:      make(map[streamViewInfo]chan *Client),
 		ClientChanMutex: &sync.RWMutex{},
@@ -99,20 +110,19 @@ func main() {
 		AnalyzeDuration: *analyzeDuration,
 	}
 
-	s := &http.Server{
-		Addr:    hostPort,
-		Handler: handler,
-	}
-
 	log.Printf("Starting to serve requests on %s (HTTP)", hostPort)
 
-	err := s.ListenAndServe()
+	http.Handle("/metrics", promhttp.Handler())
+	http.Handle("/stream", streamHandler)
+	http.Handle("/info", streamHandler)
+	err := http.ListenAndServe(hostPort, nil)
 	if err != nil {
 		log.Fatalf("Unable to serve: %s", err)
 	}
 }
 
 func (h HTTPHandler) encoder(si streamViewInfo) {
+	activeEncoders.Inc()
 	clients := []*Client{}
 	var input *Input
 
@@ -139,7 +149,6 @@ func (h HTTPHandler) encoder(si streamViewInfo) {
 			if input == nil {
 				log.Printf("encoder: Unable to open input")
 				h.cleanupEncoder(si, clients, input)
-				log.Printf("encoder: giving up")
 				return
 			}
 
@@ -157,7 +166,6 @@ func (h HTTPHandler) encoder(si streamViewInfo) {
 		if readRes == -1 {
 			log.Printf("encoder: Failure reading packet")
 			h.cleanupEncoder(si, clients, input)
-			log.Printf("encoder: giving up")
 			return
 		}
 
@@ -185,7 +193,6 @@ func (h HTTPHandler) encoder(si streamViewInfo) {
 		if len(clients) == 0 {
 			log.Printf("No clients left")
 			h.cleanupEncoder(si, clients, input)
-			log.Printf("encoder: giving up")
 			return
 		}
 	}
@@ -199,6 +206,8 @@ func (h HTTPHandler) cleanupEncoder(si streamViewInfo, clients []*Client, input 
 	cleanupClients(clients)
 	delete(h.ClientChan, si)
 	h.ClientChanMutex.Unlock()
+	log.Printf("cleaned up encoder")
+	activeEncoders.Dec()
 }
 
 func acceptClients(clientChan <-chan *Client, clients []*Client) []*Client {
@@ -354,31 +363,25 @@ func writePacketToClients(input *Input, pkt *C.AVPacket,
 
 	for _, client := range clients {
 		// Open the client's output if it is not yet open.
-		client.mutex.Lock()
+		// We do this without a lock to not slow down here. The output will be nil
+		// until we, i.e. this function, opens it. This function will also clean it
+		// up, thus this should be safe.
 		if client.Output == nil {
-			outputFormat := "mp4"
+			client.mutex.Lock()
 			outputURL := fmt.Sprintf("pipe:%d", client.OutPipe.Fd())
-			client.Output = openOutput(outputFormat, outputURL, verbose, input)
+			client.Output = openOutput(outputURL, verbose, input)
 			if client.Output == nil {
-				log.Printf("Unable to open output for client")
+				log.Print("Unable to open output for client")
 				cleanupClient(client)
 				client.mutex.Unlock()
 				continue
 			}
 
-			// We pass packets to the client via this channel. We give each client
-			// its own goroutine for the purposes of receiving these packets and
-			// writing them to the write side of the pipe. We do it this way rather
-			// than directly here because we do not want the encoder to block waiting
-			// on a write to the write side of the pipe because there is a slow HTTP
-			// client.
-			client.PacketChan = make(chan *C.AVPacket, 32)
-
 			go packetWriter(client, input, verbose)
 
 			log.Printf("Opened output for client")
+			client.mutex.Unlock()
 		}
-		client.mutex.Unlock()
 
 		// Duplicate the packet. Each client's goroutine will receive a copy.
 		pktCopy := C.av_packet_clone(pkt)
@@ -409,6 +412,8 @@ func writePacketToClients(input *Input, pkt *C.AVPacket,
 //
 // We end when encoder closes the channel, or if we encounter a write error.
 func packetWriter(client *Client, input *Input, verbose bool) {
+	// TODO: I believe this could be moved to the client streaming code directly
+	// and thus one layer of abstraction could be removed.
 	for pkt := range client.PacketChan {
 		writeRes := C.int(0)
 		client.mutex.RLock()
@@ -426,7 +431,7 @@ func packetWriter(client *Client, input *Input, verbose bool) {
 
 // Open the output file. This creates an MP4 container and writes the header to
 // the given output URL.
-func openOutput(outputFormat, outputURL string, verbose bool, input *Input) *C.struct_VSOutput {
+func openOutput(outputURL string, verbose bool, input *Input) *C.struct_VSOutput {
 	outputFormatC := C.CString("mp4")
 	outputURLC := C.CString(outputURL)
 
@@ -445,6 +450,11 @@ func openOutput(outputFormat, outputURL string, verbose bool, input *Input) *C.s
 
 func parseStreamUrl(u url.URL) (streamViewInfo, error) {
 	q := u.Query()
+	if ok := q["url"]; ok == nil {
+		log.Printf("Url parameter not found")
+		return streamViewInfo{}, errors.New("Url parameter not found")
+	}
+
 	streamUrl, err := url.QueryUnescape(q["url"][0])
 	if err != nil {
 		return streamViewInfo{}, errors.New("unable to query unescape URL")
@@ -506,22 +516,7 @@ func (h HTTPHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	rw.Header().Set("Access-Control-Allow-Origin", "*")
 
 	if r.Method == "GET" && r.URL.Path == "/stream" {
-		si, err := parseStreamUrl(*r.URL)
-		if err != nil {
-			log.Printf("Unable to parse URL parameters: %s", r.URL)
-			return
-		}
-		log.Printf("Stream URL: %s", si.Url)
-		h.ClientChanMutex.Lock()
-		if ok := h.ClientChan[si]; ok == nil {
-			// This is a new stream. We create a new client channel and start
-			// an encoder for it.
-			h.ClientChan[si] = make(chan *Client)
-			go h.encoder(si)
-		}
-		h.ClientChanMutex.Unlock()
-
-		h.streamRequest(rw, r, h.ClientChan[si])
+		h.streamRequest(rw, r)
 		return
 	} else if r.Method == "GET" && r.URL.Path == "/info" {
 		h.infoRequest(rw, r)
@@ -529,21 +524,39 @@ func (h HTTPHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Printf("Unknown request.")
-	rw.WriteHeader(http.StatusNotFound)
-	_, _ = rw.Write([]byte("<h1>404 Not found</h1>"))
+	http.Error(rw, "Not found", http.StatusNotFound)
+}
+
+func (h HTTPHandler) streamRequest(rw http.ResponseWriter, r *http.Request) {
+	si, err := parseStreamUrl(*r.URL)
+	if err != nil {
+		log.Printf("Unable to parse URL parameters: %s", r.URL)
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
+	}
+	log.Printf("Stream URL: %s", si.Url)
+	h.ClientChanMutex.Lock()
+	if ok := h.ClientChan[si]; ok == nil {
+		// This is a new stream. We create a new client channel and start
+		// an encoder for it.
+		h.ClientChan[si] = make(chan *Client)
+		go h.encoder(si)
+	}
+	h.ClientChanMutex.Unlock()
+
+	h.streamData(rw, r, h.ClientChan[si])
 }
 
 // Read from a pipe where streaming media shows up. We read a chunk and write it
 // immediately to the client, and repeat forever (until either the client goes
 // away, or an error of some kind occurs).
-func (h HTTPHandler) streamRequest(rw http.ResponseWriter, r *http.Request, clientChan chan<- *Client) {
+func (h HTTPHandler) streamData(rw http.ResponseWriter, r *http.Request, clientChan chan<- *Client) {
 	// The encoder writes to the out pipe (using the packetWriter goroutine). We
 	// read from the in pipe.
 	inPipe, outPipe, err := os.Pipe()
 	if err != nil {
 		log.Printf("Unable to open pipe: %s", err)
-		rw.WriteHeader(http.StatusInternalServerError)
-		_, _ = rw.Write([]byte("<h1>500 Internal server error</h1>"))
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -552,16 +565,24 @@ func (h HTTPHandler) streamRequest(rw http.ResponseWriter, r *http.Request, clie
 		OutPipe: outPipe,
 	}
 
-	// Tell the encoder we're here.
-	clientChan <- c
+	// We pass packets to the client via this channel. We give each client
+	// its own goroutine for the purposes of receiving these packets and
+	// writing them to the write side of the pipe. We do it this way rather
+	// than directly here because we do not want the encoder to block waiting
+	// on a write to the write side of the pipe because there is a slow HTTP
+	// client.
+	c.PacketChan = make(chan *C.AVPacket, *packetChanDepth)
 
 	rw.Header().Set("Content-Type", "video/mp4")
 	rw.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 
-	// We send chunked by default
+	// Tell the encoder we're here.
+	clientChan <- c
+
+	// Send chunked data.
+	buf := make([]byte, 1024)
 
 	for {
-		buf := make([]byte, 1024)
 		readSize, err := inPipe.Read(buf)
 		if err != nil {
 			log.Printf("%s: Read error: %s", r.RemoteAddr, err)
@@ -600,6 +621,12 @@ func (h HTTPHandler) streamRequest(rw http.ResponseWriter, r *http.Request, clie
 
 func (h HTTPHandler) infoRequest(rw http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
+	if ok := q["url"]; ok == nil {
+		log.Printf("Url parameter not found")
+		http.Error(rw, "Url parameter not found", http.StatusBadRequest)
+		return
+	}
+
 	streamUrl, err := url.QueryUnescape(q["url"][0])
 	if err != nil {
 		log.Printf("Unable to parse URL parameters: %s", r.URL)
