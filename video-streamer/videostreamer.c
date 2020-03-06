@@ -606,6 +606,96 @@ int vs_get_filtered_packet(const struct VSInput *input, AVPacket *pkt,
   return 1;
 }
 
+int vs_packet_fix_timestamps(AVPacket *const pkt, int64_t last_dts,
+                             AVRational in_tb, AVRational out_tb,
+                             const bool verbose) {
+  // It is possible that the input is not well formed. Its dts (decompression
+  // timestamp) may fluctuate. av_write_frame() says that the dts must be
+  // strictly increasing.
+  //
+  // Packets from such inputs might look like:
+  //
+  // in: pts:18750 pts_time:0.208333 dts:18750 dts_time:0.208333 duration:3750
+  // duration_time:0.0416667 stream_index:1 in: pts:0 pts_time:0 dts:0
+  // dts_time:0 duration:3750 duration_time:0.0416667 stream_index:1
+  //
+  // dts here is 18750 and then 0.
+  //
+  // If we try to write the second packet as is, we'll see this error:
+  // [mp4 @ 0x10f1ae0] Application provided invalid, non monotonically
+  // increasing dts to muxer in stream 1: 18750 >= 0
+  //
+  // This is apparently a fairly common problem. In ffmpeg.c (as of ffmpeg
+  // 3.2.4 at least) there is logic to rewrite the dts and warn if it happens.
+  // Let's do the same. Note my logic is a little different here.
+  bool fix_dts = pkt->dts != AV_NOPTS_VALUE && last_dts != AV_NOPTS_VALUE &&
+                 pkt->dts <= last_dts;
+
+  // It is also possible for input streams to include a packet with
+  // dts/pts=NOPTS after packets with dts/pts set. These won't be caught by the
+  // prior case. If we try to send these to the encoder however, we'll generate
+  // the same error (non monotonically increasing DTS) since the output packet
+  // will have dts/pts=0.
+  fix_dts |= pkt->dts == AV_NOPTS_VALUE && last_dts != AV_NOPTS_VALUE;
+
+  if (fix_dts) {
+    int64_t const next_dts = last_dts + 1;
+
+    if (verbose) {
+      printf("Warning: Non-monotonous DTS in input stream. Previous: %" PRId64
+             " current: %" PRId64 ". changing to %" PRId64 ".\n",
+             last_dts, pkt->dts, next_dts);
+    }
+
+    // We also apparently (ffmpeg.c does this too) need to update the pts.
+    // Otherwise we see an error like:
+    //
+    // [mp4 @ 0x555e6825ea60] pts (3780) < dts (22531) in stream 0
+
+    if (pkt->pts != AV_NOPTS_VALUE && pkt->pts >= pkt->dts) {
+      pkt->pts = FFMAX(pkt->pts, next_dts);
+    }
+    // In the case where pkt->dts was AV_NOPTS_VALUE, pkt->pts can be
+    // AV_NOPTS_VALUE too which we fix as well.
+    if (pkt->pts == AV_NOPTS_VALUE) {
+      pkt->pts = next_dts;
+    }
+
+    pkt->dts = next_dts;
+  }
+
+  // Set pts/dts if not set. Otherwise we will receive warnings like
+  //
+  // [mp4 @ 0x55688397bc40] Timestamps are unset in a packet for stream 0. This
+  // is deprecated and will stop working in the future. Fix your code to set
+  // the timestamps properly
+  //
+  // [mp4 @ 0x55688397bc40] Encoder did not produce proper pts, making some up.
+  if (pkt->pts == AV_NOPTS_VALUE) {
+    pkt->pts = 0;
+  } else {
+    pkt->pts = av_rescale_q_rnd(pkt->pts, in_tb, out_tb,
+                                AV_ROUND_NEAR_INF | AV_ROUND_PASS_MINMAX);
+  }
+
+  if (pkt->dts == AV_NOPTS_VALUE) {
+    pkt->dts = 0;
+  } else {
+    pkt->dts = av_rescale_q_rnd(pkt->dts, in_tb, out_tb,
+                                AV_ROUND_NEAR_INF | AV_ROUND_PASS_MINMAX);
+  }
+
+  pkt->duration = av_rescale_q(pkt->duration, in_tb, out_tb);
+  pkt->pos = -1;
+
+  // PTS can never be smaller than DTS.
+  if (pkt->pts < pkt->dts) {
+    pkt->pts = pkt->dts;
+  }
+
+  return 0;
+}
+
 // We change the packet's pts, dts, duration, pos.
 //
 // We do not unref it.
@@ -648,92 +738,11 @@ int vs_write_packet(const struct VSInput *const input,
     return -1;
   }
 
-  // It is possible that the input is not well formed. Its dts (decompression
-  // timestamp) may fluctuate. av_write_frame() says that the dts must be
-  // strictly increasing.
-  //
-  // Packets from such inputs might look like:
-  //
-  // in: pts:18750 pts_time:0.208333 dts:18750 dts_time:0.208333 duration:3750
-  // duration_time:0.0416667 stream_index:1 in: pts:0 pts_time:0 dts:0
-  // dts_time:0 duration:3750 duration_time:0.0416667 stream_index:1
-  //
-  // dts here is 18750 and then 0.
-  //
-  // If we try to write the second packet as is, we'll see this error:
-  // [mp4 @ 0x10f1ae0] Application provided invalid, non monotonically
-  // increasing dts to muxer in stream 1: 18750 >= 0
-  //
-  // This is apparently a fairly common problem. In ffmpeg.c (as of ffmpeg
-  // 3.2.4 at least) there is logic to rewrite the dts and warn if it happens.
-  // Let's do the same. Note my logic is a little different here.
-  bool fix_dts = pkt->dts != AV_NOPTS_VALUE &&
-                 output->last_dts != AV_NOPTS_VALUE &&
-                 pkt->dts <= output->last_dts;
-
-  // It is also possible for input streams to include a packet with
-  // dts/pts=NOPTS after packets with dts/pts set. These won't be caught by the
-  // prior case. If we try to send these to the encoder however, we'll generate
-  // the same error (non monotonically increasing DTS) since the output packet
-  // will have dts/pts=0.
-  fix_dts |= pkt->dts == AV_NOPTS_VALUE && output->last_dts != AV_NOPTS_VALUE;
-
-  if (fix_dts) {
-    int64_t const next_dts = output->last_dts + 1;
-
-    if (verbose) {
-      printf("Warning: Non-monotonous DTS in input stream. Previous: %" PRId64
-             " current: %" PRId64 ". changing to %" PRId64 ".\n",
-             output->last_dts, pkt->dts, next_dts);
-    }
-
-    // We also apparently (ffmpeg.c does this too) need to update the pts.
-    // Otherwise we see an error like:
-    //
-    // [mp4 @ 0x555e6825ea60] pts (3780) < dts (22531) in stream 0
-
-    if (pkt->pts != AV_NOPTS_VALUE && pkt->pts >= pkt->dts) {
-      pkt->pts = FFMAX(pkt->pts, next_dts);
-    }
-    // In the case where pkt->dts was AV_NOPTS_VALUE, pkt->pts can be
-    // AV_NOPTS_VALUE too which we fix as well.
-    if (pkt->pts == AV_NOPTS_VALUE) {
-      pkt->pts = next_dts;
-    }
-
-    pkt->dts = next_dts;
+  if (vs_packet_fix_timestamps(pkt, output->last_dts, in_stream->time_base,
+                               out_stream->time_base, verbose) != 0) {
+    printf("Could not fix timestamps");
+    return -1;
   }
-
-  // Set pts/dts if not set. Otherwise we will receive warnings like
-  //
-  // [mp4 @ 0x55688397bc40] Timestamps are unset in a packet for stream 0. This
-  // is deprecated and will stop working in the future. Fix your code to set
-  // the timestamps properly
-  //
-  // [mp4 @ 0x55688397bc40] Encoder did not produce proper pts, making some up.
-  if (pkt->pts == AV_NOPTS_VALUE) {
-    pkt->pts = 0;
-  } else {
-    pkt->pts =
-        av_rescale_q_rnd(pkt->pts, in_stream->time_base, out_stream->time_base,
-                         AV_ROUND_NEAR_INF | AV_ROUND_PASS_MINMAX);
-  }
-
-  if (pkt->dts == AV_NOPTS_VALUE) {
-    pkt->dts = 0;
-  } else {
-    pkt->dts =
-        av_rescale_q_rnd(pkt->dts, in_stream->time_base, out_stream->time_base,
-                         AV_ROUND_NEAR_INF | AV_ROUND_PASS_MINMAX);
-  }
-
-  pkt->duration =
-      av_rescale_q(pkt->duration, in_stream->time_base, out_stream->time_base);
-  pkt->pos = -1;
-
-  // PTS can never be smaller than DTS.
-  if (pkt->pts < pkt->dts)
-    pkt->pts = pkt->dts;
 
   if (verbose) {
     __vs_log_packet(output->format_ctx, pkt, "out");

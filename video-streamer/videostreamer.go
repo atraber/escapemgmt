@@ -5,12 +5,14 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
 	"strconv"
 	"sync"
+	"syscall"
 	"unsafe"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -25,19 +27,27 @@ import (
 import "C"
 
 var (
-	probeSize       = flag.Int("probesize", 32000, "ProbeSize passed to ffmpeg.")
-	analyzeDuration = flag.Int("analyze_duration", 20000, "Max analyze duration passed to ffmpeg.")
+	probeSize       = flag.Int("probesize", 64000, "ProbeSize passed to ffmpeg.")
+	analyzeDuration = flag.Int("analyze_duration", 300000, "Max analyze duration passed to ffmpeg.")
 	listenHost      = flag.String("host", "0.0.0.0", "Host to listen on.")
 	listenPort      = flag.Int("port", 8080, "Port to listen on.")
 	input           = flag.String("input", "", "Input URL valid for the given format. For RTSP you can provide a rtsp:// URL.")
 	verbose         = flag.Bool("verbose", false, "Enable verbose logging output.")
-	packetChanDepth = flag.Int("packet_chan_depth", 64, "Depth of the packet channel.")
+	packetChanDepth = flag.Int("packet_chan_depth", 128, "Depth of the packet channel.")
 )
 
 var (
+	activeClients = promauto.NewGauge(prometheus.GaugeOpts{
+		Name: "clients_active",
+		Help: "The total number of active clients",
+	})
 	activeEncoders = promauto.NewGauge(prometheus.GaugeOpts{
 		Name: "encoders_active",
 		Help: "The total number of active encoders",
+	})
+	activeEncoderClients = promauto.NewGauge(prometheus.GaugeOpts{
+		Name: "encoder_clients_active",
+		Help: "The total number of active clients to encoders",
 	})
 )
 
@@ -59,28 +69,26 @@ type streamViewInfo struct {
 	OutHeight int
 }
 
+type streamData struct {
+	ClientChan chan *Client
+	input      *Input
+	inputWg    sync.WaitGroup
+}
+
 // HTTPHandler allows us to pass information to our request handlers.
 type HTTPHandler struct {
 	Verbose         bool
-	ClientChan      map[streamViewInfo]chan *Client
-	ClientChanMutex *sync.RWMutex
+	Streams         map[streamViewInfo]*streamData
+	StreamsMutex    *sync.RWMutex
 	ProbeSize       int
 	AnalyzeDuration int
 }
 
 // Client is servicing one HTTP client.
 type Client struct {
-	// Protect access to Output in particular. Destroying it when we clean up
-	// the client can race with packetWriter().
-	mutex *sync.RWMutex
-
 	// packetWriter goroutine writes out video packets to this pipe. HTTP
 	// goroutine reads from the read side.
 	OutPipe *os.File
-
-	// Reference to a media output context. Through this, the packetWriter
-	// goroutine writes packets to the write side of the pipe.
-	Output *C.struct_VSOutput
 
 	// Encoder writes packets to this channel, then the packetWriter goroutine
 	// writes them to the pipe.
@@ -104,8 +112,8 @@ func main() {
 
 	streamHandler := HTTPHandler{
 		Verbose:         *verbose,
-		ClientChan:      make(map[streamViewInfo]chan *Client),
-		ClientChanMutex: &sync.RWMutex{},
+		Streams:         make(map[streamViewInfo]*streamData),
+		StreamsMutex:    &sync.RWMutex{},
 		ProbeSize:       *probeSize,
 		AnalyzeDuration: *analyzeDuration,
 	}
@@ -122,50 +130,44 @@ func main() {
 }
 
 func (h HTTPHandler) encoder(si streamViewInfo) {
+	sd := h.Streams[si]
 	activeEncoders.Inc()
 	clients := []*Client{}
-	var input *Input
+	clientChan := sd.ClientChan
 
 	log.Printf("encoder: got url %s", si.Url)
 
+	sd.input = openInputRetry(si, h.ProbeSize, h.AnalyzeDuration, 5, h.Verbose)
+	sd.inputWg.Done()
+	if sd.input == nil {
+		log.Printf("encoder: Unable to open input")
+		h.cleanupEncoder(si, clients, sd.input)
+		return
+	}
+
+	if h.Verbose {
+		log.Printf("encoder: Opened input")
+	}
+
+	log.Printf("encoder: Waiting for clients...")
+	client := <-clientChan
+	activeEncoderClients.Inc()
+	log.Printf("encoder: New client")
+	clients = append(clients, client)
+
 	for {
-		// If there are no clients, then block waiting for one.
-		if len(clients) == 0 {
-			log.Printf("encoder: Waiting for clients...")
-			client := <-h.ClientChan[si]
-			log.Printf("encoder: New client")
-			clients = append(clients, client)
-			continue
-		}
-
-		// There is at least one client.
-
 		// Get any new clients, but don't block.
-		clients = acceptClients(h.ClientChan[si], clients)
-
-		// Open the input if it is not open yet.
-		if input == nil {
-			input = openInputRetry(si, h.ProbeSize, h.AnalyzeDuration, 5, h.Verbose)
-			if input == nil {
-				log.Printf("encoder: Unable to open input")
-				h.cleanupEncoder(si, clients, input)
-				return
-			}
-
-			if h.Verbose {
-				log.Printf("encoder: Opened input")
-			}
-		}
+		clients = acceptClients(clientChan, clients)
 
 		// Read a packet.
 		var pkt C.AVPacket
 		readRes := C.int(0)
 		// We might want to lock input here. It's probably not necessary though.
 		// Other goroutines should only be reading it. We're the writer.
-		readRes = C.vs_read_packet(input.vsInput, &pkt, C.bool(h.Verbose))
+		readRes = C.vs_read_packet(sd.input.vsInput, &pkt, C.bool(h.Verbose))
 		if readRes == -1 {
 			log.Printf("encoder: Failure reading packet")
-			h.cleanupEncoder(si, clients, input)
+			h.cleanupEncoder(si, clients, sd.input)
 			return
 		}
 
@@ -174,38 +176,38 @@ func (h HTTPHandler) encoder(si streamViewInfo) {
 		}
 
 		if si.Transcode {
-			if C.vs_filter_packet(input.vsInput, &pkt, C.bool(h.Verbose)) != 0 {
+			if C.vs_filter_packet(sd.input.vsInput, &pkt, C.bool(h.Verbose)) != 0 {
 				log.Printf("could not filter packet")
 			}
 			C.av_packet_unref(&pkt)
 
-			for C.vs_get_filtered_packet(input.vsInput, &pkt, C.bool(h.Verbose)) > 0 {
+			for C.vs_get_filtered_packet(sd.input.vsInput, &pkt, C.bool(h.Verbose)) > 0 {
 				// Write the packet to all clients.
-				clients = writePacketToClients(input, &pkt, clients, h.Verbose)
+				clients = writePacketToClients(sd.input, &pkt, clients, h.Verbose)
 				C.av_packet_unref(&pkt)
 			}
 		} else {
-			clients = writePacketToClients(input, &pkt, clients, h.Verbose)
+			clients = writePacketToClients(sd.input, &pkt, clients, h.Verbose)
 			C.av_packet_unref(&pkt)
 		}
 
 		// If we get down to zero clients, close the input.
 		if len(clients) == 0 {
 			log.Printf("No clients left")
-			h.cleanupEncoder(si, clients, input)
+			h.cleanupEncoder(si, clients, sd.input)
 			return
 		}
 	}
 }
 
 func (h HTTPHandler) cleanupEncoder(si streamViewInfo, clients []*Client, input *Input) {
-	h.ClientChanMutex.Lock()
+	h.StreamsMutex.Lock()
 	if input != nil {
 		destroyInput(input)
 	}
 	cleanupClients(clients)
-	delete(h.ClientChan, si)
-	h.ClientChanMutex.Unlock()
+	delete(h.Streams, si)
+	h.StreamsMutex.Unlock()
 	log.Printf("cleaned up encoder")
 	activeEncoders.Dec()
 }
@@ -215,6 +217,7 @@ func acceptClients(clientChan <-chan *Client, clients []*Client) []*Client {
 		select {
 		case client := <-clientChan:
 			log.Printf("got a new client")
+			activeEncoderClients.Inc()
 			clients = append(clients, client)
 		default:
 			return clients
@@ -229,20 +232,11 @@ func cleanupClients(clients []*Client) {
 }
 
 func cleanupClient(client *Client) {
-	client.mutex.Lock()
-
 	// Closing write side will make read side receive EOF.
 	if client.OutPipe != nil {
 		_ = client.OutPipe.Close()
 		client.OutPipe = nil
 	}
-
-	if client.Output != nil {
-		C.vs_destroy_output(client.Output)
-		client.Output = nil
-	}
-
-	client.mutex.Unlock()
 
 	if client.PacketChan != nil {
 		close(client.PacketChan)
@@ -261,6 +255,8 @@ func cleanupClient(client *Client) {
 
 		client.PacketChan = nil
 	}
+
+	activeEncoderClients.Dec()
 }
 
 func openInputRetry(si streamViewInfo, probeSize int, analyzeDuration int, tries int, verbose bool) *Input {
@@ -354,35 +350,13 @@ func destroyInput(input *Input) {
 
 // Try to write the packet to each client. If we fail, we clean up the client
 // and it will not be in the returned list of clients.
-func writePacketToClients(input *Input, pkt *C.AVPacket,
-	clients []*Client, verbose bool) []*Client {
+func writePacketToClients(input *Input, pkt *C.AVPacket, clients []*Client, verbose bool) []*Client {
 	// Rewrite clients slice with only those we succeeded in writing to. If we
 	// failed for some reason we clean up the client and no longer send it
 	// anything further.
 	clients2 := []*Client{}
 
 	for _, client := range clients {
-		// Open the client's output if it is not yet open.
-		// We do this without a lock to not slow down here. The output will be nil
-		// until we, i.e. this function, opens it. This function will also clean it
-		// up, thus this should be safe.
-		if client.Output == nil {
-			client.mutex.Lock()
-			outputURL := fmt.Sprintf("pipe:%d", client.OutPipe.Fd())
-			client.Output = openOutput(outputURL, verbose, input)
-			if client.Output == nil {
-				log.Print("Unable to open output for client")
-				cleanupClient(client)
-				client.mutex.Unlock()
-				continue
-			}
-
-			go packetWriter(client, input, verbose)
-
-			log.Printf("Opened output for client")
-			client.mutex.Unlock()
-		}
-
 		// Duplicate the packet. Each client's goroutine will receive a copy.
 		pktCopy := C.av_packet_clone(pkt)
 		if pktCopy == nil {
@@ -406,27 +380,6 @@ func writePacketToClients(input *Input, pkt *C.AVPacket,
 	}
 
 	return clients2
-}
-
-// Receive packets from the encoder, and write them out to the client's pipe.
-//
-// We end when encoder closes the channel, or if we encounter a write error.
-func packetWriter(client *Client, input *Input, verbose bool) {
-	// TODO: I believe this could be moved to the client streaming code directly
-	// and thus one layer of abstraction could be removed.
-	for pkt := range client.PacketChan {
-		writeRes := C.int(0)
-		client.mutex.RLock()
-		input.mutex.RLock()
-		writeRes = C.vs_write_packet(input.vsInput, client.Output, pkt, C.bool(verbose))
-		input.mutex.RUnlock()
-		client.mutex.RUnlock()
-		C.av_packet_free(&pkt)
-		if writeRes == -1 {
-			log.Printf("Failure writing packet")
-			return
-		}
-	}
 }
 
 // Open the output file. This creates an MP4 container and writes the header to
@@ -535,22 +488,34 @@ func (h HTTPHandler) streamRequest(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Printf("Stream URL: %s", si.Url)
-	h.ClientChanMutex.Lock()
-	if ok := h.ClientChan[si]; ok == nil {
+	h.StreamsMutex.Lock()
+	if ok := h.Streams[si]; ok == nil {
 		// This is a new stream. We create a new client channel and start
 		// an encoder for it.
-		h.ClientChan[si] = make(chan *Client)
+		sd := streamData{ClientChan: make(chan *Client)}
+		sd.inputWg.Add(1)
+		h.Streams[si] = &sd
 		go h.encoder(si)
 	}
-	h.ClientChanMutex.Unlock()
+	h.StreamsMutex.Unlock()
 
-	h.streamData(rw, r, h.ClientChan[si])
+	h.streamData(rw, r, h.Streams[si])
 }
 
 // Read from a pipe where streaming media shows up. We read a chunk and write it
 // immediately to the client, and repeat forever (until either the client goes
 // away, or an error of some kind occurs).
-func (h HTTPHandler) streamData(rw http.ResponseWriter, r *http.Request, clientChan chan<- *Client) {
+func (h HTTPHandler) streamData(rw http.ResponseWriter, r *http.Request, sd *streamData) {
+	activeClients.Inc()
+	defer activeClients.Dec()
+	// Wait for Input to be opened first.
+	sd.inputWg.Wait()
+	if sd.input == nil {
+		log.Printf("Failed to open input")
+		http.Error(rw, "Failed to open input", http.StatusInternalServerError)
+		return
+	}
+
 	// The encoder writes to the out pipe (using the packetWriter goroutine). We
 	// read from the in pipe.
 	inPipe, outPipe, err := os.Pipe()
@@ -560,61 +525,97 @@ func (h HTTPHandler) streamData(rw http.ResponseWriter, r *http.Request, clientC
 		return
 	}
 
-	c := &Client{
-		mutex:   &sync.RWMutex{},
-		OutPipe: outPipe,
+	// Make the inPipe non-blocking
+	inFile, err := makeNonBlockingFile(inPipe)
+	if err != nil {
+		log.Printf("Unable to make file non-blocking: %s", err)
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
-	// We pass packets to the client via this channel. We give each client
-	// its own goroutine for the purposes of receiving these packets and
-	// writing them to the write side of the pipe. We do it this way rather
-	// than directly here because we do not want the encoder to block waiting
-	// on a write to the write side of the pipe because there is a slow HTTP
-	// client.
-	c.PacketChan = make(chan *C.AVPacket, *packetChanDepth)
+	packetChan := make(chan *C.AVPacket, *packetChanDepth)
+
+	c := &Client{
+		OutPipe:    outPipe,
+		PacketChan: packetChan,
+	}
+
+	outputURL := fmt.Sprintf("pipe:%d", c.OutPipe.Fd())
+	// TODO: Do we need to lock the input here?
+	output := openOutput(outputURL, h.Verbose, sd.input)
+	if output == nil {
+		log.Print("Unable to open output for client")
+		http.Error(rw, "Unable to open output for client", http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("Opened output for client")
 
 	rw.Header().Set("Content-Type", "video/mp4")
 	rw.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 
 	// Tell the encoder we're here.
-	clientChan <- c
+	sd.ClientChan <- c
 
 	// Send chunked data.
 	buf := make([]byte, 1024)
 
-	for {
-		readSize, err := inPipe.Read(buf)
-		if err != nil {
-			log.Printf("%s: Read error: %s", r.RemoteAddr, err)
+	for pkt := range packetChan {
+		writeRes := C.int(0)
+		sd.input.mutex.RLock()
+		writeRes = C.vs_write_packet(sd.input.vsInput, output, pkt, C.bool(h.Verbose))
+		sd.input.mutex.RUnlock()
+		C.av_packet_free(&pkt)
+		if writeRes == -1 {
+			log.Printf("Failure writing packet")
 			break
 		}
 
-		// We get EOF if write side of pipe closed.
-		if readSize == 0 {
-			log.Printf("%s: EOF", r.RemoteAddr)
-			break
-		}
+		for {
+			readSize, err := syscall.Read(inFile, buf)
+			if os.IsTimeout(err) {
+				break
+			}
 
-		writeSize, err := rw.Write(buf[:readSize])
-		if err != nil {
-			log.Printf("%s: Write error: %s", r.RemoteAddr, err)
-			break
-		}
+			if err != nil {
+				log.Printf("%s: Read error: %s", r.RemoteAddr, err)
+				goto Exit
+			}
 
-		if writeSize != readSize {
-			log.Printf("%s: Short write", r.RemoteAddr)
-			break
-		}
+			// We get EOF if write side of pipe closed.
+			if readSize == 0 {
+				if err == io.EOF {
+					log.Printf("%s: EOF", r.RemoteAddr)
+					goto Exit
+				} else {
+					break
+				}
+			}
 
-		// ResponseWriter buffers chunks. Flush them out ASAP to reduce the time a
-		// client is waiting, especially initially.
-		if flusher, ok := rw.(http.Flusher); ok {
-			flusher.Flush()
+			writeSize, err := rw.Write(buf[:readSize])
+			if err != nil {
+				log.Printf("%s: Write error: %s", r.RemoteAddr, err)
+				goto Exit
+			}
+
+			if writeSize != readSize {
+				log.Printf("%s: Short write", r.RemoteAddr)
+				goto Exit
+			}
+
+			// ResponseWriter buffers chunks. Flush them out ASAP to reduce the time a
+			// client is waiting, especially initially.
+			if flusher, ok := rw.(http.Flusher); ok {
+				flusher.Flush()
+			}
 		}
 	}
+Exit:
 
 	// Writes to write side will raise error when read side is closed.
 	_ = inPipe.Close()
+
+	C.vs_destroy_output(output)
 
 	log.Printf("%s: Client cleaned up", r.RemoteAddr)
 }
@@ -650,4 +651,14 @@ func (h HTTPHandler) infoRequest(rw http.ResponseWriter, r *http.Request) {
 
 	rw.Header().Set("Content-Type", "application/json")
 	rw.Write(js)
+}
+
+func makeNonBlockingFile(in *os.File) (int, error) {
+	fd := in.Fd()
+	fdi := int(fd)
+	syscall.SetNonblock(fdi, true)
+	// Make pipe size larger as otherwise there might not be enough room to store
+	// full video frames.
+	syscall.Syscall(syscall.SYS_FCNTL, fd, syscall.F_SETPIPE_SZ, 4096*64)
+	return fdi, nil
 }

@@ -30,10 +30,10 @@ container_image(
     name = "video_streamer_image",
     base = ":ubuntu_install_pkgs",
     cmd = [
-        "/video_streamer",
+        "/video-streamer",
     ],
     files = [
-        "//:video_streamer",
+        "//:video-streamer",
     ],
 )
 
@@ -50,7 +50,7 @@ container_push(
 gazelle(name = "gazelle")
 
 go_binary(
-    name = "video_streamer",
+    name = "video-streamer",
     embed = [":go_default_library"],
     visibility = ["//visibility:public"],
 )
