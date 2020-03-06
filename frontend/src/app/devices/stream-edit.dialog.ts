@@ -9,6 +9,7 @@ import {MatSnackBar} from '@angular/material/snack-bar';
 
 import {DevicesService} from '../devices.service';
 import {Stream} from '../stream';
+import {StreamUtils} from '../stream-utils';
 import {StreamView} from '../streamview';
 
 @Component({
@@ -16,6 +17,8 @@ import {StreamView} from '../streamview';
   styleUrls : [ './stream-edit.dialog.scss' ]
 })
 export class StreamEditDialog {
+  readonly maxWidth = 640;
+  readonly maxHeight = 480;
   orientation: string;
   @ViewChild('orientationInput', {static : false}) orientationInput: MatSelect;
   newStreamViews: StreamView[] = [];
@@ -23,7 +26,7 @@ export class StreamEditDialog {
 
   constructor(public dialogRef: MatDialogRef<StreamEditDialog>,
               private devicesService: DevicesService,
-              private snackBar: MatSnackBar,
+              private snackBar: MatSnackBar, private streamUtils: StreamUtils,
               @Inject(MAT_DIALOG_DATA) public data: Stream) {
     this.orientation = data.orientation.toString();
   }
@@ -33,10 +36,26 @@ export class StreamEditDialog {
   }
 
   streamPreviewUrl(streamview: StreamView): string {
-    console.log("http://127.0.0.1:8080/stream?url=" +
-                encodeURIComponent(streamview.url));
-    return "http://127.0.0.1:8080/stream?url=" +
-           encodeURIComponent(streamview.url);
+    return this.streamUtils.streamViewPreviewUrl(streamview, this.maxWidth,
+                                                 this.maxHeight);
+  }
+
+  preview(streamview: StreamView) {
+    streamview.frontend_url = this.streamUtils.streamViewPreviewUrl(streamview);
+  }
+
+  testParameters(streamview: StreamView) {
+    this.streamUtils.streamViewInfo(streamview)
+        .subscribe(
+            si => {
+              streamview.frontend_width = si[0];
+              streamview.frontend_height = si[1];
+            },
+            err => {
+              this.snackBar.open('Unable to get stream info', 'Hide', {
+                duration : 2000,
+              });
+            });
   }
 
   addStreamView(): void {

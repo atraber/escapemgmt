@@ -50,7 +50,7 @@ export class StreamsComponent {
   }
 
   editStreamDialog(stream: Stream): void {
-    this.dialog.open(StreamEditDialog, {width : '500px', data : stream});
+    this.dialog.open(StreamEditDialog, {width : '600px', data : stream});
   }
 
   deleteStreamDialog(stream: Stream): void {

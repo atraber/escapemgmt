@@ -5,9 +5,9 @@
 import {Component, Inject} from '@angular/core';
 
 import {environment} from '../../environment';
-
 import {DevicesService} from '../devices.service';
 import {Stream} from '../stream';
+import {StreamUtils} from '../stream-utils';
 import {StreamView} from '../streamview';
 
 @Component({
@@ -24,7 +24,8 @@ export class ViewStreamsComponent {
   loaded = false;
   filter: string = "";
 
-  constructor(private devicesService: DevicesService) {
+  constructor(private devicesService: DevicesService,
+              private streamUtils: StreamUtils) {
     this.streams = this.devicesService.streams;
     this.loaded = this.devicesService.loaded;
     this.updateFilter();
@@ -41,36 +42,23 @@ export class ViewStreamsComponent {
     this.updateFilter();
   }
 
-  private updateFilter() { this.streamsFiltered = this.streams; }
+  private updateFilter() {
+    if (this.filter.length == 0) {
+      this.streamsFiltered = this.streams;
+    } else {
+      let filtered = [];
+      for (let stream of this.streams) {
+        if (stream.name.trim().toLowerCase().indexOf(this.filter) != -1)
+          filtered.push(stream);
+      }
+      this.streamsFiltered = filtered;
+    }
+  }
 
   selectStream(stream: Stream) { this.streamSelected = stream; }
 
   streamPreviewUrl(stream: Stream): string {
-    // TODO: Be smarter about this.
-    if (stream.streamviews.length > 0) {
-      return this.streamViewPreviewUrl(stream.streamviews[0]);
-    } else {
-      return "";
-    }
-  }
-
-  streamViewPreviewUrl(streamview: StreamView): string {
-    let width = streamview.crop_x2 - streamview.crop_x1;
-    let height = streamview.crop_y2 - streamview.crop_y1;
-    let outWidth = width;
-    let outHeight = height;
-    if (width > this.maxWidth || height > this.maxHeight) {
-      let ratio = Math.max(width / this.maxWidth, height / this.maxHeight);
-      outWidth = width / ratio;
-      outHeight = height / ratio;
-    }
-
-    let url = environment.viewEndpoint +
-              '/stream?url=' + encodeURIComponent(streamview.url) +
-              '&x=' + streamview.crop_x1 + '&y=' + streamview.crop_y1 +
-              '&width=' + width + '&height=' + height +
-              '&out_width=' + outWidth + '&out_height=' + outHeight;
-    console.log(url);
-    return url;
+    return this.streamUtils.streamPreviewUrl(stream, this.maxWidth,
+                                             this.maxHeight);
   }
 }

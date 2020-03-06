@@ -71,6 +71,7 @@ ts_library(
         "score.ts",
         "scores.service.ts",
         "stream.ts",
+        "stream-utils.ts",
         "streamview.ts",
     ],
     tsconfig = "//src:tsconfig.json",

@@ -28,6 +28,7 @@
                     <div class="form-container">
                         <mat-form-field>
                             <input matInput [(ngModel)]="streamview.url" name="url_{{index}}" placeholder="URL">
+                            <button matSuffix mat-stroked-button (click)=" testParameters(streamview)">Test Parameters</button>
                         </mat-form-field>
                         <mat-form-field>
                             <input matInput [(ngModel)]="streamview.crop_x1" name="crop_x1_{{index}}" placeholder="Crop X1">
@@ -37,12 +38,15 @@
                         </mat-form-field>
                         <mat-form-field>
                             <input matInput [(ngModel)]="streamview.crop_x2" name="crop_x2_{{index}}" placeholder="Width / Crop X2">
+                            <mat-hint *ngIf="streamview.frontend_width">Maximum stream width: {{streamview.frontend_width}}</mat-hint>
                         </mat-form-field>
                         <mat-form-field>
                             <input matInput [(ngModel)]="streamview.crop_y2" name="crop_y2_{{index}}" placeholder="Height / Crop Y2">
+                            <mat-hint *ngIf="streamview.frontend_height">Maximum stream height: {{streamview.frontend_height}}</mat-hint>
                         </mat-form-field>
                     </div>
-                    <video src="{{streamPreviewUrl(streamview)}}" autoplay controls></video>
+                    <button mat-raised-button color="primary" (click)="preview(streamview)">Preview</button>
+                    <video src="{{streamview.frontend_url}}" autoplay controls *ngIf="streamview.frontend_url"></video>
 
                     <mat-action-row>
                         <button mat-raised-button color="warn" (click)="deleteStreamView(streamview)">Remove</button>

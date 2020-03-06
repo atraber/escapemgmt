@@ -18,6 +18,7 @@ import {NavService, navServiceProvider} from './nav.service';
 import {PresetsService, presetsServiceProvider} from './presets.service';
 import {RoomsModule} from './rooms/rooms.module';
 import {ScoresService, scoresServiceProvider} from './scores.service';
+import {streamUtilsProvider} from './stream-utils';
 
 const appRoutes: Routes = [
   {
@@ -57,6 +58,7 @@ const appRoutes: Routes = [
     devicesServiceProvider,
     presetsServiceProvider,
     RoomsService,
+    streamUtilsProvider,
     scoresServiceProvider,
     bookingsServiceProvider,
   ],
