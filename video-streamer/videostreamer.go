@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"sync"
 	"syscall"
+	"time"
 	"unsafe"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -92,13 +93,18 @@ type Client struct {
 
 	// Encoder writes packets to this channel, then the packetWriter goroutine
 	// writes them to the pipe.
-	PacketChan chan *C.AVPacket
+	PacketChan chan packetData
 }
 
 // Input represents a video input.
 type Input struct {
 	mutex   *sync.RWMutex
 	vsInput *C.struct_VSInput
+}
+
+type packetData struct {
+	pkt      *C.AVPacket
+	timeBase C.AVRational
 }
 
 func main() {
@@ -202,10 +208,10 @@ func (h HTTPHandler) encoder(si streamViewInfo) {
 
 func (h HTTPHandler) cleanupEncoder(si streamViewInfo, clients []*Client, input *Input) {
 	h.StreamsMutex.Lock()
+	cleanupClients(clients)
 	if input != nil {
 		destroyInput(input)
 	}
-	cleanupClients(clients)
 	delete(h.Streams, si)
 	h.StreamsMutex.Unlock()
 	log.Printf("cleaned up encoder")
@@ -250,7 +256,7 @@ func cleanupClient(client *Client) {
 		// write side of the pipe above, this will not happen. No further packets
 		// will be reaching the client.
 		for pkt := range client.PacketChan {
-			C.av_packet_free(&pkt)
+			C.av_packet_free(&pkt.pkt)
 		}
 
 		client.PacketChan = nil
@@ -356,6 +362,12 @@ func writePacketToClients(input *Input, pkt *C.AVPacket, clients []*Client, verb
 	// anything further.
 	clients2 := []*Client{}
 
+	var timeBase C.AVRational
+	if C.vs_packet_timebase(input.vsInput, pkt, &timeBase) != 0 {
+		log.Printf("Unable to get timebase for pkt")
+		return clients2
+	}
+
 	for _, client := range clients {
 		// Duplicate the packet. Each client's goroutine will receive a copy.
 		pktCopy := C.av_packet_clone(pkt)
@@ -366,8 +378,13 @@ func writePacketToClients(input *Input, pkt *C.AVPacket, clients []*Client, verb
 		}
 
 		// Pass the packet to a goroutine that writes it to this client.
+		pktData := packetData{
+			pkt:      pktCopy,
+			timeBase: timeBase,
+		}
+
 		select {
-		case client.PacketChan <- pktCopy:
+		case client.PacketChan <- pktData:
 		default:
 			log.Printf("Client too slow")
 			C.av_packet_free(&pktCopy)
@@ -525,7 +542,7 @@ func (h HTTPHandler) streamData(rw http.ResponseWriter, r *http.Request, sd *str
 		return
 	}
 
-	// Make the inPipe non-blocking
+	// Make the inPipe non-blocking.
 	inFile, err := makeNonBlockingFile(inPipe)
 	if err != nil {
 		log.Printf("Unable to make file non-blocking: %s", err)
@@ -533,7 +550,7 @@ func (h HTTPHandler) streamData(rw http.ResponseWriter, r *http.Request, sd *str
 		return
 	}
 
-	packetChan := make(chan *C.AVPacket, *packetChanDepth)
+	packetChan := make(chan packetData, *packetChanDepth)
 
 	c := &Client{
 		OutPipe:    outPipe,
@@ -541,7 +558,6 @@ func (h HTTPHandler) streamData(rw http.ResponseWriter, r *http.Request, sd *str
 	}
 
 	outputURL := fmt.Sprintf("pipe:%d", c.OutPipe.Fd())
-	// TODO: Do we need to lock the input here?
 	output := openOutput(outputURL, h.Verbose, sd.input)
 	if output == nil {
 		log.Print("Unable to open output for client")
@@ -555,59 +571,21 @@ func (h HTTPHandler) streamData(rw http.ResponseWriter, r *http.Request, sd *str
 	rw.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 
 	// Tell the encoder we're here.
+	// TODO: There is a potential race condition here when the encoder exists,
+	// but we are still waiting for it here.
 	sd.ClientChan <- c
 
-	// Send chunked data.
-	buf := make([]byte, 1024)
-
-	for pkt := range packetChan {
-		writeRes := C.int(0)
-		sd.input.mutex.RLock()
-		writeRes = C.vs_write_packet(sd.input.vsInput, output, pkt, C.bool(h.Verbose))
-		sd.input.mutex.RUnlock()
-		C.av_packet_free(&pkt)
-		if writeRes == -1 {
-			log.Printf("Failure writing packet")
-			break
-		}
-
-		for {
-			readSize, err := syscall.Read(inFile, buf)
-			if os.IsTimeout(err) {
-				break
-			}
-
+	for {
+		select {
+		case pkt := <-packetChan:
+			err := h.writePacketToClient(rw, r, output, inFile, pkt)
 			if err != nil {
-				log.Printf("%s: Read error: %s", r.RemoteAddr, err)
+				log.Printf("Could not write packet to client: %s", err)
 				goto Exit
 			}
-
-			// We get EOF if write side of pipe closed.
-			if readSize == 0 {
-				if err == io.EOF {
-					log.Printf("%s: EOF", r.RemoteAddr)
-					goto Exit
-				} else {
-					break
-				}
-			}
-
-			writeSize, err := rw.Write(buf[:readSize])
-			if err != nil {
-				log.Printf("%s: Write error: %s", r.RemoteAddr, err)
-				goto Exit
-			}
-
-			if writeSize != readSize {
-				log.Printf("%s: Short write", r.RemoteAddr)
-				goto Exit
-			}
-
-			// ResponseWriter buffers chunks. Flush them out ASAP to reduce the time a
-			// client is waiting, especially initially.
-			if flusher, ok := rw.(http.Flusher); ok {
-				flusher.Flush()
-			}
+		case <-time.After(10 * time.Second):
+			log.Printf("Client timed out after waiting for 10s for next packet")
+			goto Exit
 		}
 	}
 Exit:
@@ -618,6 +596,55 @@ Exit:
 	C.vs_destroy_output(output)
 
 	log.Printf("%s: Client cleaned up", r.RemoteAddr)
+}
+
+func (h HTTPHandler) writePacketToClient(rw http.ResponseWriter, r *http.Request, output *C.struct_VSOutput, inFile int, pkt packetData) error {
+	writeRes := C.int(0)
+	writeRes = C.vs_write_packet(output, pkt.pkt, pkt.timeBase, C.bool(h.Verbose))
+	C.av_packet_free(&pkt.pkt)
+	if writeRes == -1 {
+		return fmt.Errorf("Failure writing packet")
+	}
+
+	// Send chunked data.
+	buf := make([]byte, 1024)
+
+	for {
+		readSize, err := syscall.Read(inFile, buf)
+		if os.IsTimeout(err) {
+			break
+		}
+
+		if err != nil {
+			return fmt.Errorf("%s: Read error: %s", r.RemoteAddr, err)
+		}
+
+		// We get EOF if write side of pipe closed.
+		if readSize == 0 {
+			if err == io.EOF {
+				return fmt.Errorf("%s: EOF", r.RemoteAddr)
+			} else {
+				break
+			}
+		}
+
+		writeSize, err := rw.Write(buf[:readSize])
+		if err != nil {
+			return fmt.Errorf("%s: Write error: %s", r.RemoteAddr, err)
+		}
+
+		if writeSize != readSize {
+			return fmt.Errorf("%s: Short write", r.RemoteAddr)
+		}
+
+		// ResponseWriter buffers chunks. Flush them out ASAP to reduce the time a
+		// client is waiting, especially initially.
+		if flusher, ok := rw.(http.Flusher); ok {
+			flusher.Flush()
+		}
+	}
+
+	return nil
 }
 
 func (h HTTPHandler) infoRequest(rw http.ResponseWriter, r *http.Request) {

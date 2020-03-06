@@ -16,8 +16,18 @@
 #include <stdlib.h>
 #include <string.h>
 
-static void __vs_log_packet(const AVFormatContext *const, const AVPacket *const,
-                            const char *const);
+void vs_log_packet(const AVFormatContext *const format_ctx,
+                   const AVPacket *const pkt, const char *const tag) {
+  AVRational *const time_base =
+      &format_ctx->streams[pkt->stream_index]->time_base;
+
+  printf("%s: pts:%s pts_time:%s dts:%s dts_time:%s duration:%s "
+         "duration_time:%s stream_index:%d\n",
+         tag, av_ts2str(pkt->pts), av_ts2timestr(pkt->pts, time_base),
+         av_ts2str(pkt->dts), av_ts2timestr(pkt->dts, time_base),
+         av_ts2str(pkt->duration), av_ts2timestr(pkt->duration, time_base),
+         pkt->stream_index);
+}
 
 void vs_init(void) {
   avdevice_register_all();
@@ -355,8 +365,8 @@ struct VSOutput *vs_open_output(const char *const output_format_name,
                                 const char *const output_url,
                                 const struct VSInput *const input,
                                 const bool verbose) {
-  if (!output_format_name || strlen(output_format_name) == 0 || !output_url ||
-      strlen(output_url) == 0 || !input) {
+  if (!output_format_name || strlen(output_format_name) == 0 ||
+      output_url == NULL || strlen(output_url) == 0 || input == NULL) {
     printf("%s\n", strerror(EINVAL));
     return NULL;
   }
@@ -519,7 +529,7 @@ int vs_read_packet(const struct VSInput *input, AVPacket *const pkt,
   }
 
   if (verbose) {
-    __vs_log_packet(input->format_ctx, pkt, "in");
+    vs_log_packet(input->format_ctx, pkt, "in");
   }
 
   return 1;
@@ -703,17 +713,10 @@ int vs_packet_fix_timestamps(AVPacket *const pkt, int64_t last_dts,
 // Returns:
 // -1 if error
 // 1 if we wrote the packet
-int vs_write_packet(const struct VSInput *const input,
-                    struct VSOutput *const output, AVPacket *const pkt,
-                    const bool verbose) {
-  if (!input || !output || !pkt) {
+int vs_write_packet(struct VSOutput *const output, AVPacket *const pkt,
+                    AVRational pkt_tb, const bool verbose) {
+  if (!output || !pkt) {
     printf("%s\n", strerror(EINVAL));
-    return -1;
-  }
-
-  AVStream *const in_stream = input->format_ctx->streams[pkt->stream_index];
-  if (!in_stream) {
-    printf("input stream not found with stream index %d\n", pkt->stream_index);
     return -1;
   }
 
@@ -738,21 +741,20 @@ int vs_write_packet(const struct VSInput *const input,
     return -1;
   }
 
-  if (vs_packet_fix_timestamps(pkt, output->last_dts, in_stream->time_base,
+  if (vs_packet_fix_timestamps(pkt, output->last_dts, pkt_tb,
                                out_stream->time_base, verbose) != 0) {
     printf("Could not fix timestamps");
     return -1;
   }
 
   if (verbose) {
-    __vs_log_packet(output->format_ctx, pkt, "out");
+    vs_log_packet(output->format_ctx, pkt, "out");
   }
 
   // Track last dts we see (see where we use it for why).
   output->last_dts = pkt->dts;
 
   // Write encoded frame (as a packet).
-
   // av_interleaved_write_frame() works too, but I don't think it is needed.
   // Using av_write_frame() skips buffering.
   const int write_res = av_write_frame(output->format_ctx, pkt);
@@ -767,15 +769,11 @@ int vs_write_packet(const struct VSInput *const input,
   return 1;
 }
 
-static void __vs_log_packet(const AVFormatContext *const format_ctx,
-                            const AVPacket *const pkt, const char *const tag) {
-  AVRational *const time_base =
-      &format_ctx->streams[pkt->stream_index]->time_base;
-
-  printf("%s: pts:%s pts_time:%s dts:%s dts_time:%s duration:%s "
-         "duration_time:%s stream_index:%d\n",
-         tag, av_ts2str(pkt->pts), av_ts2timestr(pkt->pts, time_base),
-         av_ts2str(pkt->dts), av_ts2timestr(pkt->dts, time_base),
-         av_ts2str(pkt->duration), av_ts2timestr(pkt->duration, time_base),
-         pkt->stream_index);
+int vs_packet_timebase(struct VSInput *input, AVPacket *const pkt,
+                       AVRational *pkt_tb) {
+  if (input == NULL || pkt == NULL || pkt_tb == NULL) {
+    return -1;
+  }
+  *pkt_tb = input->format_ctx->streams[pkt->stream_index]->time_base;
+  return 0;
 }

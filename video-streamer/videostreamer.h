@@ -52,11 +52,13 @@ void vs_destroy_output(struct VSOutput *const);
 
 int vs_read_packet(const struct VSInput *, AVPacket *const, const bool);
 
-int vs_write_packet(const struct VSInput *const, struct VSOutput *const,
-                    AVPacket *const, const bool);
+int vs_write_packet(struct VSOutput *const output, AVPacket *const pkt,
+                    AVRational pkt_tb, const bool verbose);
 
 int vs_filter_packet(const struct VSInput *, AVPacket *const, const bool);
 int vs_get_filtered_packet(const struct VSInput *input, AVPacket *pkt,
                            const bool verbose);
+int vs_packet_timebase(struct VSInput *input, AVPacket *const pkt,
+                       AVRational *pkt_tb);
 
 #endif
