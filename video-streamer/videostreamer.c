@@ -1,12 +1,6 @@
-//
-// This library provides remuxing from a video stream (such as an RTSP URL) to
-// an MP4 container. It writes a fragmented MP4 so that it can be streamed to a
-// pipe.
-//
-// There is no re-encoding. The stream is copied as is.
-//
-// The logic here is heavily based on remuxing.c by Stefano Sabatini.
-//
+// This file is based on some ideas and snippets from
+// https://github.com/horgh/videostreamer. This implementation goes much
+// further though and optionally re-encodes streams and also transcodes audio.
 
 #include "videostreamer.h"
 #include <errno.h>
@@ -64,8 +58,8 @@ int vs_video_filter_init(struct VSInput *input, const char *filters_descr,
     goto end;
   }
 
-  /* buffer video source: the decoded frames from the decoder will be inserted
-   * here. */
+  // buffer video source: the decoded frames from the decoder will be inserted
+  // here.
   snprintf(args, sizeof(args),
            "video_size=%dx%d:pix_fmt=%d:time_base=%d/%d:pixel_aspect=%d/%d",
            input->vdec_ctx->width, input->vdec_ctx->height,
@@ -83,7 +77,7 @@ int vs_video_filter_init(struct VSInput *input, const char *filters_descr,
     goto end;
   }
 
-  /* buffer video sink: to terminate the filter chain. */
+  // buffer video sink: to terminate the filter chain.
   ret = avfilter_graph_create_filter(&input->buffersink_ctx, buffersink, "out",
                                      NULL, NULL, input->filter_graph);
   if (ret < 0) {
@@ -99,28 +93,22 @@ int vs_video_filter_init(struct VSInput *input, const char *filters_descr,
     goto end;
   }
 
-  /*
-   * Set the endpoints for the filter graph. The filter_graph will
-   * be linked to the graph described by filters_descr.
-   */
+  // Set the endpoints for the filter graph. The filter_graph will
+  // be linked to the graph described by filters_descr.
 
-  /*
-   * The buffer source output must be connected to the input pad of
-   * the first filter described by filters_descr; since the first
-   * filter input label is not specified, it is set to "in" by
-   * default.
-   */
+  // The buffer source output must be connected to the input pad of
+  // the first filter described by filters_descr; since the first
+  // filter input label is not specified, it is set to "in" by
+  // default.
   outputs->name = av_strdup("in");
   outputs->filter_ctx = input->buffersrc_ctx;
   outputs->pad_idx = 0;
   outputs->next = NULL;
 
-  /*
-   * The buffer sink input must be connected to the output pad of
-   * the last filter described by filters_descr; since the last
-   * filter output label is not specified, it is set to "out" by
-   * default.
-   */
+  // The buffer sink input must be connected to the output pad of
+  // the last filter described by filters_descr; since the last
+  // filter output label is not specified, it is set to "out" by
+  // default.
   inputs->name = av_strdup("out");
   inputs->filter_ctx = input->buffersink_ctx;
   inputs->pad_idx = 0;
@@ -178,7 +166,7 @@ int vs_audio_filter_init(struct VSInput *input, const char *filters_descr,
     goto end;
   }
 
-  /* buffer video sink: to terminate the filter chain. */
+  // buffer video sink: to terminate the filter chain.
   ret = avfilter_graph_create_filter(&input->abuffersink_ctx, abuffersink,
                                      "out", NULL, NULL, input->afilter_graph);
   if (ret < 0) {
@@ -211,28 +199,22 @@ int vs_audio_filter_init(struct VSInput *input, const char *filters_descr,
     goto end;
   }
 
-  /*
-   * Set the endpoints for the filter graph. The filter_graph will
-   * be linked to the graph described by filters_descr.
-   */
+  // Set the endpoints for the filter graph. The filter_graph will
+  // be linked to the graph described by filters_descr.
 
-  /*
-   * The buffer source output must be connected to the input pad of
-   * the first filter described by filters_descr; since the first
-   * filter input label is not specified, it is set to "in" by
-   * default.
-   */
+  // The buffer source output must be connected to the input pad of
+  // the first filter described by filters_descr; since the first
+  // filter input label is not specified, it is set to "in" by
+  // default.
   outputs->name = av_strdup("in");
   outputs->filter_ctx = input->abuffersrc_ctx;
   outputs->pad_idx = 0;
   outputs->next = NULL;
 
-  /*
-   * The buffer sink input must be connected to the output pad of
-   * the last filter described by filters_descr; since the last
-   * filter output label is not specified, it is set to "out" by
-   * default.
-   */
+  // The buffer sink input must be connected to the output pad of
+  // the last filter described by filters_descr; since the last
+  // filter output label is not specified, it is set to "out" by
+  // default.
   inputs->name = av_strdup("out");
   inputs->filter_ctx = input->abuffersink_ctx;
   inputs->pad_idx = 0;
@@ -305,12 +287,11 @@ int vs_input_video_encoder_open(struct VSInput *input, bool crop, int x, int y,
   input->venc_ctx->framerate = (AVRational){25, 1};
   input->venc_ctx->time_base = av_inv_q(input->venc_ctx->framerate);
 
-  /* emit one intra frame every ten frames
-   * check frame pict_type before passing frame
-   * to encoder, if frame->pict_type is AV_PICTURE_TYPE_I
-   * then gop_size is ignored and the output of encoder
-   * will always be I frame irrespective to gop_size
-   */
+  // emit one intra frame every ten frames
+  // check frame pict_type before passing frame
+  // to encoder, if frame->pict_type is AV_PICTURE_TYPE_I
+  // then gop_size is ignored and the output of encoder
+  // will always be I frame irrespective to gop_size
   input->venc_ctx->gop_size = 10;
   input->venc_ctx->max_b_frames = 1;
   if (enc->pix_fmts)
@@ -422,7 +403,6 @@ int vs_input_audio_encoder_open(struct VSInput *input, const bool verbose) {
 int vs_input_stream_open(AVFormatContext *format_ctx, enum AVMediaType type,
                          int *stream_index, AVCodecContext **dec_ctx) {
   AVCodec *dec;
-  /* select the stream */
   *stream_index = av_find_best_stream(format_ctx, type, -1, -1, &dec, 0);
   if (*stream_index < 0) {
     printf("Cannot find a stream in the input file\n");
@@ -433,7 +413,6 @@ int vs_input_stream_open(AVFormatContext *format_ctx, enum AVMediaType type,
     return 0;
   }
 
-  /* create decoding context */
   *dec_ctx = avcodec_alloc_context3(dec);
   if (*dec_ctx == NULL) {
     printf("unable to alloc context\n");
@@ -442,7 +421,6 @@ int vs_input_stream_open(AVFormatContext *format_ctx, enum AVMediaType type,
   avcodec_parameters_to_context(*dec_ctx,
                                 format_ctx->streams[*stream_index]->codecpar);
 
-  /* init the decoder */
   if (avcodec_open2(*dec_ctx, dec, NULL) < 0) {
     printf("cannot open decoder\n");
     return -1;
@@ -634,8 +612,6 @@ struct VSOutput *vs_open_output(const char *const output_format_name,
     return NULL;
   }
 
-  // output->format_ctx->strict_std_compliance = FF_COMPLIANCE_EXPERIMENTAL;
-
   // First open video, then audio.
   if (input->venc_ctx == NULL) {
     if (vs_duplicate_stream(input->format_ctx->streams[input->vstream_idx],
@@ -796,7 +772,7 @@ int vs_read_packet(const struct VSInput *input, AVPacket *const pkt,
 static int init_output_frame(AVFrame **frame, AVCodecContext *enc_ctx,
                              int frame_size) {
 
-  /* Create a new frame to store the audio samples. */
+  // Create a new frame to store the audio samples.
   *frame = av_frame_alloc();
   if (*frame == NULL) {
     printf("Could not allocate output frame\n");
@@ -813,8 +789,8 @@ static int init_output_frame(AVFrame **frame, AVCodecContext *enc_ctx,
   (*frame)->format = enc_ctx->sample_fmt;
   (*frame)->sample_rate = enc_ctx->sample_rate;
 
-  /* Allocate the samples of the created frame. This call will make
-   * sure that the audio frame can hold as many samples as specified. */
+  // Allocate the samples of the created frame. This call will make
+  // sure that the audio frame can hold as many samples as specified.
   int error = av_frame_get_buffer(*frame, 0);
   if (error < 0) {
     printf("Could not allocate output frame samples (error '%s')\n",
@@ -863,7 +839,7 @@ static int load_encode_audio(AVAudioFifo *fifo, AVCodecContext *enc_ctx,
     return -1;
   }
 
-  /* Encode one frame worth of audio samples. */
+  // Encode one frame worth of audio samples.
   int err = encode_audio_frame(output_frame, enc_ctx, pts);
   av_frame_free(&output_frame);
   if (err != 0) {
@@ -874,7 +850,7 @@ static int load_encode_audio(AVAudioFifo *fifo, AVCodecContext *enc_ctx,
 
 int vs_send_audio_frame(AVFrame *frame, AVAudioFifo *fifo,
                         AVCodecContext *enc_ctx) {
-  /* Store the new samples in the FIFO buffer. */
+  // Store the new samples in the FIFO buffer.
   if (av_audio_fifo_write(fifo, (void **)frame->data, frame->nb_samples) <
       frame->nb_samples) {
     printf("Could not write data to FIFO\n");
@@ -908,14 +884,14 @@ int vs_filter_packet_ctx(AVPacket *const pkt, AVCodecContext *dec_ctx,
     // TODO: Is this necessary?
     frame->pts = frame->best_effort_timestamp;
 
-    /* push the decoded frame into the filtergraph */
+    // Push the decoded frame into the filtergraph.
     if (av_buffersrc_add_frame_flags(buffersrc_ctx, frame,
                                      AV_BUFFERSRC_FLAG_KEEP_REF) < 0) {
       printf("Error while feeding the filtergraph\n");
       break;
     }
 
-    /* pull filtered frames from the filtergraph */
+    // Pull filtered frames from the filtergraph.
     AVFrame *filt_frame = av_frame_alloc();
     while (1) {
       ret = av_buffersink_get_frame(buffersink_ctx, filt_frame);
@@ -961,14 +937,14 @@ int vs_filter_packet_audio(AVPacket *const pkt, AVCodecContext *dec_ctx,
       break;
     }
 
-    /* push the decoded frame into the filtergraph */
+    // Push the decoded frame into the filtergraph.
     if (av_buffersrc_add_frame_flags(buffersrc_ctx, frame,
                                      AV_BUFFERSRC_FLAG_KEEP_REF) < 0) {
       printf("Error while feeding the filtergraph\n");
       break;
     }
 
-    /* pull filtered frames from the filtergraph */
+    // Pull filtered frames from the filtergraph.
     AVFrame *filt_frame = av_frame_alloc();
     while (1) {
       ret = av_buffersink_get_frame(buffersink_ctx, filt_frame);
