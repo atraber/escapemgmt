@@ -181,7 +181,8 @@ func (h HTTPHandler) encoder(si streamViewInfo) {
 			continue
 		}
 
-		if si.Transcode {
+		if pkt.stream_index == sd.input.vsInput.vstream_idx && sd.input.vsInput.venc_ctx != nil ||
+			pkt.stream_index == sd.input.vsInput.astream_idx && sd.input.vsInput.aenc_ctx != nil {
 			if C.vs_filter_packet(sd.input.vsInput, &pkt, C.bool(h.Verbose)) != 0 {
 				log.Printf("could not filter packet")
 			}
@@ -310,16 +311,22 @@ func openInput(si streamViewInfo, probeSize int, analyzeDuration int, verbose bo
 		vsInput: input,
 	}
 
+	if C.vs_input_audio_encoder_open(input, C.bool(verbose)) != 0 {
+		log.Printf("Unable to open audio encoder")
+		destroyInput(i)
+		return nil
+	}
+
 	if !si.Transcode {
 		return i
 	}
 
-	if C.vs_input_encoder_open(
+	if C.vs_input_video_encoder_open(
 		input,
 		C.bool(si.Crop), C.int(si.PosX), C.int(si.PosY), C.int(si.Width), C.int(si.Height),
 		C.bool(si.Scale), C.int(si.OutWidth), C.int(si.OutHeight),
 		C.bool(verbose)) != 0 {
-		log.Printf("Unable to open encoder")
+		log.Printf("Unable to open video encoder")
 		destroyInput(i)
 		return nil
 	}
