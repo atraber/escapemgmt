@@ -138,6 +138,7 @@ func main() {
 func (h HTTPHandler) encoder(si streamViewInfo) {
 	sd := h.Streams[si]
 	activeEncoders.Inc()
+	defer activeEncoders.Dec()
 	clients := []*Client{}
 	clientChan := sd.ClientChan
 
@@ -162,22 +163,15 @@ func (h HTTPHandler) encoder(si streamViewInfo) {
 	clients = append(clients, client)
 
 	for {
-		// Get any new clients, but don't block.
-		clients = acceptClients(clientChan, clients)
+		clients = encoderAcceptClients(clientChan, clients)
 
-		// Read a packet.
-		var pkt C.AVPacket
-		readRes := C.int(0)
-		// We might want to lock input here. It's probably not necessary though.
-		// Other goroutines should only be reading it. We're the writer.
-		readRes = C.vs_read_packet(sd.input.vsInput, &pkt, C.bool(h.Verbose))
-		if readRes == -1 {
+		emptyPkt, pkt, err := encoderRecvPacket(sd.input, h.Verbose)
+		if err != nil {
 			log.Printf("encoder: Failure reading packet")
 			h.cleanupEncoder(si, clients, sd.input)
 			return
 		}
-
-		if readRes == 0 {
+		if emptyPkt {
 			continue
 		}
 
@@ -198,7 +192,7 @@ func (h HTTPHandler) encoder(si streamViewInfo) {
 			C.av_packet_unref(&pkt)
 		}
 
-		// If we get down to zero clients, close the input.
+		// If we have no lients left, exit the encoder.
 		if len(clients) == 0 {
 			log.Printf("No clients left")
 			h.cleanupEncoder(si, clients, sd.input)
@@ -216,14 +210,30 @@ func (h HTTPHandler) cleanupEncoder(si streamViewInfo, clients []*Client, input 
 	delete(h.Streams, si)
 	h.StreamsMutex.Unlock()
 	log.Printf("cleaned up encoder")
-	activeEncoders.Dec()
 }
 
-func acceptClients(clientChan <-chan *Client, clients []*Client) []*Client {
+func encoderRecvPacket(input *Input, verbose bool) (bool, C.AVPacket, error) {
+	// Read a packet.
+	var pkt C.AVPacket
+	readRes := C.int(0)
+	// We might want to lock input here. It's probably not necessary though.
+	// Other goroutines should only be reading it. We're the writer.
+	readRes = C.vs_read_packet(input.vsInput, &pkt, C.bool(verbose))
+	if readRes == -1 {
+		return false, pkt, fmt.Errorf("encoder: Failure reading packet")
+	}
+	if readRes == 0 {
+		return true, pkt, nil
+	}
+	return false, pkt, nil
+}
+
+// encoderAcceptClients returns any new clients (+ existing clients). It doesn't block.
+func encoderAcceptClients(clientChan <-chan *Client, clients []*Client) []*Client {
 	for {
 		select {
 		case client := <-clientChan:
-			log.Printf("got a new client")
+			log.Printf("encoder accepted a new client")
 			activeEncoderClients.Inc()
 			clients = append(clients, client)
 		default:
