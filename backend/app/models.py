@@ -263,6 +263,7 @@ class Booking(db.Model):  # type: ignore
                  slot_to=None,
                  created_at=None):
         self.id = id
+        self.first_name = first_name
         self.name = name
 
         if room is None:
