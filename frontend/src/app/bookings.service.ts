@@ -54,6 +54,23 @@ export class BookingsService {
         'Failed to retrieve booking data. Please try again later.');
     return throwError('Something bad happened; please try again later.');
   }
+
+  addBooking(booking: Booking): Observable<Booking> {
+    return Observable.create(observer => {
+      this.http
+          .post<Booking>(environment.apiEndpoint + '/booking', booking,
+                         jsonOptions)
+          .pipe(catchError(this.handleError))
+          .subscribe(
+              data => {
+                this.bookings.push(data);
+                this.bookingsUpdated.emit(this.bookings);
+                observer.next(data);
+                observer.complete();
+              },
+              err => { observer.error(err); });
+    });
+  }
 }
 
 export let bookingsServiceProvider = {

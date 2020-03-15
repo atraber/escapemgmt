@@ -5,7 +5,9 @@ load("@npm_angular_bazel//:index.bzl", "ng_module")
 
 SCSS_ASSETS = [
     "bookings-card.component.scss",
+    "booking-create.dialog.scss",
     "bookings.component.scss",
+    "payments.component.scss",
     "dash.component.scss",
 ]
 
@@ -24,14 +26,18 @@ CSS_ASSETS = [asset[:-5] for asset in SCSS_ASSETS]
 ng_module(
     name = "bookings",
     srcs = [
+        "booking-create.dialog.ts",
         "bookings.component.ts",
         "bookings.module.ts",
         "bookings-card.component.ts",
         "dash.component.ts",
+        "payments.component.ts",
     ],
     assets = [
         ":bookings-card.component.html",
+        ":booking-create.dialog.html",
         ":bookings.component.html",
+        ":payments.component.html",
         ":dash.component.html",
     ] + CSS_ASSETS,
     tsconfig = "//src:tsconfig.json",

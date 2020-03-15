@@ -28,4 +28,18 @@ export class BookingsCard {
   set bookings(bookings: Booking[]) {
     this.bookingsDataSource.data = bookings;
   }
+
+  getIndicatorClassForBooking(booking: Booking): string {
+    let now = moment();
+    let from = moment(booking.slot_from * 1000);
+    let to = moment(booking.slot_to * 1000);
+
+    if (to < now) {
+      return 'indicator-past';
+    } else if (from > now) {
+      return 'indicator-future';
+    } else {
+      return 'indicator-present';
+    }
+  }
 }

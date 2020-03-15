@@ -1,5 +1,6 @@
 import {LayoutModule} from '@angular/cdk/layout';
 import {NgModule} from '@angular/core';
+import {MatMomentDateModule} from "@angular/material-moment-adapter";
 import {MatAutocompleteModule} from '@angular/material/autocomplete';
 import {MatBadgeModule} from '@angular/material/badge';
 import {MatBottomSheetModule} from '@angular/material/bottom-sheet';
@@ -52,6 +53,7 @@ const matModules = [
   MatSortModule,        MatTableModule,
   MatTabsModule,        MatToolbarModule,
   MatTooltipModule,     MatTreeModule,
+  MatMomentDateModule,
 ];
 
 @NgModule({imports : matModules, exports : matModules})

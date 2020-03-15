@@ -114,6 +114,11 @@
   resolved "https://registry.yarnpkg.com/@angular/forms/-/forms-9.0.0.tgz#2017e4ddee101fa57dc5dc9ba1139b1f02499422"
   integrity sha512-SIYJc0Rgaihow1t+iiwSFGEvvRgssgUuxwIYbMfCp1Sx513K+JX9nVFXqU+dcGj/eF1u5wwYwbvlVyuMQLzmXg==
 
+"@angular/material-moment-adapter@^9.1.2":
+  version "9.1.2"
+  resolved "https://registry.yarnpkg.com/@angular/material-moment-adapter/-/material-moment-adapter-9.1.2.tgz#ffa40a09ffce77b6b6f730c5d402687ee5fc2ce8"
+  integrity sha512-gpFkVKtU8clgytjiNMdxD4YadXHCTlzilkBZ+S4+sd7keQYXw2028Z3aAVfOnuYIE7m8vxlHHDytHhuZbwdwNw==
+
 "@angular/material@9.0.0":
   version "9.0.0"
   resolved "https://registry.yarnpkg.com/@angular/material/-/material-9.0.0.tgz#655bfd4d4047337e84480b9f92be8e81af375b92"

@@ -4,32 +4,38 @@
  */
 import {NgModule} from '@angular/core';
 import {RouterModule, Routes} from '@angular/router';
+
 import {CommonModule} from '../common.module';
 
-import {BookingsComponent} from './bookings.component';
+import {BookingCreateDialog} from './booking-create.dialog';
 import {BookingsCard} from './bookings-card.component';
+import {BookingsComponent} from './bookings.component';
 import {BookingsDashComponent} from './dash.component';
+import {PaymentsComponent} from './payments.component';
 
 const routes: Routes = [
-  { path: 'bookings', component: BookingsComponent },
-  { path: 'bookings/dash', component: BookingsDashComponent },
+  {path : 'bookings', component : BookingsComponent},
+  {path : 'bookings/dash', component : BookingsDashComponent},
+  {path : 'bookings/payments', component : PaymentsComponent},
 ];
 
 @NgModule({
-  declarations: [
+  declarations : [
     BookingsComponent,
     BookingsCard,
     BookingsDashComponent,
+    BookingCreateDialog,
+    PaymentsComponent,
   ],
-  entryComponents: [
+  entryComponents : [
     BookingsCard,
+    BookingCreateDialog,
   ],
-  imports: [
+  imports : [
     CommonModule,
     RouterModule.forChild(routes),
   ],
-  exports: [
-    RouterModule
-  ]
+  exports : [ RouterModule ]
 })
-export class BookingsModule { }
+export class BookingsModule {
+}

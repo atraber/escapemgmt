@@ -20,9 +20,7 @@ import {BookingsService} from '../bookings.service';
   styleUrls : [ './dash.component.scss' ]
 })
 export class BookingsDashComponent {
-  recentBookings: Booking[] = [];
-  currentBookings: Booking[] = [];
-  upcomingBookings: Booking[] = [];
+  bookings: Booking[] = [];
   loaded = false;
 
   constructor(private bookingsService: BookingsService,
@@ -44,48 +42,23 @@ export class BookingsDashComponent {
   private filterAndSortBookings(bookings: Booking[]) {
     let now = moment();
 
-    // Only keep bookings that are relevant for us
+    // We are looking for bookings between 4am today and 4am the next day.
+    let cutoff_day_str = moment().subtract(4, 'hours').format('YYYY-MM-DD');
+    let cutoff_start = moment(cutoff_day_str).add(4, 'hours');
+    let cutoff_end = moment(cutoff_day_str).add(28, 'hours');
+
+    // Only keep bookings that are relevant for us.
     let filtered = bookings.filter((e) => {
       let from = moment(e.slot_from * 1000);
       let to = moment(e.slot_to * 1000);
 
-      // Ignore bookings that have ended more than 12 hours ago
-      if (from.add(12, 'hours') < now)
-        return false;
-
-      // Ignore bookings that start in more than 12 hours
-      if (to.subtract(12, 'hours') > now)
-        return false;
-
-      return true;
+      return from.isAfter(cutoff_start) && to.isBefore(cutoff_end);
     });
 
-    // Sort them by time
+    // Sort them by time.
     let sorted =
         filtered.sort((b1, b2) => { return b1.slot_from - b2.slot_from; });
 
-    // Perform bining, aka. push bookings into recent, current or upcoming
-    // bookings bins.
-    let recent: Booking[] = [];
-    let current: Booking[] = [];
-    let upcoming: Booking[] = [];
-
-    for (let e of sorted) {
-      let from = moment(e.slot_from * 1000);
-      let to = moment(e.slot_to * 1000);
-
-      if (to < now) {
-        recent.push(e);
-      } else if (from > now) {
-        upcoming.push(e);
-      } else {
-        current.push(e);
-      }
-    }
-
-    // Apply changes
-    this.recentBookings = recent;
-    this.currentBookings = current;
-    this.upcomingBookings = upcoming;
+    this.bookings = sorted;
   }
 }

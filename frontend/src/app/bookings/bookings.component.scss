@@ -27,3 +27,7 @@ table {
 .mat-column-slot_from {
     min-width: 225px;
 }
+
+.booking-add-field {
+    @include button-add-field;
+}

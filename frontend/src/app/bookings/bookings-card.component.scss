@@ -4,8 +4,11 @@
     width: 100%;
 }
 
+th.mat-header-cell:first-of-type,
 td.mat-cell:first-of-type {
-    padding-left: 2px !important;
+    padding-left: 0px !important;
+    padding-right: 2px !important;
+    width: 7px;
 }
 
 td.mat-cell:last-of-type {
@@ -15,4 +18,22 @@ td.mat-cell:last-of-type {
 td.mat-cell {
     padding-left: 2px;
     padding-right: 2px;
+}
+
+.indicator-past {
+    background-color: #0066ff33;
+    height: 40px;
+    width: 100%;
+}
+
+.indicator-present {
+    background-color: #33ff0033;
+    height: 40px;
+    width: 100%;
+}
+
+.indicator-future {
+    background-color: #ff110033;
+    height: 40px;
+    width: 100%;
 }

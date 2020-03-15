@@ -52,6 +52,7 @@ ng_module(
         "@npm//@angular/cdk",
         "@npm//@angular/core",
         "@npm//@angular/material",
+        "@npm//@angular/material-moment-adapter",
     ],
 )
 
