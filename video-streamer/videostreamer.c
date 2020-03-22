@@ -284,10 +284,7 @@ int vs_input_video_encoder_open(struct VSInput *input, bool crop, int x, int y,
     }
   }
   input->venc_ctx->sample_aspect_ratio = input->vdec_ctx->sample_aspect_ratio;
-  // TODO: This should be the following, but it does not seem to work properly?
-  // input->venc_ctx->framerate = input->vdec_ctx->framerate;
-  input->venc_ctx->framerate = (AVRational){25, 1};
-  input->venc_ctx->time_base = av_inv_q(input->venc_ctx->framerate);
+  input->venc_ctx->time_base = av_inv_q(input->vdec_ctx->framerate);
 
   // emit one intra frame every ten frames
   // check frame pict_type before passing frame
@@ -443,6 +440,8 @@ int vs_input_stream_open(AVFormatContext *format_ctx, enum AVMediaType type,
   avcodec_parameters_to_context(*dec_ctx,
                                 format_ctx->streams[*stream_index]->codecpar);
 
+  (*dec_ctx)->framerate =
+      av_guess_frame_rate(format_ctx, format_ctx->streams[*stream_index], NULL);
   if (avcodec_open2(*dec_ctx, dec, NULL) < 0) {
     printf("cannot open decoder\n");
     return -1;
