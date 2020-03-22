@@ -28,7 +28,7 @@ import (
 import "C"
 
 var (
-	probeSize       = flag.Int("probesize", 64000, "ProbeSize passed to ffmpeg.")
+	probeSize       = flag.Int("probesize", 100000, "ProbeSize passed to ffmpeg.")
 	analyzeDuration = flag.Int("analyze_duration", 300000, "Max analyze duration passed to ffmpeg.")
 	listenHost      = flag.String("host", "0.0.0.0", "Host to listen on.")
 	listenPort      = flag.Int("port", 8080, "Port to listen on.")
@@ -624,9 +624,12 @@ func (h HTTPHandler) writePacketToClient(rw http.ResponseWriter, r *http.Request
 	}
 
 	// Send chunked data.
-	buf := make([]byte, 1024)
+	buf := make([]byte, 512)
 
 	for {
+		if h.Verbose {
+			log.Printf("read syscall")
+		}
 		readSize, err := syscall.Read(inFile, buf)
 		if os.IsTimeout(err) {
 			break
@@ -654,11 +657,15 @@ func (h HTTPHandler) writePacketToClient(rw http.ResponseWriter, r *http.Request
 			return fmt.Errorf("%s: Short write", r.RemoteAddr)
 		}
 
-		// ResponseWriter buffers chunks. Flush them out ASAP to reduce the time a
-		// client is waiting, especially initially.
-		if flusher, ok := rw.(http.Flusher); ok {
-			flusher.Flush()
+		if h.Verbose {
+			log.Printf("Wrote packet to client")
 		}
+	}
+
+	// ResponseWriter buffers chunks. Flush them out ASAP to reduce the time a
+	// client is waiting, especially initially.
+	if flusher, ok := rw.(http.Flusher); ok {
+		flusher.Flush()
 	}
 
 	return nil
@@ -700,9 +707,9 @@ func (h HTTPHandler) infoRequest(rw http.ResponseWriter, r *http.Request) {
 func makeNonBlockingFile(in *os.File) (int, error) {
 	fd := in.Fd()
 	fdi := int(fd)
-	syscall.SetNonblock(fdi, true)
 	// Make pipe size larger as otherwise there might not be enough room to store
 	// full video frames.
-	syscall.Syscall(syscall.SYS_FCNTL, fd, syscall.F_SETPIPE_SZ, 4096*64)
+	syscall.Syscall(syscall.SYS_FCNTL, fd, syscall.F_SETPIPE_SZ, 4096*128)
+	syscall.SetNonblock(fdi, true)
 	return fdi, nil
 }

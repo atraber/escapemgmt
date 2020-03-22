@@ -470,9 +470,7 @@ struct VSInput *vs_input_open(const char *const input_format_name,
     return NULL;
   }
 
-  if (verbose) {
-    av_dump_format(input->format_ctx, input->vstream_idx, input_url, 0);
-  }
+  av_dump_format(input->format_ctx, input->vstream_idx, input_url, 0);
 
   if (vs_input_stream_open(input->format_ctx, AVMEDIA_TYPE_VIDEO,
                            &input->vstream_idx, &input->vdec_ctx) != 0) {
@@ -706,6 +704,7 @@ struct VSOutput *vs_open_output(const char *const output_format_name,
   av_dict_free(&opts);
 
   output->last_dts = AV_NOPTS_VALUE;
+  output->alast_dts = AV_NOPTS_VALUE;
 
   return output;
 }
@@ -1105,17 +1104,17 @@ int vs_packet_fix_timestamps(AVPacket *const pkt, int64_t last_dts,
   // the timestamps properly
   //
   // [mp4 @ 0x55688397bc40] Encoder did not produce proper pts, making some up.
-  if (pkt->pts == AV_NOPTS_VALUE) {
-    pkt->pts = 0;
-  } else {
-    pkt->pts = av_rescale_q_rnd(pkt->pts, in_tb, out_tb,
-                                AV_ROUND_NEAR_INF | AV_ROUND_PASS_MINMAX);
-  }
-
   if (pkt->dts == AV_NOPTS_VALUE) {
     pkt->dts = 0;
   } else {
     pkt->dts = av_rescale_q_rnd(pkt->dts, in_tb, out_tb,
+                                AV_ROUND_NEAR_INF | AV_ROUND_PASS_MINMAX);
+  }
+
+  if (pkt->pts == AV_NOPTS_VALUE) {
+    pkt->pts = pkt->dts == AV_NOPTS_VALUE ? 0 : pkt->dts;
+  } else {
+    pkt->pts = av_rescale_q_rnd(pkt->pts, in_tb, out_tb,
                                 AV_ROUND_NEAR_INF | AV_ROUND_PASS_MINMAX);
   }
 
@@ -1171,7 +1170,6 @@ int vs_write_packet(struct VSOutput *const output, AVPacket *const pkt,
       return -1;
     }
 
-    // Track last dts we see (see where we use it for why).
     output->last_dts = pkt->dts;
   } else if (pkt->stream_index == output->astream_idx) {
     if (verbose) {
@@ -1193,7 +1191,6 @@ int vs_write_packet(struct VSOutput *const output, AVPacket *const pkt,
       return -1;
     }
 
-    // Track last dts we see (see where we use it for why).
     output->alast_dts = pkt->dts;
   }
 
@@ -1205,7 +1202,7 @@ int vs_write_packet(struct VSOutput *const output, AVPacket *const pkt,
   // av_interleaved_write_frame() works too, but I don't think it is needed.
   // Using av_write_frame() skips buffering.
   const int write_res = av_write_frame(output->format_ctx, pkt);
-  if (write_res != 0) {
+  if (write_res < 0) {
     printf("unable to write frame: %s\n", av_err2str(write_res));
     return -1;
   }
