@@ -58,16 +58,17 @@ type streamInfo struct {
 }
 
 type streamViewInfo struct {
-	Url       string
-	Transcode bool
-	Crop      bool
-	PosX      int
-	PosY      int
-	Width     int
-	Height    int
-	Scale     bool
-	OutWidth  int
-	OutHeight int
+	Url         string
+	Transcode   bool
+	Crop        bool
+	PosX        int
+	PosY        int
+	Width       int
+	Height      int
+	Scale       bool
+	OutWidth    int
+	OutHeight   int
+	Orientation int
 }
 
 type streamData struct {
@@ -100,6 +101,14 @@ type Client struct {
 type Input struct {
 	mutex   *sync.RWMutex
 	vsInput *C.struct_VSInput
+}
+
+func (inp Input) hasAudio() bool {
+	return inp.vsInput.astream_idx >= 0
+}
+
+func (inp Input) hasVideo() bool {
+	return inp.vsInput.vstream_idx >= 0
 }
 
 type packetData struct {
@@ -321,7 +330,7 @@ func openInput(si streamViewInfo, probeSize int, analyzeDuration int, verbose bo
 		vsInput: input,
 	}
 
-	if C.vs_input_audio_encoder_open(input, C.bool(verbose)) != 0 {
+	if i.hasAudio() && C.vs_input_audio_encoder_open(input, C.bool(verbose)) != 0 {
 		log.Printf("Unable to open audio encoder")
 		destroyInput(i)
 		return nil
@@ -331,10 +340,11 @@ func openInput(si streamViewInfo, probeSize int, analyzeDuration int, verbose bo
 		return i
 	}
 
-	if C.vs_input_video_encoder_open(
+	if i.hasVideo() && C.vs_input_video_encoder_open(
 		input,
 		C.bool(si.Crop), C.int(si.PosX), C.int(si.PosY), C.int(si.Width), C.int(si.Height),
 		C.bool(si.Scale), C.int(si.OutWidth), C.int(si.OutHeight),
+		C.int(si.Orientation),
 		C.bool(verbose)) != 0 {
 		log.Printf("Unable to open video encoder")
 		destroyInput(i)
@@ -479,9 +489,21 @@ func parseStreamUrl(u url.URL) (streamViewInfo, error) {
 		if err != nil {
 			return si, err
 		}
+		if si.OutWidth%2 != 0 {
+			si.OutWidth = si.OutWidth + 1
+		}
 	}
 	if len(q["out_height"]) > 0 {
 		si.OutHeight, err = strconv.Atoi(q["out_height"][0])
+		if err != nil {
+			return si, err
+		}
+		if si.OutHeight%2 != 0 {
+			si.OutHeight = si.OutHeight + 1
+		}
+	}
+	if len(q["orientation"]) > 0 {
+		si.Orientation, err = strconv.Atoi(q["orientation"][0])
 		if err != nil {
 			return si, err
 		}

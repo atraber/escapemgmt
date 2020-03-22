@@ -10,6 +10,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+const int E_NO_STREAM_FOUND = -3;
+
 void vs_log_packet(const AVFormatContext *const format_ctx,
                    const AVPacket *const pkt, const char *const tag) {
   AVRational *const time_base =
@@ -236,7 +238,7 @@ end:
 
 int vs_input_video_encoder_open(struct VSInput *input, bool crop, int x, int y,
                                 int width, int height, bool scale,
-                                int out_width, int out_height,
+                                int out_width, int out_height, int orientation,
                                 const bool verbose) {
   if (crop) {
     if (x + width > input->vdec_ctx->width) {
@@ -308,34 +310,54 @@ int vs_input_video_encoder_open(struct VSInput *input, bool crop, int x, int y,
   }
 
   char filter_desc[512];
+  char filter_desc_dup[512];
+  filter_desc[0] = '\0';
   if (crop) {
-    if (scale) {
-      if (snprintf(filter_desc, sizeof(filter_desc),
-                   "crop=%d:%d:%d:%d,scale=%d:%d", width, height, x, y,
-                   out_width, out_height) < 0) {
+    strncpy(filter_desc_dup, filter_desc, sizeof(filter_desc));
+    if (snprintf(filter_desc, sizeof(filter_desc), "%scrop=%d:%d:%d:%d,",
+                 filter_desc_dup, width, height, x, y) < 0) {
+      printf("Failed to create filter desc\n");
+      return -1;
+    }
+  }
+  if (orientation != 0) {
+    strncpy(filter_desc_dup, filter_desc, sizeof(filter_desc));
+    if (orientation == 90) {
+      if (snprintf(filter_desc, sizeof(filter_desc), "%stranspose=dir=1,",
+                   filter_desc_dup) < 0) {
         printf("Failed to create filter desc\n");
         return -1;
       }
     } else {
-      if (snprintf(filter_desc, sizeof(filter_desc), "crop=%d:%d:%d:%d", width,
-                   height, x, y) < 0) {
-        printf("Failed to create filter desc\n");
-        return -1;
-      }
+      printf("Cannot make sense of orientation %d\n", orientation);
+      return -1;
+    }
+  }
+  if (scale) {
+    strncpy(filter_desc_dup, filter_desc, sizeof(filter_desc));
+    if (snprintf(filter_desc, sizeof(filter_desc), "%sscale=%d:%d,",
+                 filter_desc_dup, out_width, out_height) < 0) {
+      printf("Failed to create filter desc\n");
+      return -1;
+    }
+  }
+
+  // If we haven't applied any other filters yet, we apply the "nothing" filter.
+  if (strlen(filter_desc) == 0) {
+    if (snprintf(filter_desc, sizeof(filter_desc), "null") < 0) {
+      printf("Failed to create filter desc\n");
+      return -1;
     }
   } else {
-    if (scale) {
-      if (snprintf(filter_desc, sizeof(filter_desc), "scale=%d:%d", out_width,
-                   out_height) < 0) {
-        printf("Failed to create filter desc\n");
-        return -1;
-      }
-    } else {
-      if (snprintf(filter_desc, sizeof(filter_desc), "null") < 0) {
-        printf("Failed to create filter desc\n");
-        return -1;
-      }
+    // If there is a ',' at the end, remove it.
+    int filter_desc_len = strlen(filter_desc);
+    if (filter_desc[filter_desc_len - 1] == ',') {
+      filter_desc[filter_desc_len - 1] = '\0';
     }
+  }
+
+  if (verbose) {
+    printf("filter_desc is %s\n", filter_desc);
   }
 
   if (vs_video_filter_init(input, filter_desc, verbose) != 0) {
@@ -402,15 +424,15 @@ int vs_input_audio_encoder_open(struct VSInput *input, const bool verbose) {
 
 int vs_input_stream_open(AVFormatContext *format_ctx, enum AVMediaType type,
                          int *stream_index, AVCodecContext **dec_ctx) {
+  if (dec_ctx == NULL) {
+    return -1;
+  }
+
   AVCodec *dec;
   *stream_index = av_find_best_stream(format_ctx, type, -1, -1, &dec, 0);
   if (*stream_index < 0) {
     printf("Cannot find a stream in the input file\n");
-    return -1;
-  }
-
-  if (dec_ctx == NULL) {
-    return 0;
+    return E_NO_STREAM_FOUND;
   }
 
   *dec_ctx = avcodec_alloc_context3(dec);
@@ -429,6 +451,19 @@ int vs_input_stream_open(AVFormatContext *format_ctx, enum AVMediaType type,
   return 0;
 }
 
+static struct VSInput *vs_input_alloc() {
+  struct VSInput *const input = malloc(sizeof(*input));
+  if (input == NULL) {
+    printf("%s\n", strerror(errno));
+    return NULL;
+  }
+  memset(input, 0, sizeof(*input));
+  input->vstream_idx = -1;
+  input->astream_idx = -1;
+
+  return input;
+}
+
 struct VSInput *vs_input_open(const char *const input_format_name,
                               const char *const input_url, int probesize,
                               int analyze_duration, const bool verbose) {
@@ -438,12 +473,11 @@ struct VSInput *vs_input_open(const char *const input_format_name,
     return NULL;
   }
 
-  struct VSInput *const input = malloc(sizeof(*input));
+  struct VSInput *const input = vs_input_alloc();
   if (input == NULL) {
-    printf("%s\n", strerror(errno));
+    printf("Couldn't allocate VSInput\n");
     return NULL;
   }
-  memset(input, 0, sizeof(*input));
 
   AVInputFormat *const input_format = av_find_input_format(input_format_name);
   if (input_format == NULL) {
@@ -470,19 +504,26 @@ struct VSInput *vs_input_open(const char *const input_format_name,
     return NULL;
   }
 
-  av_dump_format(input->format_ctx, input->vstream_idx, input_url, 0);
+  av_dump_format(input->format_ctx, 0, input_url, 0);
 
-  if (vs_input_stream_open(input->format_ctx, AVMEDIA_TYPE_VIDEO,
-                           &input->vstream_idx, &input->vdec_ctx) != 0) {
+  int err = vs_input_stream_open(input->format_ctx, AVMEDIA_TYPE_VIDEO,
+                                 &input->vstream_idx, &input->vdec_ctx);
+  if (err != 0 && err != E_NO_STREAM_FOUND) {
     printf("Cannot open input video codec\n");
     vs_input_free(input);
     return NULL;
   }
 
-  if (vs_input_stream_open(input->format_ctx, AVMEDIA_TYPE_AUDIO,
-                           &input->astream_idx, &input->adec_ctx) != 0) {
+  err = vs_input_stream_open(input->format_ctx, AVMEDIA_TYPE_AUDIO,
+                             &input->astream_idx, &input->adec_ctx);
+  if (err != 0 && err != E_NO_STREAM_FOUND) {
     printf("Cannot open input audio codec\n");
     vs_input_free(input);
+    return NULL;
+  }
+
+  if (input->vstream_idx < 0 && input->astream_idx < 0) {
+    printf("Neither video nor audio stream found\n");
     return NULL;
   }
 
@@ -611,37 +652,42 @@ struct VSOutput *vs_open_output(const char *const output_format_name,
   }
 
   // First open video, then audio.
-  if (input->venc_ctx == NULL) {
-    if (vs_duplicate_stream(input->format_ctx->streams[input->vstream_idx],
-                            output->format_ctx) != 0) {
-      printf("Unable to duplicate video stream\n");
-      vs_destroy_output(output);
-      return NULL;
-    }
-  } else {
-    if (vs_create_stream_from_codec(input->venc_ctx, output->format_ctx) != 0) {
-      printf("Unable to create video stream\n");
-      vs_destroy_output(output);
-      return NULL;
+  if (input->vstream_idx >= 0) {
+    if (input->venc_ctx == NULL) {
+      if (vs_duplicate_stream(input->format_ctx->streams[input->vstream_idx],
+                              output->format_ctx) != 0) {
+        printf("Unable to duplicate video stream\n");
+        vs_destroy_output(output);
+        return NULL;
+      }
+    } else {
+      if (vs_create_stream_from_codec(input->venc_ctx, output->format_ctx) !=
+          0) {
+        printf("Unable to create video stream\n");
+        vs_destroy_output(output);
+        return NULL;
+      }
     }
   }
   output->vstream_idx = input->vstream_idx;
 
-  if (input->aenc_ctx == NULL) {
-    if (vs_duplicate_stream(input->format_ctx->streams[input->astream_idx],
-                            output->format_ctx) != 0) {
-      printf("Unable to duplicate audio stream\n");
-      vs_destroy_output(output);
-      return NULL;
-    }
-  } else {
-    if (vs_create_stream_from_codec(input->aenc_ctx, output->format_ctx) != 0) {
-      printf("Unable to create audio stream\n");
-      vs_destroy_output(output);
-      return NULL;
+  if (input->astream_idx >= 0) {
+    if (input->aenc_ctx == NULL) {
+      if (vs_duplicate_stream(input->format_ctx->streams[input->astream_idx],
+                              output->format_ctx) != 0) {
+        printf("Unable to duplicate audio stream\n");
+        vs_destroy_output(output);
+        return NULL;
+      }
+    } else {
+      if (vs_create_stream_from_codec(input->aenc_ctx, output->format_ctx) !=
+          0) {
+        printf("Unable to create audio stream\n");
+        vs_destroy_output(output);
+        return NULL;
+      }
     }
   }
-
   output->astream_idx = input->astream_idx;
 
   if (verbose) {

@@ -52,7 +52,7 @@ struct VSInput *vs_input_open(const char *const input_format_name,
                               int analyze_duration, const bool verbose);
 int vs_input_video_encoder_open(struct VSInput *input, bool crop, int x, int y,
                                 int width, int height, bool scale,
-                                int out_width, int out_height,
+                                int out_width, int out_height, int orientation,
                                 const bool verbose);
 int vs_input_audio_encoder_open(struct VSInput *input, const bool verbose);
 
