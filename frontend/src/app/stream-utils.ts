@@ -38,14 +38,14 @@ export class StreamUtils {
     // TODO: Be smarter about this.
     if (stream.streamviews.length > 0) {
       return this.streamViewPreviewUrl(stream.streamviews[0], maxWidth,
-                                       maxHeight);
+                                       maxHeight, stream.orientation);
     } else {
       return "";
     }
   }
 
   streamViewPreviewUrl(streamview: StreamView, maxWidth = null,
-                       maxHeight = null): string {
+                       maxHeight = null, orientation = 0): string {
     let width = streamview.crop_x2 - streamview.crop_x1;
     let height = streamview.crop_y2 - streamview.crop_y1;
     let outWidth = width;
@@ -60,7 +60,8 @@ export class StreamUtils {
               '/stream?url=' + encodeURIComponent(streamview.url) +
               '&x=' + streamview.crop_x1 + '&y=' + streamview.crop_y1 +
               '&width=' + width + '&height=' + height +
-              '&out_width=' + outWidth + '&out_height=' + outHeight;
+              '&out_width=' + outWidth + '&out_height=' + outHeight +
+              '&orientation=' + orientation;
     return url;
   }
 
