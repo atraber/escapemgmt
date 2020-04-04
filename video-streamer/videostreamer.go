@@ -28,8 +28,8 @@ import (
 import "C"
 
 var (
-	probeSize       = flag.Int("probesize", 100000, "ProbeSize passed to ffmpeg.")
-	analyzeDuration = flag.Int("analyze_duration", 300000, "Max analyze duration passed to ffmpeg.")
+	probeSize       = flag.Int("probesize", 1000000, "ProbeSize passed to ffmpeg.")
+	analyzeDuration = flag.Int("analyze_duration", 100000, "Specify how many microseconds are analyzed to probe the input.")
 	listenHost      = flag.String("host", "0.0.0.0", "Host to listen on.")
 	listenPort      = flag.Int("port", 8080, "Port to listen on.")
 	input           = flag.String("input", "", "Input URL valid for the given format. For RTSP you can provide a rtsp:// URL.")

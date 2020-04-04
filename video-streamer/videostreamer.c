@@ -486,7 +486,10 @@ struct VSInput *vs_input_open(const char *const input_format_name,
   }
 
   input->format_ctx = avformat_alloc_context();
+  input->format_ctx->max_delay = 1000;
+  input->format_ctx->flags |= AVFMT_FLAG_NOBUFFER;
   input->format_ctx->probesize = probesize;
+  input->format_ctx->fps_probe_size = 5;
   input->format_ctx->max_analyze_duration = analyze_duration;
 
   int const open_status =
