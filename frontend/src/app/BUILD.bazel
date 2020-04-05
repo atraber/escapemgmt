@@ -66,6 +66,7 @@ ts_library(
         "entity-utils.ts",
         "nav.service.ts",
         "preset.ts",
+        "preset-group.ts",
         "presets.service.ts",
         "room.ts",
         "rxjs-utils.ts",

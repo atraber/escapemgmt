@@ -1,0 +1,10 @@
+<h1 mat-dialog-title>Confirm removal of {{data.name}}</h1>
+<div mat-dialog-content>
+    <p>Are you sure you want to remove {{data.name}}?</p>
+    <p>This will also remove all associated presets!</p>
+    <p>This action cannot be undone!</p>
+</div>
+<div mat-dialog-actions>
+    <button mat-raised-button mat-dialog-close>Cancel</button>
+    <button mat-raised-button color="warn" cdkFocusInitial (click)="delete(data)">Delete</button>
+</div>

@@ -81,6 +81,11 @@ class Device(db.Model):  # type: ignore
     mac = sa.Column(sa.String(17), unique=True)
     screen_enable = sa.Column(sa.Boolean, default=True, nullable=False)
     last_seen = sa.Column(sa.Integer)
+    # TODO
+    # preset_group_id = sa.Column(sa.Integer,
+    #                             sa.ForeignKey('presetgroups.id'),
+    #                             nullable=True)
+
     # TODO: Should remove this at some point. It is only used on the Raspberry
     # Pis anyways.
     streams = orm.relationship(
@@ -173,12 +178,37 @@ class StreamView(db.Model):  # type: ignore
         }
 
 
+class PresetGroup(db.Model):  # type: ignore
+    __tablename__ = 'presetgroups'
+
+    id = sa.Column(sa.Integer, primary_key=True)
+    name = sa.Column(sa.String(100), nullable=False)
+    # TODO: The cascade doesn't actually seem to work. Need to look more into
+    # this. I assume we need to enable the delete directly on the ForeignKey.
+    presets = orm.relationship('Preset', cascade='delete')
+
+    def __init__(self, id=None, name=None):
+        self.id = id
+        self.name = name
+
+    def serialize(self):
+        out = {
+            'id': self.id,
+            'name': self.name,
+        }
+
+        return out
+
+
 class Preset(db.Model):  # type: ignore
     __tablename__ = 'presets'
 
     id = sa.Column(sa.Integer, primary_key=True)
     name = sa.Column(sa.String(100))
     active = sa.Column(sa.Boolean, default=False, nullable=False)
+    preset_group_id = sa.Column(sa.Integer,
+                                sa.ForeignKey('presetgroups.id'),
+                                nullable=False)
 
     # TODO: Figure out if this is still necessary. We renamed our own field to streams_bar for now.
     streams = orm.relationship(
@@ -189,16 +219,18 @@ class Preset(db.Model):  # type: ignore
         viewonly=True,
         lazy='select')
 
-    def __init__(self, id=None, name=None, active=False):
+    def __init__(self, id=None, name=None, active=False, preset_group_id=None):
         self.id = id
         self.name = name
         self.active = active
+        self.preset_group_id = preset_group_id
 
     def serialize(self):
         out = {
             'id': self.id,
             'name': self.name,
             'active': self.active,
+            'preset_group_id': self.preset_group_id,
         }
 
         return out

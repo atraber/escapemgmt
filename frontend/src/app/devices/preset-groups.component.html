@@ -1,0 +1,23 @@
+<mat-list>
+    <a mat-list-item>Preset Groups</a>
+</mat-list>
+<mat-divider></mat-divider>
+<mat-spinner class="spinner-center" *ngIf="!loaded"></mat-spinner>
+<mat-drawer-container [autosize]=true class="drawer-list">
+    <mat-drawer [opened]=true [disableClose]=true mode="side">
+        <mat-button-toggle-group [vertical]=true>
+            <mat-button-toggle *ngFor="let pg of presetGroups" value="pg" (click)="select(pg)" [checked]="pgSelected == pg">
+                <div class="button-text">
+                    {{pg.name}}
+                </div>
+            </mat-button-toggle>
+        </mat-button-toggle-group>
+
+        <div class="add-field">
+            <button mat-button color="primary" (click)="addDialog()">Add new Preset Group</button>
+        </div>
+    </mat-drawer>
+    <mat-drawer-content>
+        <preset-group-edit [pg]="pgSelected" *ngIf="pgSelected != null"></preset-group-edit>
+    </mat-drawer-content>
+</mat-drawer-container>

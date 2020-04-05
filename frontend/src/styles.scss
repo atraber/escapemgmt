@@ -52,6 +52,21 @@ $orange: #f39200;
     }
 }
 
+@mixin form-container {
+    display: flex;
+    flex-direction: column;
+    margin: 10px;
+
+    &>.buttons {
+        flex-direction: row;
+    }
+
+    &>.buttons button {
+        margin-left: 4px;
+        margin-right: 4px;
+    }
+}
+
 .form-full-width {
     width: 98%;
 }

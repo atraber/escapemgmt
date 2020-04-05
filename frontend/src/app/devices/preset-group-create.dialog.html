@@ -1,0 +1,8 @@
+<h1 mat-dialog-title>Create new Preset Group</h1>
+<div mat-dialog-content>
+    <preset-group-form [pg]="pg"></preset-group-form>
+</div>
+<div mat-dialog-actions>
+    <button mat-raised-button mat-dialog-close>Close</button>
+    <button mat-raised-button cdkFocusInitial color="primary" (click)="add(pg)">Create</button>
+</div>

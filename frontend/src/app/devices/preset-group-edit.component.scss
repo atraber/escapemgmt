@@ -3,9 +3,3 @@
 .form-container {
     @include form-container;
 }
-
-video {
-    max-width: 300px;
-    margin: 0 auto;
-    display: block;
-}

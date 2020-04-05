@@ -4,9 +4,13 @@
  */
 import {Stream} from './stream';
 
+declare class PresetGroup {};
+
 export class Preset {
   id: number;
   name: string;
   active: boolean;
   streams: Stream[]|null; // Optional
+  preset_group_id: number;
+  presetGroup: PresetGroup|null; // Optional
 }

@@ -12,6 +12,7 @@ import {environment} from '../environment';
 import {DevicesService} from './devices.service';
 import {NavService} from './nav.service';
 import {Preset} from './preset';
+import {PresetGroup} from './preset-group';
 import {saneRetryStrategy} from './rxjs-utils';
 
 const jsonOptions = {
@@ -23,9 +24,14 @@ const jsonOptions = {
 @Injectable()
 export class PresetsService {
   presets: Preset[] = [];
+  presetGroups: PresetGroup[] = [];
   loaded = false;
 
+  private loadedPresets = false;
+  private loadedPresetGroups = false;
+
   presetsUpdated: EventEmitter<Preset[]> = new EventEmitter();
+  presetGroupsUpdated: EventEmitter<PresetGroup[]> = new EventEmitter();
 
   constructor(private devicesService: DevicesService, private http: HttpClient,
               private navService: NavService) {
@@ -35,8 +41,18 @@ export class PresetsService {
         .pipe(catchError(this.handleError))
         .subscribe(presets => {
           this.presets = presets;
-          this.loaded = true;
-          this.presetsUpdated.emit(presets);
+          this.loadedPresets = true;
+          this.updateElements();
+        });
+
+    this.http.get<PresetGroup[]>(environment.apiEndpoint + '/presetgroups')
+        .pipe(retryWhen(saneRetryStrategy(
+            (msg: string): void => { this.navService.message(msg); })))
+        .pipe(catchError(this.handleError))
+        .subscribe(presetGroups => {
+          this.presetGroups = presetGroups;
+          this.loadedPresetGroups = true;
+          this.updateElements();
         });
   }
 
@@ -84,7 +100,7 @@ export class PresetsService {
           .subscribe(
               data => {
                 this.presets.push(data);
-                this.presetsUpdated.emit(this.presets)
+                this.updateElements();
                 observer.next(data);
                 observer.complete();
               },
@@ -118,12 +134,92 @@ export class PresetsService {
               data => {
                 let index = this.presets.indexOf(preset);
                 this.presets.splice(index, 1);
-                this.presetsUpdated.emit(this.presets)
+                this.updateElements();
                 observer.next(null);
                 observer.complete();
               },
               err => { observer.error(err); });
     });
+  }
+
+  addPresetGroup(pg: PresetGroup): Observable<PresetGroup> {
+    return Observable.create(observer => {
+      this.http
+          .post<PresetGroup>(environment.apiEndpoint + '/presetgroup', pg,
+                             jsonOptions)
+          .pipe(catchError(this.handleError))
+          .subscribe(
+              data => {
+                this.presetGroups.push(data);
+                this.presetGroupsUpdated.emit(this.presetGroups)
+                observer.next(data);
+                observer.complete();
+              },
+              err => { observer.error(err); });
+    });
+  }
+
+  updatePresetGroup(pg: PresetGroup): Observable<PresetGroup> {
+    return Observable.create(observer => {
+      this.http
+          .post<PresetGroup>(environment.apiEndpoint + '/presetgroups/' + pg.id,
+                             pg, jsonOptions)
+          .pipe(catchError(this.handleError))
+          .subscribe(
+              data => {
+                this.presetGroupsUpdated.emit(this.presetGroups)
+                observer.next(data);
+                observer.complete();
+              },
+              err => { observer.error(err); });
+    });
+  }
+
+  deletePresetGroup(pg: PresetGroup): Observable<{}> {
+    return Observable.create(observer => {
+      this.http
+          .delete(environment.apiEndpoint + '/presetgroups/' + pg.id,
+                  jsonOptions)
+          .pipe(catchError(this.handleError))
+          .subscribe(
+              data => {
+                let index = this.presetGroups.indexOf(pg);
+                this.presetGroups.splice(index, 1);
+                this.presetGroupsUpdated.emit(this.presetGroups)
+                observer.next(null);
+                observer.complete();
+              },
+              err => { observer.error(err); });
+    });
+  }
+
+  private updateElements() {
+    this.loaded = this.loadedPresets && this.loadedPresetGroups;
+    if (this.loaded) {
+      this.updatePresetsInPresetGroups();
+    }
+    // Need to update both to propagate loaded status.
+    this.presetGroupsUpdated.emit(this.presetGroups);
+    this.presetsUpdated.emit(this.presets);
+  }
+
+  private updatePresetsInPresetGroups() {
+    // First we build an index of preset groups.
+    let pgIndex: {[id: number]: PresetGroup} = [];
+    for (let pg of this.presetGroups) {
+      pgIndex[pg.id] = pg;
+      pg.presets = [];
+    }
+
+    for (let p of this.presets) {
+      let pg = pgIndex[p.preset_group_id];
+      if (pg == null) {
+        console.log('Did not find preset group with id ' + p.preset_group_id);
+        continue;
+      }
+      pg.presets.push(p);
+      p.presetGroup = pg;
+    }
   }
 }
 
