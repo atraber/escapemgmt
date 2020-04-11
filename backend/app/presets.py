@@ -18,7 +18,11 @@ async def apiPresets():
 @presets.route('/preset', methods=['POST'])
 async def apiPresetAdd():
     if request.headers['Content-Type'] == 'application/json':
-        preset = Preset(name=(await request.json)['name'])
+        json_data = await request.json
+        preset = Preset(
+            name=json_data['name'],
+            preset_group_id=json_data['preset_group_id'],
+        )
         db.session.add(preset)
         db.session.commit()
         return jsonify(preset.serialize())
@@ -43,19 +47,23 @@ async def apiPresetUpdate(presetid: int):
 @presets.route('/preset/activate/<int:presetid>', methods=['POST'])
 async def apiPresetActivate(presetid: int):
     if request.headers['Content-Type'] == 'application/json':
-        preset_old = db.session.query(Preset).filter_by(active=True).first()
-        if preset_old:
-            preset_old.active = False
+        db_preset_new = db.session.query(Preset).filter_by(id=presetid).first()
+        db_preset_new.active = True
+
+        db_presets_active = db.session.query(Preset).filter_by(
+            active=True, preset_group_id=db_preset_new.preset_group_id).all()
+        if db_presets_active:
+            for p in db_presets_active:
+                if p.id != db_preset_new.id:
+                    p.active = False
         else:
             logger.error('No active preset found')
 
-        preset_new = db.session.query(Preset).filter_by(id=presetid).first()
-        preset_new.active = True
-
         # Activate all screens
-        devices = db.session.query(Device).all()
+        db_devices = db.session.query(Device).filter_by(
+            preset_group_id=db_preset_new.preset_group_id).all()
 
-        for device in devices:
+        for device in db_devices:
             device.screen_enable = True
 
         db.session.commit()

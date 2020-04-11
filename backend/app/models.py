@@ -10,13 +10,13 @@ import sqlalchemy.orm as orm
 class DeviceStream(db.Model):  # type: ignore
     __tablename__ = 'device_streams'
     device_id = sa.Column(sa.Integer,
-                          sa.ForeignKey('devices.id'),
+                          sa.ForeignKey('devices.id', ondelete='CASCADE'),
                           primary_key=True)
     preset_id = sa.Column(sa.Integer,
-                          sa.ForeignKey('presets.id'),
+                          sa.ForeignKey('presets.id', ondelete='CASCADE'),
                           primary_key=True)
     stream_id = sa.Column(sa.Integer,
-                          sa.ForeignKey('streams.id'),
+                          sa.ForeignKey('streams.id', ondelete='CASCADE'),
                           primary_key=True)
 
     device = orm.relationship('Device', backref='device_streams')
@@ -81,10 +81,10 @@ class Device(db.Model):  # type: ignore
     mac = sa.Column(sa.String(17), unique=True)
     screen_enable = sa.Column(sa.Boolean, default=True, nullable=False)
     last_seen = sa.Column(sa.Integer)
-    # TODO
-    # preset_group_id = sa.Column(sa.Integer,
-    #                             sa.ForeignKey('presetgroups.id'),
-    #                             nullable=True)
+    preset_group_id = sa.Column(sa.Integer,
+                                sa.ForeignKey('presetgroups.id',
+                                              ondelete='SET NULL'),
+                                nullable=True)
 
     # TODO: Should remove this at some point. It is only used on the Raspberry
     # Pis anyways.
@@ -114,6 +114,7 @@ class Device(db.Model):  # type: ignore
             'last_seen': self.last_seen,
             'streams': [s.serialize() for s in self.streams],
             'device_streams': [s.serialize() for s in self.device_streams],
+            'preset_group_id': self.preset_group_id,
         }
 
 
@@ -143,7 +144,8 @@ class StreamView(db.Model):  # type: ignore
     __tablename__ = 'streamviews'
 
     id = sa.Column(sa.Integer, primary_key=True)
-    stream_id = sa.Column(sa.Integer, sa.ForeignKey('streams.id'))
+    stream_id = sa.Column(sa.Integer,
+                          sa.ForeignKey('streams.id', ondelete='CASCADE'))
     url = sa.Column(sa.String(255))
     crop_x1 = sa.Column(sa.Integer, nullable=False)
     crop_x2 = sa.Column(sa.Integer, nullable=False)
@@ -183,9 +185,7 @@ class PresetGroup(db.Model):  # type: ignore
 
     id = sa.Column(sa.Integer, primary_key=True)
     name = sa.Column(sa.String(100), nullable=False)
-    # TODO: The cascade doesn't actually seem to work. Need to look more into
-    # this. I assume we need to enable the delete directly on the ForeignKey.
-    presets = orm.relationship('Preset', cascade='delete')
+    presets = orm.relationship('Preset')
 
     def __init__(self, id=None, name=None):
         self.id = id
@@ -207,7 +207,8 @@ class Preset(db.Model):  # type: ignore
     name = sa.Column(sa.String(100))
     active = sa.Column(sa.Boolean, default=False, nullable=False)
     preset_group_id = sa.Column(sa.Integer,
-                                sa.ForeignKey('presetgroups.id'),
+                                sa.ForeignKey('presetgroups.id',
+                                              ondelete='CASCADE'),
                                 nullable=False)
 
     # TODO: Figure out if this is still necessary. We renamed our own field to streams_bar for now.
@@ -277,11 +278,12 @@ class Booking(db.Model):  # type: ignore
     id = sa.Column(sa.Integer, primary_key=True)
     name = sa.Column(sa.String(100))
     first_name = sa.Column(sa.String(100))
-    room_id = sa.Column(sa.Integer, sa.ForeignKey('rooms.id'))
+    room_id = sa.Column(sa.Integer,
+                        sa.ForeignKey('rooms.id', ondelete='CASCADE'))
     # TODO: I'm not exactly sure what gets loaded here. If it is only Room
     # without the scores, this is fine. However, it seems it doubles the
     # query time for Bookings.
-    room = orm.relationship('Room', cascade='delete')
+    room = orm.relationship('Room')
     slot_from = sa.Column(sa.Integer)
     slot_to = sa.Column(sa.Integer)
     created_at = sa.Column(sa.Integer)
@@ -335,7 +337,8 @@ class Score(db.Model):  # type: ignore
 
     id = sa.Column(sa.Integer, primary_key=True)
     name = sa.Column(sa.String(100))
-    room_id = sa.Column(sa.Integer, sa.ForeignKey('rooms.id'))
+    room_id = sa.Column(sa.Integer,
+                        sa.ForeignKey('rooms.id', ondelete='CASCADE'))
     time = sa.Column(sa.Integer)
     created_at = sa.Column(sa.Integer)
 

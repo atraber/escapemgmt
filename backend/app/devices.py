@@ -20,12 +20,25 @@ async def apiDevices():
 @devices.route('/device', methods=['POST'])
 async def apiDeviceAdd():
     if request.headers['Content-Type'] == 'application/json':
-        device = Device(name=(await request.json)['name'])
+        data_json = (await request.json)
+        device = Device(
+            name=data_json['name'],
+            mac=data_json['mac'],
+        )
         db.session.add(device)
         db.session.commit()
     else:
         abort(400)
     return jsonify(device.serialize())
+
+
+def _FilterDeviceStreamsByPG(ds: List[DeviceStream],
+                             presets: List[Preset]) -> List[DeviceStream]:
+    # TODO: Filter!
+    presetIds = set()
+    for p in presets:
+        presetIds.add(p.id)
+    return [d for d in ds if d.preset_id in presetIds]
 
 
 def _StreamsCompare(new: List[int], old: List[int]):
@@ -108,10 +121,16 @@ async def apiDeviceUpdate(deviceid: int):
             db_device.name = data_json['name']
             db_device.mac = data_json['mac']
             db_device.screen_enable = data_json['screen_enable']
+            db_device.preset_group_id = data_json['preset_group_id']
 
-            (streams_added, streams_removed) = _DeviceStreamsCompare(
-                _JsonToDeviceStreams(data_json['device_streams']),
-                db_device.device_streams)
+            db_presets = db.session.query(Preset).filter_by(
+                preset_group_id=db_device.preset_group_id).all()
+            device_streams = _FilterDeviceStreamsByPG(
+                _JsonToDeviceStreams(data_json['device_streams']), db_presets)
+
+            (streams_added,
+             streams_removed) = _DeviceStreamsCompare(device_streams,
+                                                      db_device.device_streams)
 
             for ds in streams_removed:
                 logger.info(
