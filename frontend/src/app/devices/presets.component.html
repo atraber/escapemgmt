@@ -3,33 +3,40 @@
 </mat-list>
 <mat-divider></mat-divider>
 <mat-spinner class="spinner-center" *ngIf="!loaded"></mat-spinner>
-<div *ngIf="loaded">
-    <mat-accordion class="preset-accordion">
-        <mat-expansion-panel *ngFor="let preset of presets">
-            <mat-expansion-panel-header>
-                <mat-panel-title>
-                    {{preset.name}}
-                </mat-panel-title>
-                <mat-panel-description>
-                    {{preset.active ? "Active" : ""}}
-                </mat-panel-description>
-            </mat-expansion-panel-header>
+<mat-tab-group *ngIf="loaded && presetGroups.length > 0">
+    <mat-tab *ngFor="let pg of presetGroups">
+        <ng-template mat-tab-label>
+            <mat-icon>tv</mat-icon>
+            {{pg.name}}
+        </ng-template>
+        <screen-group [pg]="pg"></screen-group>
+    </mat-tab>
+</mat-tab-group>
+<mat-accordion class="preset-accordion">
+    <mat-expansion-panel *ngFor="let preset of presets">
+        <mat-expansion-panel-header>
+            <mat-panel-title>
+                {{preset.name}}
+            </mat-panel-title>
+            <mat-panel-description>
+                {{preset.active ? "Active" : ""}}
+            </mat-panel-description>
+        </mat-expansion-panel-header>
 
-            <div class="form-container">
-                <mat-form-field>
-                    <input matInput [(ngModel)]="preset.name" placeholder="Name">
-                </mat-form-field>
-            </div>
+        <div class="form-container">
+            <mat-form-field>
+                <input matInput [(ngModel)]="preset.name" placeholder="Name">
+            </mat-form-field>
+        </div>
 
-            <mat-action-row>
-                <button mat-raised-button color="warn" (click)="deletePresetDialog(preset)">Delete</button>
-                <button mat-raised-button color="accent" (click)="activatePreset(preset)">Activate</button>
-                <button mat-raised-button color="primary" (click)="updatePreset(preset)">Save</button>
-            </mat-action-row>
-        </mat-expansion-panel>
-    </mat-accordion>
+        <mat-action-row>
+            <button mat-raised-button color="warn" (click)="deletePresetDialog(preset)">Delete</button>
+            <button mat-raised-button color="accent" (click)="activatePreset(preset)">Activate</button>
+            <button mat-raised-button color="primary" (click)="updatePreset(preset)">Save</button>
+        </mat-action-row>
+    </mat-expansion-panel>
+</mat-accordion>
 
-    <div class="preset-create-field">
-        <button mat-button color="primary" (click)="addPresetDialog()">Create a new Preset</button>
-    </div>
+<div class="preset-create-field">
+    <button mat-button color="primary" (click)="addPresetDialog()">Create a new Preset</button>
 </div>

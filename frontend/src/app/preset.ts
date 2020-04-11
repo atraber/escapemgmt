@@ -12,5 +12,14 @@ export class Preset {
   active: boolean;
   streams: Stream[]|null; // Optional
   preset_group_id: number;
-  presetGroup: PresetGroup|null; // Optional
+  presetGroup?: PresetGroup;
+
+  static toJSON(preset: Preset): any {
+    return JSON.stringify({
+      id : preset.id,
+      name : preset.name,
+      active : preset.active,
+      preset_group_id : preset.preset_group_id,
+    });
+  }
 }

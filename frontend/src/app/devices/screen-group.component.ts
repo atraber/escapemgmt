@@ -45,7 +45,7 @@ export class ScreenGroupComponent implements OnChanges {
     this.updateFilter();
   }
 
-  ngOnChanges(changs: SimpleChanges) { this.updateFilter(); }
+  ngOnChanges(changes: SimpleChanges) { this.updateFilter(); }
 
   private updateFilter() {
     if (this.pg == null) {

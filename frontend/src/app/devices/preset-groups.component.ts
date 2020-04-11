@@ -44,12 +44,18 @@ export class PresetGroupsComponent {
   }
 
   private checkSelection() {
+    if (!this.loaded) {
+      return;
+    }
+
     if (this.pgSelected == null) {
       if (this.presetGroups.length > 0) {
         this.pgSelected = this.presetGroups[0];
       }
     } else if (this.presetGroups.findIndex(el => el.id == this.pgSelected.id) ==
                -1) {
+      // The previous Preset Group was deleted. We are looking for a another one
+      // to select.
       if (this.presetGroups.length > 0) {
         this.pgSelected = this.presetGroups[0];
       } else {

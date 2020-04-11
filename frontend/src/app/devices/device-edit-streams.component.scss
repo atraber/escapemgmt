@@ -1,0 +1,15 @@
+@import 'src/styles.scss';
+
+.stream-add-field {
+    @include button-add-field;
+}
+
+table {
+    width: 100%;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+td:not(.mat-column-controls) {
+    width: 100%;
+}

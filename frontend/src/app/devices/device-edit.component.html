@@ -1,0 +1,36 @@
+<div class="form-container">
+    <mat-form-field>
+        <input matInput [(ngModel)]="device.name" placeholder="Name" [required]=true>
+    </mat-form-field>
+
+    <mat-form-field>
+        <input matInput [(ngModel)]="device.mac" placeholder="MAC Address" [required]=true>
+    </mat-form-field>
+
+    <mat-form-field class="preset-group-form-field">
+        <mat-label>Screen Group</mat-label>
+        <mat-select [(value)]="device.presetGroup" (selectionChange)="deviceSelectPresetGroup($event.value)">
+            <mat-option *ngFor="let pg of presetGroups" [value]="pg">
+                {{pg.name}}
+            </mat-option>
+        </mat-select>
+        <mat-hint align="start"><strong>Only presets for the selected preset group are shown below.</strong></mat-hint>
+    </mat-form-field>
+
+    <mat-form-field class="preset-form-field">
+        <mat-label>Preset</mat-label>
+        <mat-select [(value)]="selectedPreset" (selectionChange)="deviceSelectPreset($event.value)">
+            <mat-option *ngFor="let preset of presets" [value]="preset">
+                {{preset.name}} {{preset.active ? "*": ""}}
+            </mat-option>
+        </mat-select>
+        <mat-hint align="start"><strong>Only streams for the selected preset are shown below.</strong></mat-hint>
+    </mat-form-field>
+
+    <device-edit-streams [device]="device" [preset]="selectedPreset"></device-edit-streams>
+
+    <div class="buttons">
+        <button mat-raised-button color="warn" (click)="deleteDeviceDialog(device)">Delete</button>
+        <button mat-raised-button color="primary" (click)="updateDevice(device)">Save</button>
+    </div>
+</div>

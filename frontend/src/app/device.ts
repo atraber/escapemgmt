@@ -3,6 +3,7 @@
  * Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
  */
 import {Preset} from './preset';
+import {PresetGroup} from './preset-group';
 import {Stream} from './stream';
 
 export class DeviceStream {
@@ -25,6 +26,8 @@ export class Device {
   last_seen: number;
   streams: Stream[];
   device_streams: DeviceStream[];
+  presetGroup?: PresetGroup;
+  preset_group_id: number;
 
   constructor() {
     this.name = "";
@@ -33,5 +36,21 @@ export class Device {
     this.last_seen = 0;
     this.streams = [];
     this.device_streams = [];
+  }
+
+  static toJSON(device: Device): any {
+    let d = {
+      id : device.id,
+      name : device.name,
+      mac : device.mac,
+      screen_enable : device.screen_enable,
+      last_seen : device.last_seen,
+      device_streams : device.device_streams,
+      preset_group_id : device.preset_group_id,
+    };
+    if (device.presetGroup != null) {
+      d['preset_group_id'] = device.presetGroup.id;
+    }
+    return JSON.stringify(d);
   }
 }

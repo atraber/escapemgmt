@@ -12,6 +12,8 @@ import {environment} from '../environment';
 import {Device, DeviceStream} from './device';
 import {NavService} from './nav.service';
 import {Preset} from './preset';
+import {PresetGroup} from './preset-group';
+import {PresetsService} from './presets.service';
 import {saneRetryStrategy} from './rxjs-utils';
 import {Stream} from './stream';
 import {StreamView} from './streamview';
@@ -33,8 +35,22 @@ export class DevicesService {
   devicesUpdated: EventEmitter<Device[]> = new EventEmitter();
   streamsUpdated: EventEmitter<Stream[]> = new EventEmitter();
 
-  constructor(private http: HttpClient, private navService: NavService) {
+  constructor(private presetsService: PresetsService, private http: HttpClient,
+              private navService: NavService) {
+    this.presetsService.presetGroupsUpdated.subscribe(
+        _ => { this.updateDevicePresetGroups(); });
     this.refresh();
+  }
+
+  private updateDevicePresetGroups() {
+    let pgIndex = {};
+    for (let pg of this.presetsService.presetGroups) {
+      pgIndex[pg.id] = pg;
+    }
+
+    for (let device of this.devices) {
+      device.presetGroup = pgIndex[device.preset_group_id];
+    }
   }
 
   private handleError(error: HttpErrorResponse) {
@@ -45,26 +61,24 @@ export class DevicesService {
       // The backend returned an unsuccessful response code.
       // The response body may contain clues as to what went wrong,
       console.error(`Backend returned code ${error.status}, ` +
-                    `body was: ${error.error}`);
+                    `body was: ${error.error}, ` +
+                    `error: ${error}`);
     }
     this.navService.message(
         'Failed to communicate with backend. Please try again later.');
     return Observable.throw('Something bad happened; please try again later.');
   }
 
-  private devicesUpdatedEmit() {
-    this.loaded = this.devicesLoaded && this.streamsLoaded;
+  private updatedEmit() {
+    this.loaded =
+        this.devicesLoaded && this.streamsLoaded && this.presetsService.loaded;
     // TODO: We need to emit both here anyways. Let's just use one in the
     // future since this makes no sense this way.
     this.streamsUpdated.emit(this.streams);
     this.devicesUpdated.emit(this.devices);
   }
 
-  private streamsUpdatedEmit() {
-    this.loaded = this.devicesLoaded && this.streamsLoaded;
-    this.devicesUpdated.emit(this.devices);
-    this.streamsUpdated.emit(this.streams)
-  }
+  private streamsUpdatedEmit() { this.updatedEmit(); }
 
   private refresh(): void {
     console.log('refresh() called in DevicesService');
@@ -84,21 +98,22 @@ export class DevicesService {
         .pipe(catchError(this.handleError))
         .subscribe(devices => {
           this.devices = devices;
+          this.updateDevicePresetGroups();
           this.devicesLoaded = true;
-          this.devicesUpdatedEmit();
+          this.updatedEmit();
         });
   }
 
   addDevice(device: Device): Observable<Device> {
     return Observable.create(observer => {
       this.http
-          .post<Device>(environment.apiEndpoint + '/device', device,
-                        jsonOptions)
+          .post<Device>(environment.apiEndpoint + '/device',
+                        Device.toJSON(device), jsonOptions)
           .pipe(catchError(this.handleError))
           .subscribe(
               data => {
                 this.devices.push(data);
-                this.devicesUpdatedEmit();
+                this.updatedEmit();
                 observer.next(data);
                 observer.complete();
               },
@@ -110,11 +125,11 @@ export class DevicesService {
     return Observable.create(observer => {
       this.http
           .post<Device>(environment.apiEndpoint + '/devices/' + device.id,
-                        device, jsonOptions)
+                        Device.toJSON(device), jsonOptions)
           .pipe(catchError(this.handleError))
           .subscribe(
               data => {
-                this.devicesUpdatedEmit();
+                this.updatedEmit();
                 observer.next(data);
                 observer.complete();
               },
@@ -132,7 +147,7 @@ export class DevicesService {
               data => {
                 let index = this.devices.indexOf(device);
                 this.devices.splice(index, 1);
-                this.devicesUpdatedEmit();
+                this.updatedEmit();
                 observer.next(null);
                 observer.complete();
               },
@@ -261,7 +276,7 @@ export class DevicesService {
 
     device.device_streams.push(newds);
 
-    this.devicesUpdatedEmit();
+    this.updatedEmit();
 
     return true;
   }
@@ -283,7 +298,7 @@ export class DevicesService {
     }
     device.device_streams.splice(index, 1);
 
-    this.devicesUpdatedEmit();
+    this.updatedEmit();
 
     return true;
   }
@@ -315,8 +330,9 @@ export class DevicesService {
 
 export let devicesServiceProvider = {
   provide : DevicesService,
-  useFactory : (
-      http: HttpClient,
-      navService: NavService) => { return new DevicesService(http, navService)},
-  deps : [ HttpClient, NavService ]
+  useFactory : (presetsService: PresetsService, http: HttpClient,
+                navService: NavService) => {
+    return new DevicesService(presetsService, http, navService)
+  },
+  deps : [ PresetsService, HttpClient, NavService ]
 };

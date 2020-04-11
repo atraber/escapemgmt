@@ -29,10 +29,11 @@ export class PresetGroupCreateDialog {
           this.dialogRef.close();
         },
         err => {
-          this.snackBar.open('Failed to create preset group. Please try again!',
-                             'Hide', {
-                               duration : 2000,
-                             });
+          this.snackBar.open(
+              'Failed to create preset group. Please try again!\nError: ' + err,
+              'Hide', {
+                duration : 2000,
+              });
         });
   }
 }

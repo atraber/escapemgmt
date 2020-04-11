@@ -11,6 +11,7 @@ import {
 import {MatSnackBar} from '@angular/material/snack-bar';
 
 import {Preset} from '../preset';
+import {PresetGroup} from '../preset-group';
 import {PresetsService} from '../presets.service';
 
 import {PresetCreateDialog} from './preset-create.dialog';
@@ -22,37 +23,31 @@ import {PresetDeleteDialog} from './preset-delete.dialog';
 })
 export class PresetsComponent {
   presets: Preset[] = [];
+  presetGroups: PresetGroup[] = [];
   loaded = false;
 
   constructor(private presetsService: PresetsService, private dialog: MatDialog,
               private snackBar: MatSnackBar) {
-    this.presets = this.presetsService.presets;
-    this.loaded = this.presetsService.loaded;
-
     this.presetsService.presetsUpdated.subscribe(presets => {
       this.presets = presets;
       this.loaded = this.presetsService.loaded;
     });
+
+    this.presetsService.presetGroupsUpdated.subscribe(presetGroups => {
+      this.presetGroups = this.presetsService.presetGroups;
+      this.loaded = this.presetsService.loaded;
+    });
+
+    this.presets = this.presetsService.presets;
+    this.loaded = this.presetsService.loaded;
   }
 
   addPresetDialog(): void {
-    const dialogRef = this.dialog.open(PresetCreateDialog, {width : '500px'});
+    this.dialog.open(PresetCreateDialog, {width : '500px'});
   }
 
   deletePresetDialog(preset): void {
-    const dialogRef =
-        this.dialog.open(PresetDeleteDialog, {width : '400px', data : preset});
-  }
-
-  addPreset(name: string) {
-    var preset = new Preset();
-    preset.name = name;
-    this.presetsService.addPreset(preset).subscribe(
-        preset => this.presets.push(preset));
-  }
-
-  deletePreset(preset: Preset) {
-    this.presetsService.deletePreset(preset).subscribe();
+    this.dialog.open(PresetDeleteDialog, {width : '400px', data : preset});
   }
 
   updatePreset(preset: Preset) {

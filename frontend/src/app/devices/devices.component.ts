@@ -16,66 +16,39 @@ import {BehaviorSubject} from 'rxjs';
 import {Device} from '../device';
 import {DevicesService} from '../devices.service';
 import {Preset} from '../preset';
-import {PresetsService} from '../presets.service';
 import {Stream} from '../stream';
 
 import {DeviceAddStreamDialog} from './device-add-stream.dialog';
 import {DeviceCreateDialog} from './device-create.dialog';
+import {DeviceDeleteDialog} from './device-delete.dialog';
 
 @Component({
   templateUrl : './devices.component.html',
   styleUrls : [ './devices.component.scss' ]
 })
 export class DevicesComponent {
-  active_preset = null;
   devices: Device[] = [];
   filteredDevices: Device[] = [];
-  presets: Preset[] = [];
-  streams: Stream[] = [];
   presetSelected: Preset = null;
   deviceSelected: Device = null;
   deviceSelectedStreamsDataSource = new MatTableDataSource<Stream>();
   deviceFilter: string = "";
   loaded = false;
 
-  constructor(private devicesService: DevicesService,
-              private presetsService: PresetsService, private dialog: MatDialog,
+  constructor(private devicesService: DevicesService, private dialog: MatDialog,
               private snackBar: MatSnackBar) {
-    this.presets = this.presetsService.presets;
     this.devices = this.devicesService.devices;
-    this.streams = this.devicesService.streams;
-    this.updateLoaded();
+    this.loaded = this.devicesService.loaded;
 
-    this.active_preset = this.findActivePreset();
     this.updateDeviceFilter();
     this.selectDevice(null);
 
-    this.devicesService.streamsUpdated.subscribe(streams => {
-      this.streams = streams;
-      this.updateLoaded();
-      this.updateDeviceFilter();
-      this.selectDevice(null);
-    });
-
     this.devicesService.devicesUpdated.subscribe(devices => {
       this.devices = devices;
-      this.updateLoaded();
+      this.loaded = this.devicesService.loaded;
       this.updateDeviceFilter();
       this.selectDevice(null);
     });
-
-    this.presetsService.presetsUpdated.subscribe(presets => {
-      this.presets = presets;
-      this.updateLoaded();
-      if (this.active_preset == null) {
-        this.active_preset = this.findActivePreset();
-        this.selectDevice(null);
-      }
-    });
-  }
-
-  private updateLoaded() {
-    this.loaded = this.devicesService.loaded && this.presetsService.loaded;
   }
 
   applyDeviceFilter(filterValue: string): void {
@@ -104,34 +77,6 @@ export class DevicesComponent {
     } else {
       this.deviceSelected = device;
     }
-
-    // Update table if we have found a selected device.
-    if (this.deviceSelected != null) {
-      let preset = this.active_preset;
-      if (preset == null) {
-        if (this.presets.length == 0)
-          return;
-
-        preset = this.presets[0];
-      }
-
-      this.deviceSelectPreset(preset);
-    }
-  }
-
-  deviceSelectPreset(preset: Preset): void {
-    this.deviceSelectedStreamsDataSource.data =
-        this.devicesService.getDeviceStreamsByPreset(this.deviceSelected,
-                                                     preset);
-  }
-
-  findActivePreset(): Preset|null {
-    for (let preset of this.presets) {
-      if (preset.active)
-        return preset;
-    }
-
-    return null;
   }
 
   deviceLastSeen(device: Device) {
@@ -146,86 +91,5 @@ export class DevicesComponent {
         this.selectDevice(null);
       }
     });
-  }
-
-  deleteDeviceDialog(device: Device): void {
-    const dialogRef =
-        this.dialog.open(DeviceDeleteDialog, {width : '400px', data : device});
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result != "") {
-        this.selectDevice(null);
-      }
-    });
-  }
-
-  updateDevice(device: Device) {
-    this.devicesService.updateDevice(device).subscribe(
-        () => {
-          this.snackBar.open('Device was saved.', 'Hide', {
-            duration : 2000,
-          });
-        },
-        err => {
-          this.snackBar.open('Failed to save device. Please try again!', 'Hide',
-                             {
-                               duration : 2000,
-                             });
-        });
-  }
-
-  addPresetStreamDialog(device: Device, preset: Preset): void {
-    if (preset == null) {
-      this.snackBar.open(
-          'No preset was selected. Please select a preset before adding streams.',
-          'Hide', {
-            duration : 2000,
-          });
-      return;
-    }
-    const dialogRef = this.dialog.open(DeviceAddStreamDialog, {
-      width : '500px',
-      data : {
-        'device' : device,
-        'preset' : preset,
-      },
-    });
-  }
-
-  removeStreamFromDevicePreset(device: Device, preset: Preset,
-                               stream: Stream): void {
-    if (!this.devicesService.removeStreamFromDevicePreset(device, preset,
-                                                          stream)) {
-      this.snackBar.open('Unable to remove stream from device.', 'Hide', {
-        duration : 2000,
-      });
-    }
-  }
-}
-
-@Component({
-  selector : 'device-delete-dialog',
-  templateUrl : 'device-delete-dialog.html',
-})
-export class DeviceDeleteDialog {
-  constructor(private devicesService: DevicesService,
-              public dialogRef: MatDialogRef<DeviceDeleteDialog>,
-              private snackBar: MatSnackBar,
-              @Inject(MAT_DIALOG_DATA) public data: Device) {}
-
-  deleteDevice(device: Device) {
-    this.devicesService.deleteDevice(device).subscribe(
-        () => {
-          this.snackBar.open('Device was deleted.', 'Hide', {
-            duration : 2000,
-          });
-          this.dialogRef.close();
-        },
-        err => {
-          this.snackBar.open('Failed to delete device. Please try again!',
-                             'Hide', {
-                               duration : 2000,
-                             });
-        });
   }
 }

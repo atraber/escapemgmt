@@ -1,0 +1,21 @@
+@import 'src/styles.scss';
+
+.form-container {
+    margin: 10px;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-container>.buttons {
+    margin-top: 10px;
+    flex-direction: row;
+}
+
+.form-container>.buttons button {
+    margin-left: 4px;
+    margin-right: 4px;
+}
+
+.preset-form-field {
+    min-width: 200px;
+}

@@ -9,7 +9,6 @@ import {catchError, retryWhen} from 'rxjs/operators';
 
 import {environment} from '../environment';
 
-import {DevicesService} from './devices.service';
 import {NavService} from './nav.service';
 import {Preset} from './preset';
 import {PresetGroup} from './preset-group';
@@ -33,12 +32,10 @@ export class PresetsService {
   presetsUpdated: EventEmitter<Preset[]> = new EventEmitter();
   presetGroupsUpdated: EventEmitter<PresetGroup[]> = new EventEmitter();
 
-  constructor(private devicesService: DevicesService, private http: HttpClient,
-              private navService: NavService) {
+  constructor(private http: HttpClient, private navService: NavService) {
     this.http.get<Preset[]>(environment.apiEndpoint + '/presets')
         .pipe(retryWhen(saneRetryStrategy(
             (msg: string): void => { this.navService.message(msg); })))
-        .pipe(catchError(this.handleError))
         .subscribe(presets => {
           this.presets = presets;
           this.loadedPresets = true;
@@ -48,7 +45,6 @@ export class PresetsService {
     this.http.get<PresetGroup[]>(environment.apiEndpoint + '/presetgroups')
         .pipe(retryWhen(saneRetryStrategy(
             (msg: string): void => { this.navService.message(msg); })))
-        .pipe(catchError(this.handleError))
         .subscribe(presetGroups => {
           this.presetGroups = presetGroups;
           this.loadedPresetGroups = true;
@@ -64,7 +60,8 @@ export class PresetsService {
       // The backend returned an unsuccessful response code.
       // The response body may contain clues as to what went wrong,
       console.error(`Backend returned code ${error.status}, ` +
-                    `body was: ${error.error}`);
+                    `body was: ${error.error},` +
+                    `${error}`);
     }
     this.navService.message(
         'Failed to communicate with backend. Please try again later.');
@@ -75,12 +72,13 @@ export class PresetsService {
     return Observable.create(observer => {
       this.http
           .post(environment.apiEndpoint + '/preset/activate/' + preset.id,
-                preset, jsonOptions)
-          .pipe(catchError(this.handleError))
+                Preset.toJSON(preset), jsonOptions)
           .subscribe(
               data => {
-                for (let preset of this.presets) {
-                  preset.active = false;
+                if (preset.presetGroup != null) {
+                  for (let p of (<PresetGroup>preset.presetGroup).presets) {
+                    p.active = false;
+                  }
                 }
                 preset.active = true;
                 this.presetsUpdated.emit(this.presets)
@@ -94,8 +92,8 @@ export class PresetsService {
   addPreset(preset: Preset): Observable<Preset> {
     return Observable.create(observer => {
       this.http
-          .post<Preset>(environment.apiEndpoint + '/preset', preset,
-                        jsonOptions)
+          .post<Preset>(environment.apiEndpoint + '/preset',
+                        Preset.toJSON(preset), jsonOptions)
           .pipe(catchError(this.handleError))
           .subscribe(
               data => {
@@ -112,11 +110,11 @@ export class PresetsService {
     return Observable.create(observer => {
       this.http
           .post<Preset>(environment.apiEndpoint + '/presets/' + preset.id,
-                        preset, jsonOptions)
+                        Preset.toJSON(preset), jsonOptions)
           .pipe(catchError(this.handleError))
           .subscribe(
               preset => {
-                this.presetsUpdated.emit(this.presets)
+                this.presetsUpdated.emit(this.presets);
                 observer.next(preset);
                 observer.complete();
               },
@@ -145,8 +143,8 @@ export class PresetsService {
   addPresetGroup(pg: PresetGroup): Observable<PresetGroup> {
     return Observable.create(observer => {
       this.http
-          .post<PresetGroup>(environment.apiEndpoint + '/presetgroup', pg,
-                             jsonOptions)
+          .post<PresetGroup>(environment.apiEndpoint + '/presetgroup',
+                             PresetGroup.toJSON(pg), jsonOptions)
           .pipe(catchError(this.handleError))
           .subscribe(
               data => {
@@ -163,7 +161,7 @@ export class PresetsService {
     return Observable.create(observer => {
       this.http
           .post<PresetGroup>(environment.apiEndpoint + '/presetgroups/' + pg.id,
-                             pg, jsonOptions)
+                             PresetGroup.toJSON(pg), jsonOptions)
           .pipe(catchError(this.handleError))
           .subscribe(
               data => {
@@ -225,9 +223,8 @@ export class PresetsService {
 
 export let presetsServiceProvider = {
   provide : PresetsService,
-  useFactory :
-      (ds: DevicesService, http: HttpClient,
-       navService:
-           NavService) => { return new PresetsService(ds, http, navService)},
-  deps : [ DevicesService, HttpClient, NavService ]
+  useFactory : (
+      http: HttpClient,
+      navService: NavService) => { return new PresetsService(http, navService)},
+  deps : [ HttpClient, NavService ]
 };

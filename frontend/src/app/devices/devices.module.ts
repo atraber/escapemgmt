@@ -9,7 +9,10 @@ import {CommonModule} from '../common.module';
 
 import {DeviceAddStreamDialog} from './device-add-stream.dialog';
 import {DeviceCreateDialog} from './device-create.dialog';
-import {DeviceDeleteDialog, DevicesComponent} from './devices.component';
+import {DeviceDeleteDialog} from './device-delete.dialog';
+import {DeviceEditStreamsComponent} from './device-edit-streams.component';
+import {DeviceEditComponent} from './device-edit.component';
+import {DevicesComponent} from './devices.component';
 import {PresetCreateDialog} from './preset-create.dialog';
 import {PresetDeleteDialog} from './preset-delete.dialog';
 import {PresetGroupCreateDialog} from './preset-group-create.dialog';
@@ -36,12 +39,16 @@ const routes: Routes = [
 
 @NgModule({
   declarations : [
-    DeviceAddStreamDialog,    DeviceCreateDialog,      DeviceDeleteDialog,
-    DevicesComponent,         PresetCreateDialog,      PresetDeleteDialog,
-    PresetGroupCreateDialog,  PresetGroupDeleteDialog, PresetGroupEditComponent,
-    PresetGroupFormComponent, PresetGroupsComponent,   PresetsComponent,
-    ScreenGroupComponent,     ScreensComponent,        StreamCreateDialog,
-    StreamDeleteDialog,       StreamEditDialog,        StreamsComponent,
+    DeviceAddStreamDialog,      DeviceCreateDialog,
+    DeviceDeleteDialog,         DeviceEditComponent,
+    DeviceEditStreamsComponent, DevicesComponent,
+    PresetCreateDialog,         PresetDeleteDialog,
+    PresetGroupCreateDialog,    PresetGroupDeleteDialog,
+    PresetGroupEditComponent,   PresetGroupFormComponent,
+    PresetGroupsComponent,      PresetsComponent,
+    ScreenGroupComponent,       ScreensComponent,
+    StreamCreateDialog,         StreamDeleteDialog,
+    StreamEditDialog,           StreamsComponent,
     ViewStreamsComponent,
   ],
   entryComponents : [

@@ -2,11 +2,12 @@
  * Copyright 2019 Andreas Traber
  * Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
  */
-import {Component} from '@angular/core';
-import {MatDialogRef} from '@angular/material/dialog';
+import {Component, Inject} from '@angular/core';
+import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import {MatSnackBar} from '@angular/material/snack-bar';
 
 import {Preset} from '../preset';
+import {PresetGroup} from '../preset-group';
 import {PresetsService} from '../presets.service';
 
 @Component({
@@ -18,7 +19,11 @@ export class PresetCreateDialog {
 
   constructor(public dialogRef: MatDialogRef<PresetCreateDialog>,
               private presetsService: PresetsService,
-              private snackBar: MatSnackBar) {}
+              private snackBar: MatSnackBar,
+              @Inject(MAT_DIALOG_DATA) public data: PresetGroup) {
+    this.preset.presetGroup = data;
+    this.preset.preset_group_id = data.id;
+  }
 
   addPreset(preset: Preset): void {
     this.presetsService.addPreset(preset).subscribe(
@@ -29,10 +34,11 @@ export class PresetCreateDialog {
           this.dialogRef.close();
         },
         err => {
-          this.snackBar.open('Failed to create preset. Please try again!',
-                             'Hide', {
-                               duration : 2000,
-                             });
+          this.snackBar.open(
+              'Failed to create preset. Please try again!\nError: ' + err,
+              'Hide', {
+                duration : 2000,
+              });
         });
   }
 }
