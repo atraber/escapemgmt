@@ -99,7 +99,6 @@ func s3Backup(s3Endpoint string, s3AccessKey string, s3SecretKey string, s3UseSS
 		return fmt.Errorf("could not open client: %v", err)
 	}
 
-	// TODO: Ensure that the bucket exists. If not, try to create it.
 	exists, err := client.BucketExists(s3Bucket)
 	if err != nil {
 		return fmt.Errorf("could not check if bucket exists: %v", err)
