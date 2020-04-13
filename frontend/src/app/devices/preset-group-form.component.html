@@ -1,3 +1,11 @@
-<mat-form-field>
-    <input matInput [(ngModel)]="pg.name" placeholder="Name" [required]=true cdkFocusInitial>
-</mat-form-field>
+<div class="form-container">
+    <mat-form-field>
+        <input matInput [(ngModel)]="pg.name" placeholder="Name" [required]=true cdkFocusInitial>
+    </mat-form-field>
+    <mat-form-field floatLabel="always" appearance="none">
+        <mat-slide-toggle [(ngModel)]="pg.hidden" matTooltip="Hidden screen groups are not shown in the Screens dashboard.">
+            Hidden
+        </mat-slide-toggle>
+        <textarea matInput hidden></textarea>
+    </mat-form-field>
+</div>

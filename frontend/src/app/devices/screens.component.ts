@@ -16,12 +16,14 @@ export class ScreensComponent {
   loaded = false;
 
   constructor(private presetsService: PresetsService) {
-    this.presetsService.presetGroupsUpdated.subscribe(presetGroups => {
-      this.presetGroups = this.presetsService.presetGroups;
-      this.loaded = this.presetsService.loaded;
-    });
+    this.presetsService.presetGroupsUpdated.subscribe(
+        presetGroups => { this.updateData(); });
+    this.updateData();
+  }
 
-    this.presetGroups = this.presetsService.presetGroups;
+  private updateData() {
+    this.presetGroups =
+        this.presetsService.presetGroups.filter(pg => !pg.hidden);
     this.loaded = this.presetsService.loaded;
   }
 }

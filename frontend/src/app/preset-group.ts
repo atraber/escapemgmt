@@ -7,12 +7,14 @@ import {Preset} from './preset';
 export class PresetGroup {
   id: number;
   name: string;
+  hidden: boolean;
   presets?: Preset[];
 
   static toJSON(pg: PresetGroup): any {
     return JSON.stringify({
       id : pg.id,
       name : pg.name,
+      hidden : pg.hidden,
     });
   }
 }
