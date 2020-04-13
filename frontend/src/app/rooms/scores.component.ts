@@ -13,6 +13,7 @@ import {
   MatDialog,
   MatDialogRef,
 } from '@angular/material/dialog';
+import {MatPaginator} from '@angular/material/paginator';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {MatSort} from '@angular/material/sort';
 import {MatTableDataSource} from '@angular/material/table';
@@ -21,6 +22,7 @@ import moment from 'moment';
 import {Room} from '../room';
 import {Score} from '../score';
 import {ScoresService} from '../scores.service';
+
 import {ScoreAddDialog} from './score-add.dialog';
 import {ScoreEditDialog} from './score-edit.dialog';
 
@@ -33,6 +35,7 @@ export class ScoresComponent implements OnInit {
   roomSelected: Room = null;
   dataSource = new MatTableDataSource<Score>();
   @ViewChild(MatSort, {static : true}) sort: MatSort;
+  @ViewChild(MatPaginator, {static : true}) paginator: MatPaginator;
   loaded = false;
 
   constructor(private scoresService: ScoresService, private dialog: MatDialog,
@@ -49,6 +52,7 @@ export class ScoresComponent implements OnInit {
       this.loaded = this.scoresService.loaded;
     });
 
+    this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
     this.sort.active = 'time';
     this.sort.direction = 'asc';
