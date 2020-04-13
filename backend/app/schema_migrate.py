@@ -10,4 +10,4 @@ from app import SchemaMigrate
 logging.basicConfig(stream=sys.stderr)
 
 if __name__ == '__main__':
-    SchemaMigrate('8ac926e61120')
+    SchemaMigrate('648cb9b987c8')

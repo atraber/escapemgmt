@@ -185,16 +185,19 @@ class PresetGroup(db.Model):  # type: ignore
 
     id = sa.Column(sa.Integer, primary_key=True)
     name = sa.Column(sa.String(100), nullable=False)
+    hidden = sa.Column(sa.Boolean, default=False, nullable=False)
     presets = orm.relationship('Preset')
 
-    def __init__(self, id=None, name=None):
+    def __init__(self, id=None, name=None, hidden=None):
         self.id = id
         self.name = name
+        self.hidden = hidden
 
     def serialize(self):
         out = {
             'id': self.id,
             'name': self.name,
+            'hidden': self.hidden,
         }
 
         return out

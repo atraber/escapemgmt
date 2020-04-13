@@ -33,8 +33,9 @@ async def apiPresetAdd():
 async def apiPresetUpdate(presetid: int):
     if request.method == 'POST':
         if request.headers['Content-Type'] == 'application/json':
+            data_json = await request.json
             db_preset = db.session.query(Preset).filter_by(id=presetid).first()
-            db_preset.name = (await request.json)['name']
+            db_preset.name = data_json['name']
             db.session.commit()
             return jsonify(db_preset.serialize())
     elif request.method == 'DELETE':
@@ -81,7 +82,8 @@ async def apiPresetGroups():
 @presets.route('/presetgroup', methods=['POST'])
 async def apiPresetGroupCreate():
     if request.headers['Content-Type'] == 'application/json':
-        pg = PresetGroup(name=(await request.json)['name'])
+        data_json = await request.json
+        pg = PresetGroup(name=data_json['name'], hidden=data_json['hidden'])
         db.session.add(pg)
         db.session.commit()
         return jsonify(pg.serialize())
@@ -92,8 +94,10 @@ async def apiPresetGroupCreate():
 async def apiPresetGroupUpdate(pgid: int):
     if request.method == 'POST':
         if request.headers['Content-Type'] == 'application/json':
+            data_json = await request.json
             db_pg = db.session.query(PresetGroup).filter_by(id=pgid).first()
-            db_pg.name = (await request.json)['name']
+            db_pg.name = data_json['name']
+            db_pg.hidden = data_json['hidden']
             db.session.commit()
             return jsonify(db_pg.serialize())
     elif request.method == 'DELETE':
