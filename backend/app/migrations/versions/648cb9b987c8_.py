@@ -18,12 +18,6 @@ depends_on = None
 def upgrade():
     op.add_column('presetgroups',
                   sa.Column('hidden', sa.Boolean(), nullable=False))
-    # This is a hack to get the prod db into the same state. This should not be
-    # necessary here.
-    op.create_foreign_key(None,
-                          'devices',
-                          'presetgroups', ['preset_group_id'], ['id'],
-                          ondelete='SET NULL')
 
 
 def downgrade():

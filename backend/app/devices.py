@@ -172,13 +172,17 @@ def apiDevicesScreenOff():
     devices = db.session.query(Device).all()
 
     for device in devices:
-        device.screen_enable = False
+        if device.presetGroup:
+            if not device.presetGroup.hidden:
+                device.screen_enable = False
+        else:
+            device.screen_enable = False
 
     db.session.commit()
     return jsonify("ok")
 
 
-def number_to_mac(n: int) -> str:
+def numberToMac(n: int) -> str:
     arr = []
     for i in range(5, -1, -1):
         k = (n >> (8 * i)) & 0xFF
@@ -188,7 +192,7 @@ def number_to_mac(n: int) -> str:
 
 @devices.route('/raspi/<int:mac>', methods=['GET'])
 def apiRaspi(mac: int):
-    mac_str = number_to_mac(mac)
+    mac_str = numberToMac(mac)
     device = db.session.query(Device).filter_by(mac=mac_str).first()
 
     if device is None:

@@ -187,6 +187,7 @@ class PresetGroup(db.Model):  # type: ignore
     name = sa.Column(sa.String(100), nullable=False)
     hidden = sa.Column(sa.Boolean, default=False, nullable=False)
     presets = orm.relationship('Preset')
+    devices = orm.relationship('Device', backref='presetGroup')
 
     def __init__(self, id=None, name=None, hidden=None):
         self.id = id
