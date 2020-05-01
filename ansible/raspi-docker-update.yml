@@ -16,7 +16,7 @@
           version: '3'
           services:
             streamer:
-              image: 192.168.0.150:5000/escape_streamer:2019-03-24
+              image: registry.houdini.traber-web.ch:5000/escape_streamer:2020-05-01
               ports:
                 - "8081:8081"
               restart: always
