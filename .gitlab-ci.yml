@@ -1,0 +1,49 @@
+default:
+  image:
+    name: l.gcr.io/google/bazel:1.2.1
+    entrypoint: [""]
+  before_script:
+    - echo "build --remote_cache=http://bazel-remote-cache.gitlab:80" >> $CI_PROJECT_DIR/frontend/.bazelrc
+    - echo "build --remote_cache=http://bazel-remote-cache.gitlab:80" >> $CI_PROJECT_DIR/backend/.bazelrc
+variables:
+  PIP_DEFAULT_TIMEOUT: 120
+stages:
+  - build
+  - test
+
+.frontend-cache:
+  variables:
+    TEST_TMPDIR: $CI_PROJECT_DIR/.bazel-cache/
+  cache:
+    key: frontend-cache
+    paths:
+    - /root/.cache/bazel/
+
+.backend-cache:
+  variables:
+    TEST_TMPDIR: $CI_PROJECT_DIR/.bazel-cache/
+  cache:
+    key: backend-cache
+    paths:
+    - /root/.cache/bazel/
+
+frontend_build:
+  stage: build
+  extends: .frontend-cache
+  script:
+    - cd $CI_PROJECT_DIR/frontend
+    - bazel build ...
+
+backend_build:
+  stage: build
+  extends: .backend-cache
+  script:
+    - cd $CI_PROJECT_DIR/backend
+    - bazel build ...
+
+backend_test:
+  stage: test
+  extends: .backend-cache
+  script:
+    - cd $CI_PROJECT_DIR/backend
+    - bazel test ...

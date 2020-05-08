@@ -1,6 +1,6 @@
 /data
-/bazel-bin
-/bazel-escapemgmt
-/bazel-genfiles
-/bazel-out
-/bazel-testlogs
+bazel-bin
+bazel-escapemgmt
+bazel-genfiles
+bazel-out
+bazel-testlogs

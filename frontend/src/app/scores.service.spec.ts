@@ -10,7 +10,7 @@ describe('ScoresService without Angular testing support', () => {
     const stubValue = [];
     httpClientSpy.get.and.returnValue(stubValue);
 
-    scoresService = new ScoresService(httpClientSpy);
+    scoresService = new ScoresService(httpClientSpy, null);
 
     expect(scoresService.rooms).toBe(stubValue, 'service returned stub value');
     expect(httpClientSpy.get.calls.count())
