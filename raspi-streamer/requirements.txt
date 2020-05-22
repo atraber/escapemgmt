@@ -12,7 +12,7 @@ prometheus-client==0.6.0
 psutil==5.4.5
 pylint==1.9.2
 PyOpenGL==3.1.5
-PyYAML==3.13
+PyYAML==5.1
 rectpack==0.2.1
 requests==2.18.4
 six==1.15.0
