@@ -1,5 +1,5 @@
 # docker run -p 8081:8081 -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix -v ~/.Xauthority:/root/.Xauthority --net=host --device /dev/vchiq:/dev/vchiq --device /dev/snd --device /dev/fb0:/dev/ escape_streamer
-FROM python:3.7.2-stretch
+FROM python:3.8.3-buster
 
 EXPOSE 8081
 
@@ -7,17 +7,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     wget libfreetype6 dbus libsmbclient libssh-4 \
     libpcre3 fonts-freefont-ttf fbset \
     python3 python3-pip gcc \
-    libasound2 libavutil55 libavcodec57 libavformat57 x11-xserver-utils alsa-utils freeglut3 libgl1-mesa-dri \
+    libasound2 libavutil56 libavcodec58 libavformat58 x11-xserver-utils alsa-utils freeglut3 libgl1-mesa-dri \
   && apt-get clean
 
 # Add raspbian repo
-RUN echo "\ndeb http://archive.raspbian.org/raspbian stretch main firmware contrib non-free rpi\n" \
-    "deb-src http://archive.raspbian.org/raspbian stretch main firmware contrib non-free rpi\n" \
+RUN echo "\ndeb http://archive.raspbian.org/raspbian buster main firmware contrib non-free rpi\n" \
+    "deb-src http://archive.raspbian.org/raspbian buster main firmware contrib non-free rpi\n" \
     >> /etc/apt/sources.list && \
     wget https://archive.raspbian.org/raspbian.public.key -O - | apt-key add -
 
 # Add raspberry repo
-RUN echo "\ndeb http://archive.raspberrypi.org/debian stretch main\n" \
+RUN echo "\ndeb http://archive.raspberrypi.org/debian buster main\n" \
     >> /etc/apt/sources.list && \
     wget http://archive.raspberrypi.org/debian/raspberrypi.gpg.key -O - | apt-key add -
 

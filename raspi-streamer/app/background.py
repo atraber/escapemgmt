@@ -15,75 +15,74 @@ FLAGS = flags.FLAGS
 connectedMetric = prometheus_client.Enum(
         'backend_connected', 'Connected to stream server',
         states=['True', 'False'])
+_bgs = []
 
 
 class Background:
-    def __init__(self):
-        self.connected = False
+    def __init__(self, screen):
+        _bgs.append(self)
+        self._connected = False
 
-        if not FLAGS.debug:
-            self.screensaver_disable()
+        self.width = screen.width
+        self.height = screen.height
+        self.x = screen.x
+        self.y = screen.y
+        self._screen = screen
 
-        self.setup_event = threading.Event()
-        # sane default values
-        self.width = 640
-        self.height = 480
+    def _glut(self):
+        if FLAGS.debug:
+            glutInitWindowPosition(100, 100)
+            glutInitWindowSize(1024, 768)
+            glutCreateWindow("Background")
+        else:
+            # The application will enter fullscreen.
+            glutInitWindowPosition(self.x, self.y)
+            glutInitWindowSize(self.width, self.height)
+            glutCreateWindow("Background")
+            #glutFullScreen()
 
-        t = threading.Thread(target=self.glMain)
-        t.start()
+        # Setup callbacks for keyboard and display
+        glutDisplayFunc(self._display)
 
-        if not self.setup_event.wait(timeout=5):
-            logger.error("Background drawing task has been blocked for more than 5 seconds")
-
-    def display(self):
-        if self.connected:
+    def _display(self):
+        if self._connected:
             glClearColor(0.0, 0.0, 0.0, 1.0)
         else:
             glClearColor(1.0, 0.0, 0.0, 1.0)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         glutSwapBuffers()
 
-    def timer(self, arg):
-        glutPostRedisplay()
-        glutTimerFunc(1000, self.timer, 0)
-
-    def glMain(self):
-        # Initialize OpenGL
-        glutInit()
-        glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB)
-
-        if FLAGS.debug:
-            glutInitWindowPosition(100, 100)
-            glutInitWindowSize(1024, 768)
-            glutCreateWindow("Background")
-        else:
-            # The application will enter fullscreen
-            glutEnterGameMode()
-
-        self.width = glutGet(GLUT_WINDOW_WIDTH)
-        self.height = glutGet(GLUT_WINDOW_HEIGHT)
-
-        # Setup callbacks for keyboard and display
-        glutDisplayFunc(self.display)
-        self.timer(0)
-
-        self.setup_event.set()
-
-        # Enters the GLUT event processing loop
-        glutMainLoop()
-        logger.critical("glutMainLoop has exited")
-
-    def screensaver_disable(self):
-        subprocess.call(["xset", "s", "off"])
-        subprocess.call(["xset", "s", "noblank"])
-        subprocess.call(["xset", "-dpms"])
-
     def setConnected(self, connected):
-        self.connected = connected
+        self._connected = connected
         if connected:
             connectedMetric.state('True')
         else:
             connectedMetric.state('False')
 
-    def getScreenSize(self):
-        return [self.width, self.height]
+    def getScreen(self):
+        return self._screen
+
+
+def _timerCb(arg):
+    glutPostRedisplay()
+    glutTimerFunc(1000, _timerCb, 0)
+
+
+def start():
+    t = threading.Thread(target=_glutLoop)
+    t.start()
+
+
+def _glutLoop():
+    glutInit()
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB)
+
+    for bg in _bgs:
+        bg._glut()
+
+    glutTimerFunc(1000, _timerCb, 0)
+
+    # Enters the GLUT event processing loop
+    #glutMainLoop()
+    #logger.critical("glutMainLoop has exited.")
+    #os._exit(-1)

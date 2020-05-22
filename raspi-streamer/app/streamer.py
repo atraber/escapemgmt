@@ -121,7 +121,7 @@ class UrlBox:
 
     def __repr__(self):
         return "<UrlBox:{} {}:{} {}x{}".format(
-                self.url, self.pos_x, self.pos_y, *self.getSize())
+                self.getUrl(), self.pos_x, self.pos_y, *self.getSize())
 
 
 class Packer:
@@ -239,6 +239,7 @@ class OmxProcess:
                     logger.error("No reaction within {}".format(time_diff))
                 logger.error("{} has crashed. Restarting".format(self.cmd))
                 self.kill()
+                time.sleep(0.3)
                 self.p = self._cmd_popen()
                 self.update_timestamp()
         except Exception as e:
@@ -259,32 +260,30 @@ class OmxProcess:
 
 
 class Streamer:
-    def __init__(self, screen_size, urls):
+    def __init__(self, screen):
         self.stop_event = threading.Event()
-        self.monitor_is_on = False
-        self.screen_size = screen_size
+        self._screen = screen
+        self._urls = []
+        self._cmds = []
+        self._thread = None
 
-        self.watch(urls)
+        logger.info('Streamer class has been initialized.')
 
-        logger.info('Streamer class has been initialized width screen size '
-                    '{}x{}'.format(self.screen_size[0], self.screen_size[1]))
+    def _buildCommands(self, urls, screen):
+        packedUrls = pack(urls, [screen.width, screen.height])
 
-    def build_cmds(self, urls):
         cmds = []
-
-        urls = pack(urls, self.screen_size)
-
-        for url in urls:
-            cmds.append(Streamer.omx_cmd(url))
+        for url in packedUrls:
+            cmds.append(Streamer.omx_cmd(url, screen.raspi_display_no))
 
         return cmds
 
     @staticmethod
-    def omx_cmd(url):
+    def omx_cmd(url, raspi_display_no):
         size = url.getSize()
         win = ','.join(["{}".format(i) for i in [url.pos_x, url.pos_y, int(url.pos_x + size[0]), int(url.pos_y + size[1])]])
         crop =  ','.join(["{}".format(i) for i in url.getCrop()])
-        return ["/usr/bin/omxplayer.bin",
+        cmd = ["/usr/bin/omxplayer.bin",
                 url.getUrl(),
                 "--live",
                 "-s",
@@ -294,10 +293,14 @@ class Streamer:
                 "--orientation", str(url.orientation),
                 "--vol", "{}".format(FLAGS.omxplayer_vol),
             ]
+        if raspi_display_no:
+            cmd.append("--display={}".format(raspi_display_no))
+        return cmd
 
     def _watch_thread_entry(self):
         processes = []
-        for cmd in self.cmds:
+        cmds = copy.deepcopy(self._cmds)
+        for cmd in cmds:
             logger.info(cmd)
             try:
                 p = OmxProcess(cmd)
@@ -317,45 +320,40 @@ class Streamer:
         for p in processes:
             p.kill()
 
-    def _monitor_enable(self, enable):
-        try:
-            if enable:
-                logger.info("Turning monitor on")
-                subprocess.call(["/opt/vc/bin/tvservice", "-p"])
-            else:
-                logger.info("Turning monitor off")
-                subprocess.call(["/opt/vc/bin/tvservice", "-o"])
-        except FileNotFoundError:
-            logger.error("tvservice executable not found. Cannot control monitor")
+    def _enableMonitor(self, enable):
+        if enable:
+            self._screen.enableScreen()
+        else:
+            self._screen.disableScreen()
 
-        self.monitor_is_on = enable
-
-    def watch(self, urls):
+    def watch(self):
+        urls = copy.deepcopy(self._urls)
+        screen = copy.deepcopy(self._screen)
         if len(urls) == 0:
-            self._monitor_enable(False)
+            self._enableMonitor(False)
             return
 
-        if not self.monitor_is_on:
-            # turn monitor back on
-            self._monitor_enable(True)
+        if not self._screen.enabled:
+            # Turn monitor back on.
+            self._enableMonitor(True)
 
-        urls = copy.deepcopy(urls)
-        self.cmds = self.build_cmds(urls)
-        logger.info("Starting background task to watch omxplayers")
-        self.thread = threading.Thread(target=self._watch_thread_entry)
-        self.thread.start()
+        self._cmds = self._buildCommands(urls, screen)
+        logger.info("Starting background task to watch omxplayer tasks.")
+        self._thread = threading.Thread(target=self._watch_thread_entry)
+        self._thread.start()
 
     def stop(self):
-        if not self.monitor_is_on:
+        if not self._thread:
             return
 
         self.stop_event.set()
-        self.thread.join(10)
-        if self.thread.isAlive():
-            logger.critical('Thread is still alive after 10s! We will try to crash')
+        self._thread.join(10)
+        if self._thread.isAlive():
+            logger.critical('Thread is still alive after 10s! We will try to crash.')
             os._exit(-1)
         self.stop_event.clear()
 
     def setUrls(self, urls):
         self.stop()
-        self.watch(urls)
+        self._urls = urls
+        self.watch()

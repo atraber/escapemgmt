@@ -13,17 +13,12 @@ import urllib.request
 import yaml
 from absl import flags
 from logger import logger
-from sseclient import SSEClient
 from streamer import StreamView, UrlBox
 from uuid import getnode
 
 
 FLAGS = flags.FLAGS
 
-flags.DEFINE_boolean(
-        'pubsub_enable', default=False,
-        help='Enable pubsub to fetch new video streams from backend. '
-             'Disabled by default.')
 flags.DEFINE_integer(
         'backend_request_timeout', default=5,
         help='Timeout for requests to escape backend. Defaults to 5 seconds.')
@@ -45,20 +40,25 @@ requestsErrorMetric = prometheus_client.Counter(
 
 
 class UrlFetcher:
-    def __init__(self, api_endpoint):
+    def __init__(self, api_endpoint, suffix=None, background=None, streamer=None):
         self.api_endpoint = api_endpoint
-        self.mac = getnode()
-        self.push_semaphore = None
-        self.watch_push_thread = None
-        logger.info("Device MAC-Address: {:X}".format(self.mac))
+        self._mac = getnode()
+        logger.info("Device MAC-Address: {:X}".format(self._mac))
+        self._name = self._mac
+        if suffix:
+            self._name = "{}{}".format(self._name, suffix)
+        self._background = background
+        self._streamer = streamer
+        self._urls = []
 
     def request(self):
+        urls = []
         logger.info('Sending request to backend')
         requestsTotalMetric.inc()
         backendLastCheckMetric.set(datetime.datetime.now().timestamp())
 
         try:
-            url = self.api_endpoint + '/raspi/{}'.format(self.mac)
+            url = self.api_endpoint + '/raspi/{}'.format(self._name)
             with urllib.request.urlopen(
                     url=url,
                     timeout=FLAGS.backend_request_timeout) as response:
@@ -108,54 +108,42 @@ class UrlFetcher:
 
         return urls
 
-    def watch_push(self):
-        self.push_semaphore = threading.BoundedSemaphore()
-
-        self.watch_push_thread = threading.Thread(target=self._watch_push_thread)
-        self.watch_push_thread.start()
-
-        return self.push_semaphore
-
-    def _watch_push_thread(self):
-        """This starts a separate thread that waits for server side events.
-
-        When a relevant event is detected, the semaphore self.push_semaphore is set.
-        """
-        while True:
-            try:
-                messages = SSEClient(self.api_endpoint + '/subscribe')
-
-                for msg in messages:
-                    logger.info('Received message')
-                    try:
-                        self.push_semaphore.release()
-                    except ValueError:
-                        # We ignore ValueError as this might happen when our request
-                        # thread is not as fast as events come in.
-                        pass
-            except:
-                logger.error('SSE client experienced a problem')
-                traceback.print_exc()
-                time.sleep(10)
-
-    def _config_file_path(self):
+    def _configFilePath(self):
         script = os.path.realpath(__file__)
         dirname = os.path.dirname(script)
-        return os.path.join(dirname, 'config.yml')
+        return os.path.join(dirname, 'config-{}.yml'.format(self._name))
 
     def save(self, urls):
-        with open(self._config_file_path(), 'w') as outfile:
+        self._urls = urls
+        with open(self._configFilePath(), 'w') as outfile:
             yaml.dump(urls, outfile, default_flow_style=False)
 
     def restore(self):
         try:
-            with open(self._config_file_path(), "r") as infile:
-                return yaml.load(infile.read())
+            with open(self._configFilePath(), "r") as infile:
+                self._urls = yaml.load(infile.read())
         except FileNotFoundError:
-            return []
+            self._urls = []
+
+    def watch(self, polling_interval=30):
+        time.sleep(polling_interval)
+        logger.info("Polling now...")
+
+        new_urls = self.request()
+        if new_urls is None:
+            logger.error("Failed to get new URLs. Is web server down?")
+            self._background.setConnected(False)
+            return
+
+        self._background.setConnected(True)
+
+        if not _urlsEqual(new_urls, self._urls):
+            logger.info("URLs are not equal!")
+            self.save(new_urls)
+            self._streamer.setUrls(new_urls)
 
 
-def urlsEqual(lhs, rhs):
+def _urlsEqual(lhs, rhs):
     if len(lhs) != len(rhs):
         return False
 
@@ -164,30 +152,3 @@ def urlsEqual(lhs, rhs):
             return False
 
     return True
-
-
-def watch(fetcher, bg, urls, polling_interval=30):
-    if FLAGS.pubsub_enable:
-        semaphore = fetcher.watch_push()
-
-    while True:
-        # After this function returns, we either received an event or the
-        # timeout has expired. Either way, let's check for new streams.
-        if FLAGS.pubsub_enable:
-            semaphore.acquire(timeout=polling_interval)
-            logger.info("Received message via pubsub or polling...")
-        else:
-            time.sleep(polling_interval)
-            logger.info("Polling now...")
-
-        new_urls = fetcher.request()
-        if new_urls is None:
-            logger.error("Failed to get new URLs. Is web server down?")
-            bg.setConnected(False)
-            continue
-
-        bg.setConnected(True)
-
-        if not urlsEqual(new_urls, urls):
-            logger.info("URLs are not equal!")
-            return new_urls
