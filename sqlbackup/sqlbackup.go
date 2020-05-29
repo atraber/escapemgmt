@@ -130,7 +130,7 @@ func main() {
 	}
 
 	startTime := time.Now()
-	name := fmt.Sprintf("sql-backup_%s.sql", startTime.Format("1985-04-12T23:20:50.52Z"))
+	name := fmt.Sprintf("sql-backup_%s.sql", startTime.Format(time.RFC3339))
 
 	content, err := performBackup()
 	if err != nil {
