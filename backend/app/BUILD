@@ -38,6 +38,7 @@ py_binary(
         requirement("mako"),
         requirement("minio"),
         requirement("multidict"),
+        requirement("priority"),
         requirement("py-dateutil"),
         requirement("python-dateutil"),
         requirement("pytz"),
