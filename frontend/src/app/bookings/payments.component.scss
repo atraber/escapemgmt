@@ -1,1 +1,49 @@
 @import 'src/styles.scss';
+
+div.receipt {
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+}
+
+div.tables {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+}
+
+div.container {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+}
+
+div.receipt-table-container {
+    width: 100%;
+}
+
+div.to-add {
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+}
+
+div.stock {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.tables table {
+    width: 100%;
+}
+
+.stock form {
+    display: flex;
+    flex-direction: column;
+}
+
+div.item-row {
+    display: flex;
+    flex-direction: row;
+}

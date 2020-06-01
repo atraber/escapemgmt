@@ -3,52 +3,129 @@
 </mat-list>
 <mat-divider></mat-divider>
 <mat-spinner class="spinner-center" *ngIf="!loaded"></mat-spinner>
-<div class="table-container">
-    <!--
-    <mat-form-field class="filter">
-        <input matInput (keyup)="applyFilter($event.target.value)" placeholder="Filter">
-    </mat-form-field>
+<div class="container">
+    <div class="receipt">
+        <h4>Transaktion</h4>
+        <div class="tables">
+            <div class="receipt-table-container">
+                <table mat-table [dataSource]="itemsDataSource">
+                    <ng-container matColumnDef="description">
+                        <th mat-header-cell *matHeaderCellDef>Posten</th>
+                        <td mat-cell *matCellDef="let element">{{element.name}}</td>
+                    </ng-container>
 
-    <table mat-table [dataSource]="dataSource" matSort matSortDirection="desc">
+                    <ng-container matColumnDef="price">
+                        <th mat-header-cell *matHeaderCellDef>Wert</th>
+                        <td mat-cell *matCellDef="let element">{{element.price}} CHF</td>
+                    </ng-container>
 
-        <ng-container matColumnDef="first_name">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Firstname</th>
-            <td mat-cell *matCellDef="let element">{{element.first_name}}</td>
-        </ng-container>
+                    <ng-container matColumnDef="controls">
+                        <th mat-header-cell *matHeaderCellDef></th>
+                        <td mat-cell *matCellDef="let element">
+                            <button mat-icon-button>
+                                <mat-icon>delete</mat-icon>
+                            </button>
+                        </td>
+                    </ng-container>
 
-        <ng-container matColumnDef="name">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
-            <td mat-cell *matCellDef="let element">{{element.name}}</td>
-        </ng-container>
+                    <tr mat-header-row *matHeaderRowDef="['description', 'price', 'controls']"></tr>
+                    <tr mat-row *matRowDef="let row; columns: ['description', 'price', 'controls']"></tr>
+                </table>
+            </div>
+            <div class="receipt-table-container">
+                <table mat-table [dataSource]="items2DataSource">
+                    <ng-container matColumnDef="description">
+                        <th mat-header-cell *matHeaderCellDef>Erhalten</th>
+                        <td mat-cell *matCellDef="let element">{{element.name}}</td>
+                    </ng-container>
 
-        <ng-container matColumnDef="room">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Room</th>
-            <td mat-cell *matCellDef="let element">{{element.room? element.room.name : "unknown"}}</td>
-        </ng-container>
+                    <ng-container matColumnDef="price">
+                        <th mat-header-cell *matHeaderCellDef>Wert</th>
+                        <td mat-cell *matCellDef="let element">{{element.price}} CHF</td>
+                    </ng-container>
 
-        <ng-container matColumnDef="slot_from">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Slot</th>
-            <td mat-cell *matCellDef="let element">{{formatDatetime(element.slot_from)}} - {{formatEndTime(element.slot_to)}}</td>
-        </ng-container>
+                    <ng-container matColumnDef="controls">
+                        <th mat-header-cell *matHeaderCellDef></th>
+                        <td mat-cell *matCellDef="let element">
+                            <button mat-icon-button>
+                                <mat-icon>delete</mat-icon>
+                            </button>
+                        </td>
+                    </ng-container>
 
-        <ng-container matColumnDef="controls">
-            <th mat-header-cell *matHeaderCellDef></th>
-            <td mat-cell *matCellDef="let element">
-                <button mat-icon-button (click)="editBookingDialog(element)" [disabled]="element.source != BOOKING_SOURCE_MANUAL">
-                    <mat-icon>edit</mat-icon>
+                    <tr mat-header-row *matHeaderRowDef="['description', 'price', 'controls']"></tr>
+                    <tr mat-row *matRowDef="let row; columns: ['description', 'price', 'controls']"></tr>
+                </table>
+            </div>
+        </div>
+        <div>
+            Restbetrag: 100 CHF
+        </div>
+    </div>
+    <div class="to-add">
+        <div class="stock">
+            <h3>Posten</h3>
+            <div class="item-row">
+                <span>Raum</span>
+                <button mat-icon-button>
+                    <mat-icon>add</mat-icon>
                 </button>
-                <button mat-icon-button (click)="deleteBookingDialog(element)" [disabled]="element.source != BOOKING_SOURCE_MANUAL">
-                    <mat-icon>delete</mat-icon>
+            </div>
+            <div class="item-row">
+                <span>Betrag</span>
+                <mat-form-field>
+                    <input matInput placeholder="Betrag" [required]=true>
+                </mat-form-field>
+                <button mat-icon-button>
+                    <mat-icon>add</mat-icon>
                 </button>
-            </td>
-        </ng-container>
-
-        <tr mat-header-row *matHeaderRowDef="['first_name', 'name', 'room', 'slot_from', 'controls']"></tr>
-        <tr mat-row *matRowDef="let row; columns: ['first_name', 'name', 'room', 'slot_from', 'controls']"></tr>
-    </table>
-    <mat-paginator [pageSizeOptions]="[10, 20, 100]" [showFirstLastButtons]="true"></mat-paginator>
+            </div>
+            <div class="item-row">
+                <span>Getraenke/Snacks</span>
+                <button mat-icon-button>
+                    <mat-icon>add_circle</mat-icon>
+                </button>
+            </div>
+            <div class="item-row">
+                <span>Rabatt</span>
+                <mat-form-field>
+                    <input matInput placeholder="Betrag" [required]=true>
+                </mat-form-field>
+                <button mat-icon-button>
+                    <mat-icon>add_circle_outline</mat-icon>
+                </button>
+            </div>
+        </div>
+        <div class="payment-methods">
+            Zahlungsmethoden
+            <div class="item-row">
+                <span>Bar</span>
+                <mat-form-field>
+                    <input matInput placeholder="Betrag" [required]=true>
+                </mat-form-field>
+                <button mat-icon-button>
+                    <mat-icon>add</mat-icon>
+                </button>
+            </div>
+            <div class="item-row">
+                <span>Kreditkarte</span>
+                <mat-form-field>
+                    <input matInput placeholder="Betrag" [required]=true>
+                </mat-form-field>
+                <button mat-icon-button>
+                    <mat-icon>add</mat-icon>
+                </button>
+            </div>
+            <div class="item-row">
+                <span>Gutschein</span>
+                <mat-form-field>
+                    <!-- Add -/+ buttons to adjust #persons -->
+                    <input matInput placeholder="#Personen" [required]=true>
+                </mat-form-field>
+                <button mat-icon-button>
+                    <mat-icon>add</mat-icon>
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
-<div class="booking-add-field">
-    <button mat-button color="primary" (click)="addBookingDialog()">Add new Booking</button>
-</div>
-  -->
