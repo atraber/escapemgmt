@@ -8,6 +8,7 @@ SCSS_ASSETS = [
     "booking-create.dialog.scss",
     "bookings.component.scss",
     "payments.component.scss",
+    "payment-value.dialog.scss",
     "dash.component.scss",
 ]
 
@@ -38,6 +39,7 @@ ng_module(
         ":booking-create.dialog.html",
         ":bookings.component.html",
         ":payments.component.html",
+        ":payment-value.dialog.html",
         ":dash.component.html",
     ] + CSS_ASSETS,
     tsconfig = "//src:tsconfig.json",

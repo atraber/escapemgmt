@@ -10,7 +10,7 @@
             <div class="receipt-table-container">
                 <table mat-table [dataSource]="itemsDataSource">
                     <ng-container matColumnDef="description">
-                        <th mat-header-cell *matHeaderCellDef>Posten</th>
+                        <th mat-header-cell *matHeaderCellDef>Artikel</th>
                         <td mat-cell *matCellDef="let element">{{element.name}}</td>
                     </ng-container>
 
@@ -62,9 +62,9 @@
             Restbetrag: 100 CHF
         </div>
     </div>
-    <div class="to-add">
-        <div class="stock">
-            <h3>Posten</h3>
+    <div class="form">
+        <div class="articles">
+            <h3>Artikel</h3>
             <div class="item-row">
                 <span>Raum</span>
                 <button mat-icon-button>
@@ -97,7 +97,28 @@
             </div>
         </div>
         <div class="payment-methods">
-            Zahlungsmethoden
+            <h3>Zahlungsmethoden</h3>
+            <mat-form-field appearance="outline">
+                <mat-label>Bargeld</mat-label>
+                <input matInput>
+                <button mat-button mat-icon-button matSuffix>
+                    <mat-icon>add</mat-icon>
+                </button>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+                <mat-label>Kreditkarte</mat-label>
+                <input matInput>
+                <button mat-button mat-icon-button matSuffix>
+                    <mat-icon>add</mat-icon>
+                </button>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+                <mat-label>Gutschein</mat-label>
+                <input matInput>
+                <button mat-button mat-icon-button matSuffix>
+                    <mat-icon>add</mat-icon>
+                </button>
+            </mat-form-field>
             <div class="item-row">
                 <span>Bar</span>
                 <mat-form-field>
@@ -113,10 +134,11 @@
                     <input matInput placeholder="Betrag" [required]=true>
                 </mat-form-field>
                 <button mat-icon-button>
-                    <mat-icon>add</mat-icon>
+                    <mat-icon (click)="openCreditCardDialog()">add</mat-icon>
                 </button>
             </div>
             <div class="item-row">
+                <!-- Dialog? -->
                 <span>Gutschein</span>
                 <mat-form-field>
                     <!-- Add -/+ buttons to adjust #persons -->

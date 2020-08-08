@@ -57,4 +57,16 @@ export class PaymentsComponent {
       new Item('Credit Card', -20),
     ];
   }
+
+  openCreditCardDialog() {
+    this.dialog.open(PaymentValueDialog, {width : '500px'});
+  }
+}
+
+@Component({
+  templateUrl : './payment-value.dialog.html',
+  styleUrls : [ './payment-value.dialog.scss' ]
+})
+export class PaymentValueDialog {
+  constructor(public dialogRef: MatDialogRef<BookingCreateDialog>) {}
 }
