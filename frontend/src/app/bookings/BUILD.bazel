@@ -32,6 +32,7 @@ ng_module(
         "bookings.module.ts",
         "bookings-card.component.ts",
         "dash.component.ts",
+        "payment-value.dialog.ts",
         "payments.component.ts",
     ],
     assets = [
@@ -46,6 +47,7 @@ ng_module(
     deps = [
         "//src/app:common_lib",
         "//src/app:common_module",
+        "@npm//autonumeric",
         "@npm//moment",
     ],
 )

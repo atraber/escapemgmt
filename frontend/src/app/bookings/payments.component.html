@@ -8,7 +8,7 @@
         <h4>Transaktion</h4>
         <div class="tables">
             <div class="receipt-table-container">
-                <table mat-table [dataSource]="itemsDataSource">
+                <table mat-table [dataSource]="articlesDataSource">
                     <ng-container matColumnDef="description">
                         <th mat-header-cell *matHeaderCellDef>Artikel</th>
                         <td mat-cell *matCellDef="let element">{{element.name}}</td>
@@ -31,9 +31,12 @@
                     <tr mat-header-row *matHeaderRowDef="['description', 'price', 'controls']"></tr>
                     <tr mat-row *matRowDef="let row; columns: ['description', 'price', 'controls']"></tr>
                 </table>
+                <div>
+                    Total: 100 CHF
+                </div>
             </div>
             <div class="receipt-table-container">
-                <table mat-table [dataSource]="items2DataSource">
+                <table mat-table [dataSource]="receivedDataSource">
                     <ng-container matColumnDef="description">
                         <th mat-header-cell *matHeaderCellDef>Erhalten</th>
                         <td mat-cell *matCellDef="let element">{{element.name}}</td>
@@ -56,98 +59,67 @@
                     <tr mat-header-row *matHeaderRowDef="['description', 'price', 'controls']"></tr>
                     <tr mat-row *matRowDef="let row; columns: ['description', 'price', 'controls']"></tr>
                 </table>
+                <div>
+                    Restbetrag: 100 CHF
+                </div>
             </div>
-        </div>
-        <div>
-            Restbetrag: 100 CHF
         </div>
     </div>
     <div class="form">
         <div class="articles">
             <h3>Artikel</h3>
             <div class="item-row">
-                <span>Raum</span>
-                <button mat-icon-button>
+                <!-- aus Liste auswaehlbar -->
+                <button mat-raised-button color="primary" (click)="openCreditCardDialog()">
+                    Raum
                     <mat-icon>add</mat-icon>
                 </button>
             </div>
             <div class="item-row">
-                <span>Betrag</span>
-                <mat-form-field>
-                    <input matInput placeholder="Betrag" [required]=true>
-                </mat-form-field>
-                <button mat-icon-button>
+                <button mat-raised-button color="primary" (click)="openAmountDialog()">
+                    Betrag
                     <mat-icon>add</mat-icon>
                 </button>
             </div>
             <div class="item-row">
-                <span>Getraenke/Snacks</span>
-                <button mat-icon-button>
-                    <mat-icon>add_circle</mat-icon>
+                <!-- A la Migros Kasse -->
+                <button mat-raised-button color="primary" (click)="openCreditCardDialog()">
+                    Getraenke / Snacks
+                    <mat-icon>add</mat-icon>
                 </button>
             </div>
             <div class="item-row">
-                <span>Rabatt</span>
-                <mat-form-field>
-                    <input matInput placeholder="Betrag" [required]=true>
-                </mat-form-field>
-                <button mat-icon-button>
-                    <mat-icon>add_circle_outline</mat-icon>
+                <button mat-raised-button color="primary" (click)="openCreditCardDialog()">
+                    Rabatt
+                    <mat-icon>add</mat-icon>
                 </button>
             </div>
         </div>
         <div class="payment-methods">
             <h3>Zahlungsmethoden</h3>
-            <mat-form-field appearance="outline">
-                <mat-label>Bargeld</mat-label>
-                <input matInput>
-                <button mat-button mat-icon-button matSuffix>
-                    <mat-icon>add</mat-icon>
-                </button>
-            </mat-form-field>
-            <mat-form-field appearance="outline">
-                <mat-label>Kreditkarte</mat-label>
-                <input matInput>
-                <button mat-button mat-icon-button matSuffix>
-                    <mat-icon>add</mat-icon>
-                </button>
-            </mat-form-field>
-            <mat-form-field appearance="outline">
-                <mat-label>Gutschein</mat-label>
-                <input matInput>
-                <button mat-button mat-icon-button matSuffix>
-                    <mat-icon>add</mat-icon>
-                </button>
-            </mat-form-field>
             <div class="item-row">
-                <span>Bar</span>
-                <mat-form-field>
-                    <input matInput placeholder="Betrag" [required]=true>
-                </mat-form-field>
-                <button mat-icon-button>
+                <button mat-raised-button color="primary" (click)="openCashDialog()">
+                    Bar
                     <mat-icon>add</mat-icon>
                 </button>
             </div>
             <div class="item-row">
-                <span>Kreditkarte</span>
-                <mat-form-field>
-                    <input matInput placeholder="Betrag" [required]=true>
-                </mat-form-field>
-                <button mat-icon-button>
-                    <mat-icon (click)="openCreditCardDialog()">add</mat-icon>
+                <button mat-raised-button color="primary" (click)="openCreditCardDialog()">
+                    Karte
+                    <mat-icon>add</mat-icon>
                 </button>
             </div>
             <div class="item-row">
-                <!-- Dialog? -->
-                <span>Gutschein</span>
-                <mat-form-field>
-                    <!-- Add -/+ buttons to adjust #persons -->
-                    <input matInput placeholder="#Personen" [required]=true>
-                </mat-form-field>
-                <button mat-icon-button>
+                <!-- Dialog mit Namen (Drop-down liste) -->
+                <button mat-raised-button color="primary" (click)="openCreditCardDialog()">
+                    Gutschein
                     <mat-icon>add</mat-icon>
                 </button>
             </div>
         </div>
     </div>
 </div>
+
+<button mat-raised-button color="accent" class="submit">
+    Abschliessen
+</button>

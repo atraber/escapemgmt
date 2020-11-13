@@ -11,6 +11,7 @@ import {BookingCreateDialog} from './booking-create.dialog';
 import {BookingsCard} from './bookings-card.component';
 import {BookingsComponent} from './bookings.component';
 import {BookingsDashComponent} from './dash.component';
+import {PaymentValueDialog} from './payment-value.dialog';
 import {PaymentsComponent} from './payments.component';
 
 const routes: Routes = [
@@ -25,6 +26,7 @@ const routes: Routes = [
     BookingsCard,
     BookingsDashComponent,
     BookingCreateDialog,
+    PaymentValueDialog,
     PaymentsComponent,
   ],
   entryComponents : [
