@@ -2,29 +2,13 @@
  * Copyright 2019 Andreas Traber
  * Licensed under MIT (https://github.com/atraber/escapemgmt/LICENSE)
  */
-import {
-  AfterViewChecked,
-  AfterViewInit,
-  Component,
-  Inject,
-  OnInit,
-  ViewChild,
-} from '@angular/core';
+import {AfterViewInit, Component, Inject} from '@angular/core';
 import {
   MAT_DIALOG_DATA,
   MatDialog,
   MatDialogRef
 } from '@angular/material/dialog';
-import {MatPaginator} from '@angular/material/paginator';
-import {MatSort} from '@angular/material/sort';
-import {MatTableDataSource} from '@angular/material/table';
 import AutoNumeric from 'autonumeric';
-import moment from 'moment';
-
-import {Booking, BookingSource} from '../booking';
-import {BookingsService} from '../bookings.service';
-
-import {BookingCreateDialog} from './booking-create.dialog';
 
 export class PaymentValueRequest {
   title: string;
@@ -47,7 +31,7 @@ export class PaymentValueDialog implements AfterViewInit {
   amountAN: AutoNumeric;
   description: string;
 
-  constructor(public dialogRef: MatDialogRef<BookingCreateDialog>,
+  constructor(public dialogRef: MatDialogRef<PaymentValueDialog>,
               @Inject(MAT_DIALOG_DATA) public data: PaymentValueRequest) {
     this.title = data.title;
     this.descriptionRequired = data.descriptionRequired;

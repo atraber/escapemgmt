@@ -11,7 +11,9 @@ import {BookingCreateDialog} from './booking-create.dialog';
 import {BookingsCard} from './bookings-card.component';
 import {BookingsComponent} from './bookings.component';
 import {BookingsDashComponent} from './dash.component';
+import {PaymentSnackGalleryDialog} from './payment-snack-gallery.dialog';
 import {PaymentValueDialog} from './payment-value.dialog';
+import {PaymentVoucherDialog} from './payment-voucher.dialog';
 import {PaymentsComponent} from './payments.component';
 
 const routes: Routes = [
@@ -22,11 +24,13 @@ const routes: Routes = [
 
 @NgModule({
   declarations : [
-    BookingsComponent,
-    BookingsCard,
-    BookingsDashComponent,
     BookingCreateDialog,
+    BookingsCard,
+    BookingsComponent,
+    BookingsDashComponent,
+    PaymentSnackGalleryDialog,
     PaymentValueDialog,
+    PaymentVoucherDialog,
     PaymentsComponent,
   ],
   entryComponents : [

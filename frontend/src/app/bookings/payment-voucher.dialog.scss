@@ -1,0 +1,10 @@
+@import 'src/styles.scss';
+
+.mat-dialog-content {
+    overflow: initial;
+}
+
+.vertical {
+    display: flex;
+    flex-direction: column;
+}

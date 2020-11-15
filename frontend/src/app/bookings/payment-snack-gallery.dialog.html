@@ -1,0 +1,27 @@
+<form (ngSubmit)="submit()">
+    <h1 mat-dialog-title>Add Snack</h1>
+    <div mat-dialog-content>
+        Click card to add
+
+
+        <mat-grid-list cols="4">
+            <mat-grid-tile *ngFor="let tile of tiles">
+                <mat-card (click)="add(tile)">
+                    <mat-card-header>
+                        <div mat-card-avatar></div>
+                        <mat-card-title>{{tile.title}}</mat-card-title>
+                    </mat-card-header>
+                    <img mat-card-image *ngIf="tile.image" [src]="tile.image">
+                    <mat-card-content>
+                        <p>
+                            {{tile.price}} CHF
+                        </p>
+                    </mat-card-content>
+                </mat-card>
+            </mat-grid-tile>
+        </mat-grid-list>
+    </div>
+    <div mat-dialog-actions>
+        <button mat-raised-button mat-dialog-close>Close</button>
+    </div>
+</form>

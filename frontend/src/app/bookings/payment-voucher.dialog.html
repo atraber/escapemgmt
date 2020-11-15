@@ -1,0 +1,14 @@
+<form (ngSubmit)="submit()">
+    <h1 mat-dialog-title>Add Voucher</h1>
+    <div mat-dialog-content>
+        <mat-radio-group class="vertical" [(ngModel)]="numPeople" name="numPeople">
+            <mat-radio-button value="2">2 Personen</mat-radio-button>
+            <mat-radio-button value="3">3 Personen</mat-radio-button>
+            <mat-radio-button value="4">4 Personen</mat-radio-button>
+        </mat-radio-group>
+    </div>
+    <div mat-dialog-actions>
+        <button mat-raised-button mat-dialog-close>Close</button>
+        <button mat-raised-button color="primary" type="submit">Add</button>
+    </div>
+</form>

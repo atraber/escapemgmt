@@ -129,14 +129,16 @@ pkg_web(
         ":inject_scripts_for_prod",
         "@npm//:node_modules/core-js/client/core.min.js",
         "@npm//:node_modules/moment/min/moment.min.js",
+        "@npm//:node_modules/autonumeric/dist/autoNumeric.min.js",
         "@npm//:node_modules/systemjs/dist/system.js",
     ] + _ASSETS_PROD + DEP_ASSETS,
     # In production mode we serve some polyfills with script tags that have hard-coded paths in the index.html
     # so we must serve them at that path, by stripping a prefix
     additional_root_paths = [
+        "npm/node_modules/autonumeric/dist",
         "npm/node_modules/core-js/client",
-        "npm/node_modules/systemjs/dist",
         "npm/node_modules/moment/min",
+        "npm/node_modules/systemjs/dist",
     ],
 )
 
@@ -203,6 +205,7 @@ ts_devserver(
     ],
     serving_path = "/bundle.min.js",
     static_files = [
+        "@npm//:node_modules/autonumeric/dist/autoNumeric.min.js",
         "@npm//:node_modules/moment/min/moment.min.js",
         "@npm//:node_modules/@angular/compiler/bundles/compiler.umd.min.js",
         ":inject_scripts_for_dev",

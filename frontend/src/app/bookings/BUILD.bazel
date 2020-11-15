@@ -4,12 +4,14 @@ load("@io_bazel_rules_sass//:defs.bzl", "sass_binary")
 load("@npm_angular_bazel//:index.bzl", "ng_module")
 
 SCSS_ASSETS = [
-    "bookings-card.component.scss",
     "booking-create.dialog.scss",
+    "bookings-card.component.scss",
     "bookings.component.scss",
-    "payments.component.scss",
-    "payment-value.dialog.scss",
     "dash.component.scss",
+    "payment-snack-gallery.dialog.scss",
+    "payment-value.dialog.scss",
+    "payment-voucher.dialog.scss",
+    "payments.component.scss",
 ]
 
 [
@@ -32,16 +34,20 @@ ng_module(
         "bookings.module.ts",
         "bookings-card.component.ts",
         "dash.component.ts",
+        "payment-snack-gallery.dialog.ts",
         "payment-value.dialog.ts",
+        "payment-voucher.dialog.ts",
         "payments.component.ts",
     ],
     assets = [
-        ":bookings-card.component.html",
         ":booking-create.dialog.html",
+        ":bookings-card.component.html",
         ":bookings.component.html",
-        ":payments.component.html",
-        ":payment-value.dialog.html",
         ":dash.component.html",
+        ":payment-snack-gallery.dialog.html",
+        ":payment-value.dialog.html",
+        ":payment-voucher.dialog.html",
+        ":payments.component.html",
     ] + CSS_ASSETS,
     tsconfig = "//src:tsconfig.json",
     deps = [
