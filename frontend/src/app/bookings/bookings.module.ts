@@ -11,10 +11,15 @@ import {BookingCreateDialog} from './booking-create.dialog';
 import {BookingsCard} from './bookings-card.component';
 import {BookingsComponent} from './bookings.component';
 import {BookingsDashComponent} from './dash.component';
+import {PaymentBookingsDialog} from './payment-bookings.dialog';
 import {PaymentSnackGalleryDialog} from './payment-snack-gallery.dialog';
 import {PaymentValueDialog} from './payment-value.dialog';
 import {PaymentVoucherDialog} from './payment-voucher.dialog';
-import {PaymentsComponent} from './payments.component';
+import {
+  AutoNumericPipe,
+  PaymentMessageDialog,
+  PaymentsComponent
+} from './payments.component';
 
 const routes: Routes = [
   {path : 'bookings', component : BookingsComponent},
@@ -24,12 +29,15 @@ const routes: Routes = [
 
 @NgModule({
   declarations : [
+    AutoNumericPipe,
     BookingCreateDialog,
     BookingsCard,
     BookingsComponent,
     BookingsDashComponent,
     PaymentSnackGalleryDialog,
     PaymentValueDialog,
+    PaymentBookingsDialog,
+    PaymentMessageDialog,
     PaymentVoucherDialog,
     PaymentsComponent,
   ],
