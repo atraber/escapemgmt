@@ -1,7 +1,9 @@
+load("@npm//@bazel/concatjs:index.bzl", "karma_web_test", "karma_web_test_suite")
+
 package(default_visibility = ["//src/app:__subpackages__"])
 
 load("@io_bazel_rules_sass//:defs.bzl", "sass_binary")
-load("@npm_angular_bazel//:index.bzl", "ng_module")
+load("//:ng_ts_library.bzl", "ng_ts_library")
 
 SCSS_ASSETS = [
     "create.dialog.scss",
@@ -23,7 +25,7 @@ SCSS_ASSETS = [
 
 CSS_ASSETS = [asset[:-5] for asset in SCSS_ASSETS]
 
-ng_module(
+ng_ts_library(
     name = "rooms",
     srcs = [
         "create.dialog.ts",
@@ -37,7 +39,7 @@ ng_module(
         "scores.component.ts",
         "timeinput.component.ts",
     ],
-    assets = [
+    angular_assets = [
         "create.dialog.html",
         "fileupload.component.html",
         "rooms.component.html",
@@ -49,8 +51,16 @@ ng_module(
     ] + CSS_ASSETS,
     tsconfig = "//src:tsconfig.json",
     deps = [
+        "//src:environment_lib",
         "//src/app:common_lib",
         "//src/app:common_module",
+        "@npm//@angular/cdk",
+        "@npm//@angular/common",
+        "@npm//@angular/core",
+        "@npm//@angular/forms",
+        "@npm//@angular/material",
+        "@npm//@angular/router",
         "@npm//moment",
+        "@npm//rxjs",
     ],
 )

@@ -24,8 +24,8 @@ bazel_skylib_workspace()
 
 http_archive(
     name = "build_bazel_rules_nodejs",
-    sha256 = "e1a0d6eb40ec89f61a13a028e7113aa3630247253bcb1406281b627e44395145",
-    urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/1.0.1/rules_nodejs-1.0.1.tar.gz"],
+    sha256 = "6142e9586162b179fdd570a55e50d1332e7d9c030efd853453438d607569721d",
+    urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/3.0.0/rules_nodejs-3.0.0.tar.gz"],
 )
 
 http_archive(
@@ -37,11 +37,17 @@ http_archive(
 
 http_archive(
     name = "io_bazel_rules_sass",
-    sha256 = "77e241148f26d5dbb98f96fe0029d8f221c6cb75edbb83e781e08ac7f5322c5f",
-    strip_prefix = "rules_sass-1.24.0",
+    patch_args = ["-p1"],
+    # We need the latest rules_sass to get the --bazel_patch_module_resolver behavior
+    # However it seems to have a bug, so we patch back to the prior dart-sass version.
+    # See https://github.com/bazelbuild/rules_sass/issues/127
+    # TODO(alexeagle): fix upstream and remove patch
+    patches = ["@build_bazel_rules_nodejs//:rules_sass.issue127.patch"],
+    sha256 = "8392cf8910db2b1dc3b488ea18113bfe4fd666037bf8ec30d2a3f08fc602a6d8",
+    strip_prefix = "rules_sass-1.30.0",
     urls = [
-        "https://github.com/bazelbuild/rules_sass/archive/1.24.0.zip",
-        "https://mirror.bazel.build/github.com/bazelbuild/rules_sass/archive/1.24.0.zip",
+        "https://github.com/bazelbuild/rules_sass/archive/1.30.0.zip",
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_sass/archive/1.30.0.zip",
     ],
 )
 
@@ -55,35 +61,19 @@ load(
     "yarn_install",
 )
 
-check_bazel_version(
-    message = """
-You no longer need to install Bazel on your machine.
-Your project should have a dependency on the @bazel/bazel package which supplies it.
-Try running `yarn bazel` instead.
-    (If you did run that, check that you've got a fresh `yarn install`)
-
-""",
-    minimum_bazel_version = "0.27.0",
-)
-
 yarn_install(
     name = "npm",
     package_json = "//:package.json",
     yarn_lock = "//:yarn.lock",
 )
 
-load("@npm//:install_bazel_dependencies.bzl", "install_bazel_dependencies")
+http_archive(
+    name = "io_bazel_rules_webtesting",
+    sha256 = "9bb461d5ef08e850025480bab185fd269242d4e533bca75bfb748001ceb343c3",
+    urls = ["https://github.com/bazelbuild/rules_webtesting/releases/download/0.3.3/rules_webtesting.tar.gz"],
+)
 
-install_bazel_dependencies()
-
-load("@npm_bazel_protractor//:package.bzl", "npm_bazel_protractor_dependencies")
-
-npm_bazel_protractor_dependencies()
-
-load("@npm_bazel_karma//:package.bzl", "npm_bazel_karma_dependencies")
-
-npm_bazel_karma_dependencies()
-
+# Setup the rules_webtesting toolchain
 load("@io_bazel_rules_webtesting//web:repositories.bzl", "web_test_repositories")
 
 web_test_repositories()
@@ -92,11 +82,8 @@ load("@io_bazel_rules_webtesting//web/versioned:browsers-0.3.2.bzl", "browser_re
 
 browser_repositories(
     chromium = True,
+    firefox = False,
 )
-
-load("@npm_bazel_typescript//:index.bzl", "ts_setup_workspace")
-
-ts_setup_workspace()
 
 load("@io_bazel_rules_sass//sass:sass_repositories.bzl", "sass_repositories")
 

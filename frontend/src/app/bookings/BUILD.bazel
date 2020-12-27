@@ -1,7 +1,9 @@
+load("@npm//@bazel/concatjs:index.bzl", "karma_web_test", "karma_web_test_suite")
+
 package(default_visibility = ["//src/app:__subpackages__"])
 
 load("@io_bazel_rules_sass//:defs.bzl", "sass_binary")
-load("@npm_angular_bazel//:index.bzl", "ng_module")
+load("//:ng_ts_library.bzl", "ng_ts_library")
 
 SCSS_ASSETS = [
     "booking-create.dialog.scss",
@@ -28,7 +30,7 @@ SCSS_ASSETS = [
 
 CSS_ASSETS = [asset[:-5] for asset in SCSS_ASSETS]
 
-ng_module(
+ng_ts_library(
     name = "bookings",
     srcs = [
         "booking-create.dialog.ts",
@@ -42,7 +44,7 @@ ng_module(
         "payment-voucher.dialog.ts",
         "payments.component.ts",
     ],
-    assets = [
+    angular_assets = [
         ":booking-create.dialog.html",
         ":bookings-card.component.html",
         ":bookings.component.html",
@@ -58,7 +60,11 @@ ng_module(
     deps = [
         "//src/app:common_lib",
         "//src/app:common_module",
+        "@npm//@angular/core",
+        "@npm//@angular/material",
+        "@npm//@angular/router",
         "@npm//autonumeric",
         "@npm//moment",
+        "@npm//rxjs",
     ],
 )

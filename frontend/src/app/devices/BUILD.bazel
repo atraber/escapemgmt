@@ -1,7 +1,9 @@
+load("@npm//@bazel/concatjs:index.bzl", "karma_web_test", "karma_web_test_suite")
+
 package(default_visibility = ["//src/app:__subpackages__"])
 
 load("@io_bazel_rules_sass//:defs.bzl", "sass_binary")
-load("@npm_angular_bazel//:index.bzl", "ng_module")
+load("//:ng_ts_library.bzl", "ng_ts_library")
 
 SCSS_ASSETS = [
     "device-add-stream.dialog.scss",
@@ -36,7 +38,7 @@ SCSS_ASSETS = [
 
 CSS_ASSETS = [asset[:-5] for asset in SCSS_ASSETS]
 
-ng_module(
+ng_ts_library(
     name = "devices",
     srcs = [
         "device-add-stream.dialog.ts",
@@ -61,7 +63,7 @@ ng_module(
         "streams.component.ts",
         "view.component.ts",
     ],
-    assets = [
+    angular_assets = [
         "device-add-stream.dialog.html",
         "device-create.dialog.html",
         "device-delete.dialog.html",
@@ -89,6 +91,11 @@ ng_module(
         "//src:environment_lib",
         "//src/app:common_lib",
         "//src/app:common_module",
+        "@npm//@angular/common",
+        "@npm//@angular/core",
+        "@npm//@angular/material",
+        "@npm//@angular/router",
         "@npm//moment",
+        "@npm//rxjs",
     ],
 )

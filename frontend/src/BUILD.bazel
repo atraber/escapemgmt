@@ -1,16 +1,14 @@
-package(default_visibility = ["//:__subpackages__"])
-
+load("@npm//@bazel/concatjs:index.bzl", "concatjs_devserver")
 load("@build_bazel_rules_nodejs//:index.bzl", "pkg_web")
-load("@io_bazel_rules_docker//container:container.bzl", "container_image")
-load("@io_bazel_rules_docker//nodejs:image.bzl", "nodejs_image")
-load("@io_bazel_rules_sass//:defs.bzl", "multi_sass_binary", "sass_binary", "sass_library")
+load("@io_bazel_rules_sass//:defs.bzl", "sass_binary", "sass_library")
 load("@npm//@babel/cli:index.bzl", "babel")
 load("@npm//history-server:index.bzl", "history_server")
 load("@npm//html-insert-assets:index.bzl", "html_insert_assets")
-load("@npm_angular_bazel//:index.bzl", "ng_module")
-load("@npm_bazel_rollup//:index.bzl", "rollup_bundle")
-load("@npm_bazel_terser//:index.bzl", "terser_minified")
-load("@npm_bazel_typescript//:index.bzl", "ts_config", "ts_devserver", "ts_library")
+load("@npm//@bazel/rollup:index.bzl", "rollup_bundle")
+load("@npm//@bazel/terser:index.bzl", "terser_minified")
+load("@npm//@bazel/typescript:index.bzl", "ts_config", "ts_library")
+
+package(default_visibility = ["//:__subpackages__"])
 
 sass_binary(
     name = "styles",
@@ -64,13 +62,16 @@ DEP_ASSETS = [
     "@npm//:node_modules/roboto-fontface/fonts/roboto/Roboto-Regular.woff2",
 ]
 
-ng_module(
+ts_library(
     name = "src",
     srcs = [
         "main.dev.ts",
         "main.prod.ts",
     ],
+    compiler = "//:tsc_wrapped_with_angular",
+    supports_workers = True,
     tsconfig = ":tsconfig.json",
+    use_angular_plugin = True,
     deps = [
         ":environment_lib",
         "//src/app",
@@ -89,8 +90,8 @@ rollup_bundle(
     output_dir = True,
     deps = [
         "//src",
-        "@npm//rollup-plugin-commonjs",
-        "@npm//rollup-plugin-node-resolve",
+        "@npm//@rollup/plugin-commonjs",
+        "@npm//@rollup/plugin-node-resolve",
     ],
 )
 
@@ -193,7 +194,7 @@ html_insert_assets(
     data = ["//src:index.dev.html"] + _ASSETS,
 )
 
-ts_devserver(
+concatjs_devserver(
     name = "devserver",
     additional_root_paths = ["src"],
     entry_module = "project/src/main.dev",
