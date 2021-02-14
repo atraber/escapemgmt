@@ -3,11 +3,7 @@
         // Allow uses of these JS APIs
         "lib": [
             "dom",
-            "es5",
-            "es6",
-            "es2015.collection",
-            "es2015.iterable",
-            "es2015.promise"
+            "es2018"
         ],
         "rootDirs": [
             ".",
@@ -24,5 +20,11 @@
         "types": [],
         "allowSyntheticDefaultImports": true,
         "esModuleInterop": true,
+        "sourceMap": true,
+        "declaration": false,
+        "downlevelIteration": true,
+        "moduleResolution": "node",
+        "target": "es2015",
+        "module": "es2020"
     }
 }

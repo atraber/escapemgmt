@@ -44,6 +44,7 @@ const routes: Routes = [
   entryComponents : [
     BookingsCard,
     BookingCreateDialog,
+    PaymentBookingsDialog,
   ],
   imports : [
     CommonModule,

@@ -20,7 +20,8 @@ const jsonOptions = {
   })
 };
 
-@Injectable()
+// TODO(atraber): Frankly I don't understand Injectable...
+//@Injectable()
 export class BookingsService {
   bookings: Booking[] = [];
 

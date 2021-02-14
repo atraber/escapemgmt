@@ -201,8 +201,8 @@ concatjs_devserver(
     port = 4200,
     scripts = [
         ":require.config.js",
-        "@npm//:node_modules/tslib/tslib.js",
         ":rxjs_umd_modules",
+        "@npm//:node_modules/tslib/tslib.js",
     ],
     serving_path = "/bundle.min.js",
     static_files = [

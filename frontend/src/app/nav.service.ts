@@ -5,7 +5,8 @@
 import {Injectable} from '@angular/core';
 import {MatSnackBar} from '@angular/material/snack-bar';
 
-@Injectable()
+// TODO(atraber): Frankly I don't understand Injectable...
+//@Injectable()
 export class NavService {
   isOpened: boolean = false;
 
