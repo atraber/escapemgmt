@@ -40,7 +40,7 @@ container_push(
     name = "backend_push",
     format = "Docker",
     image = ":backend_image",
-    registry = "192.168.29.232:5000",
+    registry = "192.168.0.80:5000",
     repository = "escape_backend",
     tag = "latest",
 )
@@ -61,7 +61,7 @@ container_push(
     name = "backend_initdb_push",
     format = "Docker",
     image = ":backend_initdb",
-    registry = "192.168.29.232:5000",
+    registry = "192.168.0.80:5000",
     repository = "escape_backend_initdb",
     tag = "latest",
 )
@@ -82,7 +82,7 @@ container_push(
     name = "backend_migrate_push",
     format = "Docker",
     image = ":backend_migrate",
-    registry = "192.168.29.232:5000",
+    registry = "192.168.0.80:5000",
     repository = "escape_backend_migrate",
     tag = "latest",
 )
