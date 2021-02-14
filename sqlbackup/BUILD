@@ -13,7 +13,7 @@ download_pkgs(
     image_tar = "@container_base//image",
     packages = [
         "ca-certificates",
-        "postgresql-client-11",
+        "postgresql-client-13",
     ],
 )
 
@@ -42,6 +42,23 @@ container_push(
     registry = "192.168.0.80:5000",
     repository = "sqlbackup",
     tag = "prod",
+)
+
+sh_test(
+    name = "verify-gofmt",
+    srcs = ["verify-gofmt.sh"],
+    data = [
+        "@io_bazel_rules_go_toolchain//:toolchain",
+    ],
+    tags = ["manual"],
+)
+
+test_suite(
+    name = "verify-all",
+    tags = ["manual"],
+    tests = [
+        "verify-gofmt",
+    ],
 )
 
 # gazelle:prefix main

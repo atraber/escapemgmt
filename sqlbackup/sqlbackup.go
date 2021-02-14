@@ -21,6 +21,7 @@ var (
 	dbPassword        = flag.String("db_password", "", "Database password.")
 	dbHost            = flag.String("db_host", "", "Database hostname.")
 	dbPort            = flag.Int("db_port", 5432, "Database port.")
+	fileNamePrefix    = flag.String("filename_prefix", "sql-backup", "Filename prefix.")
 	s3Endpoint        = flag.String("s3_endpoint", "", "S3 endpoint hostname.")
 	s3AccessKey       = flag.String("s3_access_key", "", "S3 Access Key.")
 	s3SecretKey       = flag.String("s3_secret_key", "", "S3 Secret Key.")
@@ -130,7 +131,7 @@ func main() {
 	}
 
 	startTime := time.Now()
-	name := fmt.Sprintf("sql-backup_%s.sql", startTime.Format(time.RFC3339))
+	name := fmt.Sprintf("%s_%s.sql", *fileNamePrefix, startTime.Format(time.RFC3339))
 
 	content, err := performBackup()
 	if err != nil {
