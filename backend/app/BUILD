@@ -12,6 +12,7 @@ py_binary(
         "config.py",
         "devices.py",
         "files.py",
+        "health.py",
         "logger.py",
         "main.py",
         "models.py",

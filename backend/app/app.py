@@ -42,6 +42,9 @@ def App() -> Quart:
                          secure=False)
 
     logger.info('Registering blueprints')
+    from health import health_blueprint
+    app.register_blueprint(health_blueprint)
+
     from bookings import bp as bookings_blueprint
     app.register_blueprint(bookings_blueprint)
 

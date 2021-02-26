@@ -14,6 +14,7 @@ class ConfigCommon:
     # mysql process allows only local connections
     SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://raspimgmt:raspberrypi@localhost/raspimgmt?charset=utf8'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLALCHEMY_POOL_RECYCLE = 3600
 
 
 class ProductionConfig(ConfigCommon):

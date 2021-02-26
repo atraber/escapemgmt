@@ -7,6 +7,7 @@ load(
 load("@bazel_tools//tools/build_defs/pkg:pkg.bzl", "pkg_tar")
 load("@io_bazel_rules_docker//docker/package_managers:download_pkgs.bzl", "download_pkgs")
 load("@io_bazel_rules_docker//docker/package_managers:install_pkgs.bzl", "install_pkgs")
+load(":build_defs.bzl", "backend_push")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -36,13 +37,14 @@ container_image(
     ],
 )
 
-container_push(
+backend_push(
     name = "backend_push",
-    format = "Docker",
-    image = ":backend_image",
-    registry = "192.168.0.80:5000",
-    repository = "escape_backend",
     tag = "latest",
+)
+
+backend_push(
+    name = "backend_canary_push",
+    tag = "canary",
 )
 
 container_image(
