@@ -29,7 +29,7 @@ container_image(
         "-b",
         ":8080",
         "-w",
-        "10",
+        "2",
         "main:application",
     ],
     files = [

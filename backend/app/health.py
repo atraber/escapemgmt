@@ -12,8 +12,7 @@ health_blueprint = Blueprint('health', __name__)
 async def health():
     engine = db.engine
     engine.execute('SELECT 1;')
-    print('dialect name: {}'.format(db.session.bind.dialect.name))
-    if db.session.bind.dialect.name in ('postgresql', 'postgres'):
+    if db.session.bind.dialect.name == 'postgresql':
         result = engine.execute('SELECT pg_is_in_recovery();').first()[0]
         if result:
             logger.info('pg_is_in_recovery: {}'.format(result))
