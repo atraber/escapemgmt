@@ -18,26 +18,34 @@ async def apiBookings():
 @bp.route('/booking', methods=['POST'])
 async def apiBookingAdd():
     if request.headers['Content-Type'] == 'application/json':
-        json = await request.json
-        db_room = db.session.query(Room).filter_by(id=json['room_id']).first()
-        booking = Booking(
-            id=json['id'],
-            first_name=json['first_name'],
-            name=json['name'],
-            room=db_room,
-            slot_from=json['slot_from'],
-            slot_to=json['slot_to'],
-        )
-        db.session.add(booking)
-        db.session.commit()
+        try:
+            json = await request.json
+            db_room = db.session.query(Room).filter_by(
+                id=json['room_id']).first()
+            booking = Booking(
+                id=json['id'],
+                first_name=json['first_name'],
+                name=json['name'],
+                room=db_room,
+                slot_from=json['slot_from'],
+                slot_to=json['slot_to'],
+            )
+            db.session.add(booking)
+            db.session.commit()
+        except:
+            db.session.rollback()
+            raise
+        finally:
+            db.session.close()
         return jsonify(booking.serialize())
     abort(400)
 
 
 @bp.route('/bookings/<int:bookingid>', methods=['POST'])
 async def apiBookingUpdate(bookingid: int):
-    if request.method == 'POST':
-        if request.headers['Content-Type'] == 'application/json':
+    if request.method == 'POST' and request.headers[
+            'Content-Type'] == 'application/json':
+        try:
             data_json = await request.json
             db_room = db.session.query(Room).filter_by(
                 id=data_json['room_id']).first()
@@ -50,4 +58,9 @@ async def apiBookingUpdate(bookingid: int):
             db_booking.slot_to = data_json['slot_to']
             db.session.commit()
             return jsonify(db_booking.serialize())
+        except:
+            db.session.rollback()
+            raise
+        finally:
+            db.session.close()
     abort(400)

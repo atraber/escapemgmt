@@ -17,26 +17,44 @@ async def apiStreams():
 @streams.route('/stream', methods=['POST'])
 async def apiStreamAdd():
     if request.headers['Content-Type'] == 'application/json':
-        stream = Stream(name=(await request.json)['name'])
-        db.session.add(stream)
-        db.session.commit()
-        return jsonify(stream.serialize())
+        try:
+            stream = Stream(name=(await request.json)['name'])
+            db.session.add(stream)
+            db.session.commit()
+            return jsonify(stream.serialize())
+        except:
+            db.session.rollback()
+            raise
+        finally:
+            db.session.close()
     else:
         abort(400)
 
 
 @streams.route('/streams/<int:streamid>', methods=['POST', 'DELETE'])
 async def apiStreamUpdate(streamid: int):
-    if request.method == 'POST':
-        if request.headers['Content-Type'] == 'application/json':
+    if request.method == 'POST' and request.headers[
+            'Content-Type'] == 'application/json':
+        try:
             data_json = await request.json
             db_stream = db.session.query(Stream).filter_by(id=streamid).first()
             db_stream.name = data_json['name']
             db_stream.orientation = data_json['orientation']
             db.session.commit()
             return jsonify(db_stream.serialize())
-        abort(400)
+        except:
+            db.session.rollback()
+            raise
+        finally:
+            db.session.close()
     elif request.method == 'DELETE':
-        db.session.query(Stream).filter_by(id=streamid).delete()
-        db.session.commit()
-        return jsonify('ok')
+        try:
+            db.session.query(Stream).filter_by(id=streamid).delete()
+            db.session.commit()
+            return jsonify('ok')
+        except:
+            db.session.rollback()
+            raise
+        finally:
+            db.session.close()
+    abort(400)

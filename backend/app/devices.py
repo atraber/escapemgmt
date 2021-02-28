@@ -20,16 +20,21 @@ async def apiDevices():
 @devices.route('/device', methods=['POST'])
 async def apiDeviceAdd():
     if request.headers['Content-Type'] == 'application/json':
-        data_json = (await request.json)
-        device = Device(
-            name=data_json['name'],
-            mac=data_json['mac'],
-        )
-        db.session.add(device)
-        db.session.commit()
-    else:
-        abort(400)
-    return jsonify(device.serialize())
+        try:
+            data_json = (await request.json)
+            device = Device(
+                name=data_json['name'],
+                mac=data_json['mac'],
+            )
+            db.session.add(device)
+            db.session.commit()
+            return jsonify(device.serialize())
+        except:
+            db.session.rollback()
+            raise
+        finally:
+            db.session.close()
+    abort(400)
 
 
 def _FilterDeviceStreamsByPG(ds: List[DeviceStream],
@@ -113,8 +118,9 @@ def _JsonToDeviceStreams(data) -> List[DeviceStream]:
 
 @devices.route('/devices/<int:deviceid>', methods=['POST', 'DELETE'])
 async def apiDeviceUpdate(deviceid: int):
-    if request.method == 'POST':
-        if request.headers['Content-Type'] == 'application/json':
+    if request.method == 'POST' and request.headers[
+            'Content-Type'] == 'application/json':
+        try:
             data_json = await request.json
 
             db_device = db.session.query(Device).filter_by(id=deviceid).first()
@@ -149,37 +155,60 @@ async def apiDeviceUpdate(deviceid: int):
 
             db.session.commit()
             return jsonify('ok')
-        abort(400)
+        except:
+            db.session.rollback()
+            raise
+        finally:
+            db.session.close()
     elif request.method == 'DELETE':
-        db.session.query(Device).filter_by(id=deviceid).delete()
-        db.session.commit()
-        return jsonify('ok')
+        try:
+            db.session.query(Device).filter_by(id=deviceid).delete()
+            db.session.commit()
+            return jsonify('ok')
+        except:
+            db.session.rollback()
+            raise
+        finally:
+            db.session.close()
+    abort(400)
 
 
 @devices.route('/devices/screen_on', methods=['GET'])
 def apiDevicesScreenOn():
-    devices = db.session.query(Device).all()
+    try:
+        devices = db.session.query(Device).all()
 
-    for device in devices:
-        device.screen_enable = True
+        for device in devices:
+            device.screen_enable = True
 
-    db.session.commit()
-    return jsonify("ok")
+        db.session.commit()
+        return jsonify("ok")
+    except:
+        db.session.rollback()
+        raise
+    finally:
+        db.session.close()
 
 
 @devices.route('/devices/screen_off', methods=['GET'])
 def apiDevicesScreenOff():
-    devices = db.session.query(Device).all()
+    try:
+        devices = db.session.query(Device).all()
 
-    for device in devices:
-        if device.presetGroup:
-            if not device.presetGroup.hidden:
+        for device in devices:
+            if device.presetGroup:
+                if not device.presetGroup.hidden:
+                    device.screen_enable = False
+            else:
                 device.screen_enable = False
-        else:
-            device.screen_enable = False
 
-    db.session.commit()
-    return jsonify("ok")
+        db.session.commit()
+        return jsonify("ok")
+    except:
+        db.session.rollback()
+        raise
+    finally:
+        db.session.close()
 
 
 def numberToMac(n: int) -> str:
@@ -192,13 +221,19 @@ def numberToMac(n: int) -> str:
 
 @devices.route('/raspi/<int:mac>', methods=['GET'])
 def apiRaspi(mac: int):
-    mac_str = numberToMac(mac)
-    device = db.session.query(Device).filter_by(mac=mac_str).first()
+    try:
+        mac_str = numberToMac(mac)
+        device = db.session.query(Device).filter_by(mac=mac_str).first()
 
-    if device is None:
-        device = Device(name="Unknown", mac=mac_str)
-        db.session.add(device)
+        if device is None:
+            device = Device(name="Unknown", mac=mac_str)
+            db.session.add(device)
 
-    device.last_seen = int(datetime.now().timestamp())
-    db.session.commit()
-    return jsonify(device.serialize())
+        device.last_seen = int(datetime.now().timestamp())
+        db.session.commit()
+        return jsonify(device.serialize())
+    except:
+        db.session.rollback()
+        raise
+    finally:
+        db.session.close()

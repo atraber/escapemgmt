@@ -18,21 +18,27 @@ async def apiStreamViewAdd(stream_id: int):
         streamid: Stream to add view to. Type: int.
     """
     if request.headers['Content-Type'] == 'application/json':
-        data_json = await request.json
-        db_stream = db.session.query(Stream).filter_by(id=stream_id).first()
-        db_streamview = StreamView(
-            stream=db_stream,
-            url=data_json['url'],
-            crop_x1=data_json['crop_x1'],
-            crop_x2=data_json['crop_x2'],
-            crop_y1=data_json['crop_y1'],
-            crop_y2=data_json['crop_y2'],
-        )
-        db.session.add(db_streamview)
-        db.session.commit()
-        return jsonify(db_streamview.serialize())
-    else:
-        abort(400)
+        try:
+            data_json = await request.json
+            db_stream = db.session.query(Stream).filter_by(
+                id=stream_id).first()
+            db_streamview = StreamView(
+                stream=db_stream,
+                url=data_json['url'],
+                crop_x1=data_json['crop_x1'],
+                crop_x2=data_json['crop_x2'],
+                crop_y1=data_json['crop_y1'],
+                crop_y2=data_json['crop_y2'],
+            )
+            db.session.add(db_streamview)
+            db.session.commit()
+            return jsonify(db_streamview.serialize())
+        except:
+            db.session.rollback()
+            raise
+        finally:
+            db.session.close()
+    abort(400)
 
 
 @streamviews.route('/streamviews/<int:streamview_id>',
@@ -45,8 +51,9 @@ async def apiStreamViewUpdate(streamview_id: int):
     Args:
         streamviewid: Streamview to modify. Type: int.
     """
-    if request.method == 'POST':
-        if request.headers['Content-Type'] == 'application/json':
+    if request.method == 'POST' and request.headers[
+            'Content-Type'] == 'application/json':
+        try:
             data_json = await request.json
             db_streamview = db.session.query(StreamView).filter_by(
                 id=streamview_id).first()
@@ -57,8 +64,19 @@ async def apiStreamViewUpdate(streamview_id: int):
             db_streamview.crop_y2 = data_json['crop_y2']
             db.session.commit()
             return jsonify(db_streamview.serialize())
-        abort(400)
+        except:
+            db.session.rollback()
+            raise
+        finally:
+            db.session.close()
     elif request.method == 'DELETE':
-        db.session.query(StreamView).filter_by(id=streamview_id).delete()
-        db.session.commit()
-        return jsonify('ok')
+        try:
+            db.session.query(StreamView).filter_by(id=streamview_id).delete()
+            db.session.commit()
+            return jsonify('ok')
+        except:
+            db.session.rollback()
+            raise
+        finally:
+            db.session.close()
+    abort(400)

@@ -47,17 +47,23 @@ def minioUpload(data):
 @files.route('/file/upload', methods=['POST'])
 async def fileUpload():
     if 'multipart/form-data' in request.headers['Content-Type']:
-        files = await request.files
-        object_id = minioUpload(files['file'].read())
+        try:
+            files = await request.files
+            object_id = minioUpload(files['file'].read())
 
-        file_asset = File(
-            name=object_id,
-            content_type=files['file'].content_type,
-        )
-        db.session.add(file_asset)
-        db.session.commit()
+            file_asset = File(
+                name=object_id,
+                content_type=files['file'].content_type,
+            )
+            db.session.add(file_asset)
+            db.session.commit()
 
-        return jsonify(object_id)
+            return jsonify(object_id)
+        except:
+            db.session.rollback()
+            raise
+        finally:
+            db.session.close()
     abort(400)
 
 
